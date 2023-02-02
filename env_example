@@ -1,0 +1,5 @@
+LOG_DIR=logs_dir
+API_URL=https://httpbin.org/get
+MIN_VOLTAGE=21
+MAX_VOLTAGE=26
+INVERTER_CYCLE=Auto
