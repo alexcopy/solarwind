@@ -127,12 +127,10 @@ class SolarPond:
         logger.addHandler(log_handler)
         logger.setLevel(logging.DEBUG)
 
-        #to log errors messages
+        # to log errors messages
         error_log = logging.FileHandler(os.path.join(current_path, 'error.log'))
         error_log.setLevel(logging.ERROR)
         logger.addHandler(error_log)
-
-
 
     def read_vals(self):
         busvoltage1 = float(self.shunt_load.getBusVoltage_V(LIPO_BATTERY_CHANNEL))
@@ -349,6 +347,7 @@ class SolarPond:
             logging.error("-------------Something IS VERY Wrong pls check logs --------------")
             logging.error("-------------Switching to MAINS--------------")
             self.switch_to_main_power()
+
 
 if __name__ == '__main__':
     sp = SolarPond()
