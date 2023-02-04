@@ -43,10 +43,6 @@ GPIO.setup(INVER_RELAY, GPIO.OUT)
 GPIO.setup(INVER_CHECK, GPIO.IN)
 
 
-# GPIO.output(POND_RELAY, False) -- feed From Inventer
-# GPIO.output(POND_RELAY, True) -- feed From Mains
-
-
 def handler(signum, frame):
     print('Ctrl+Z pressed, but ignored')
     GPIO.cleanup()
@@ -105,12 +101,17 @@ class SolarPond:
 
     def pond_relay_on_off(self, on_off: str):
         on_off = on_off.upper()
+        if not on_off in ['INV', 'MAIN']:
+            logging.error("The  WRONG Signal to POND_RELAY SENT!!!!!  the signal is: %s " % on_off)
+            return GPIO.output(POND_RELAY, False)
+
         if on_off == 'INV':
             GPIO.output(POND_RELAY, False)
         elif on_off == 'MAIN':
             GPIO.output(POND_RELAY, True)
         else:
             logging.error("SOMETHING IS WRONG !!!!!  the signal is: %s " % on_off)
+        return GPIO.output(POND_RELAY, False)
 
     def conf_logger(self):
         log_name = time.strftime("%d_%m_%Y")
@@ -186,14 +187,18 @@ class SolarPond:
 
     def inverter_switch(self, on_off: str):
         on_off = on_off.upper()
+        if not on_off in ['ON', 'OFF']:
+            logging.error("The  WRONG Signal to INVERTER SWITCH SENT!!!!!  the signal is: %s " % on_off)
+            return GPIO.input(INVER_CHECK)
+
         status = GPIO.input(INVER_CHECK)
         if on_off == 'ON' and status == 1:
             return 1
         if on_off == 'OFF' and status == 0:
             return 0
-        time.sleep(.4)
+        time.sleep(.5)
         GPIO.output(INVER_RELAY, True)
-        time.sleep(.2)
+        time.sleep(.5)
         GPIO.output(INVER_RELAY, False)
         return GPIO.input(INVER_CHECK)
 
@@ -257,6 +262,9 @@ class SolarPond:
         logging.info("AVG 1h  Battery Current 1:  %3.2f mA" % self.avg(self.FILO_BUFF['1h_bat_current']))
         logging.info("AVG 1h  Converter Current 3:  %3.2f mA" % self.avg(self.FILO_BUFF['1h_converter_current']))
         logging.info("AVG 1h   Solar Current:  %3.2f mA" % self.avg(self.FILO_BUFF['1h_solar_current']))
+        logging.info("--------------------------------------------")
+        logging.info(" AVG 10 min Solar Wattage is: %3.2f  " % self.avg(self.FILO_BUFF['10m_bat_voltage']) * self.avg(
+            self.FILO_BUFF['10m_solar_current']))
         logging.info(" Inverter Status is: %d  " % GPIO.input(INVER_CHECK))
         logging.info("############################################")
         logging.info("--------------------------------------------")
@@ -291,7 +299,6 @@ class SolarPond:
             if self.avg(self.FILO_BUFF['bat_voltage']) > SWITCH_ON_VOLT and len(self.FILO_BUFF['bat_voltage']) > 30:
                 self.switch_to_solar_power()
                 self.send_avg_data()
-
             self.integrity_check()
 
         except Exception as ex:
@@ -323,20 +330,18 @@ class SolarPond:
         reed.start()
         # reed.shutdown()
 
-        # todo check here
+        # logical XOR in case of to equal states. Inverter is ON when GPIO.input(INVER_CHECK) == 1
+        # so in this case GPIO.input(POND_RELAY) should be in 0 meaning we're working from battery and vice versa
+        # in case  we're working from mains Inverter should be in state GPIO.input(INVER_CHECK) == 0 and POND_RELAY
+        # state should be 1 which mean relay isn't switched.
 
     def integrity_check(self):
-        pass
-        # #  if pond relay is 1 (True) - rabotaet ot seti oshibka esli
-        # #
-        # #
-        # #
-        # pond_relay = GPIO.input(POND_RELAY)
-        # inverter = GPIO.input(INVER_CHECK)
-        # if pond_relay == 0 and inverter == 1:
-        #     self.solar_power_on_off('ON')
-        # if pond_relay == 1 and inverter == 0:
-        #     self.switch_to_main_power()
+        status = GPIO.input(POND_RELAY) ^ GPIO.input(INVER_CHECK)
+
+        if status == 0:
+            logging.info("-------------Something IS VERY Wrong pls check logs --------------")
+            logging.info("-------------Switching to MAINS--------------")
+            self.switch_to_main_power()
 
 
 if __name__ == '__main__':
