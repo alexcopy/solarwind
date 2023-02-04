@@ -56,7 +56,6 @@ class SolarPond:
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.shunt_bat = 0.00159
         self.conf_logger()
-        self.log_filename = ''
 
         self.FILO_BUFF = {
             'converter_current': [],
@@ -115,9 +114,9 @@ class SolarPond:
         return GPIO.output(POND_RELAY, True)
 
     def conf_logger(self):
+        current_path = Path(LOG_DIR)
         log_name = time.strftime("%d_%m_%Y")
-        filename = Path(LOG_DIR).joinpath(f'{log_name}.log')
-        self.log_filename = filename
+        filename = current_path.joinpath(f'{log_name}.log')
         log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=6291456, backupCount=10)
         formatter = logging.Formatter(
             '%(asctime)s program_name [%(process)d]: %(message)s',
@@ -127,6 +126,13 @@ class SolarPond:
         logger = logging.getLogger()
         logger.addHandler(log_handler)
         logger.setLevel(logging.DEBUG)
+
+        #to log errors messages
+        error_log = logging.FileHandler(os.path.join(current_path, 'error.log'))
+        error_log.setLevel(logging.ERROR)
+        logger.addHandler(error_log)
+
+
 
     def read_vals(self):
         busvoltage1 = float(self.shunt_load.getBusVoltage_V(LIPO_BATTERY_CHANNEL))
@@ -340,11 +346,9 @@ class SolarPond:
         status = GPIO.input(POND_RELAY) ^ GPIO.input(INVER_CHECK)
 
         if status == 0:
-            logging.info("-------------Something IS VERY Wrong pls check logs --------------")
-            logging.info("-------------Switching to MAINS--------------")
+            logging.error("-------------Something IS VERY Wrong pls check logs --------------")
+            logging.error("-------------Switching to MAINS--------------")
             self.switch_to_main_power()
-
-
 
 if __name__ == '__main__':
     sp = SolarPond()
