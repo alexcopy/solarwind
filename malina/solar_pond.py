@@ -78,7 +78,7 @@ class SolarPond:
     def avg(self, l):
         if len(l) == 0:
             return 0
-        return sum(l, 0.0) / len(l)
+        return float(round(sum(l, 0.0) / len(l), 2))
 
     def switch_to_solar_power(self):
         self.inverter_switch('ON')
@@ -88,6 +88,7 @@ class SolarPond:
         if inverter_state == 1:
             self.pond_relay_on_off('INV')
         else:
+            self.switch_to_main_power()
             logging.error("CANNOT SWITCH ON THE INVERTER PLS CHECK  !!!!!  the signal is: %d " % inverter_state)
 
     def switch_to_main_power(self):
@@ -95,23 +96,23 @@ class SolarPond:
         time.sleep(2)
         inverter_state = self.inverter_switch('OFF')
         if inverter_state == 0:
-            self.pond_relay_on_off('MAIN')
+            logging.info("All good Inverter has been switched off successfully: %d " % inverter_state)
         else:
             logging.error("CANNOT SWITCH OFF THE INVERTER PLS CHECK  !!!!!  the signal is: %d " % inverter_state)
+        self.pond_relay_on_off('MAIN')
 
     def pond_relay_on_off(self, on_off: str):
         on_off = on_off.upper()
-        if not on_off in ['INV', 'MAIN']:
+        if on_off not in ['INV', 'MAIN']:
             logging.error("The  WRONG Signal to POND_RELAY SENT!!!!!  the signal is: %s " % on_off)
-            return GPIO.output(POND_RELAY, False)
-
+            return GPIO.output(POND_RELAY, True)
         if on_off == 'INV':
-            GPIO.output(POND_RELAY, False)
+            return GPIO.output(POND_RELAY, False)
         elif on_off == 'MAIN':
-            GPIO.output(POND_RELAY, True)
+            return GPIO.output(POND_RELAY, True)
         else:
             logging.error("SOMETHING IS WRONG !!!!!  the signal is: %s " % on_off)
-        return GPIO.output(POND_RELAY, False)
+        return GPIO.output(POND_RELAY, True)
 
     def conf_logger(self):
         log_name = time.strftime("%d_%m_%Y")
@@ -263,8 +264,8 @@ class SolarPond:
         logging.info("AVG 1h  Converter Current 3:  %3.2f mA" % self.avg(self.FILO_BUFF['1h_converter_current']))
         logging.info("AVG 1h   Solar Current:  %3.2f mA" % self.avg(self.FILO_BUFF['1h_solar_current']))
         logging.info("--------------------------------------------")
-        logging.info(" AVG 10 min Solar Wattage is: %3.2f  " % self.avg(self.FILO_BUFF['10m_bat_voltage']) * self.avg(
-            self.FILO_BUFF['10m_solar_current']))
+        wattage = (self.avg(self.FILO_BUFF['10m_bat_voltage']) * self.avg(self.FILO_BUFF['10m_solar_current'])) / 1000
+        logging.info(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
         logging.info(" Inverter Status is: %d  " % GPIO.input(INVER_CHECK))
         logging.info("############################################")
         logging.info("--------------------------------------------")
@@ -342,6 +343,7 @@ class SolarPond:
             logging.info("-------------Something IS VERY Wrong pls check logs --------------")
             logging.info("-------------Switching to MAINS--------------")
             self.switch_to_main_power()
+
 
 
 if __name__ == '__main__':
