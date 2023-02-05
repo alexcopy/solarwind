@@ -129,6 +129,7 @@ class SolarPond:
 
         # to log errors messages
         error_log = logging.FileHandler(os.path.join(current_path, 'error.log'))
+        error_log.setFormatter(formatter)
         error_log.setLevel(logging.ERROR)
         logger.addHandler(error_log)
 
