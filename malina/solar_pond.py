@@ -145,9 +145,10 @@ class SolarPond:
     def read_vals(self):
         busvoltage1 = float(self.shunt_load.getBusVoltage_V(LIPO_BATTERY_CHANNEL))
         shuntvoltage1 = float(self.shunt_load.getShuntVoltage_mV(LIPO_BATTERY_CHANNEL))
-        bat_current = float(self.shunt_load.getCurrent_mA(LIPO_BATTERY_CHANNEL, self.shunt_bat))
+        bat_current = float(self.shunt_load.getCurrent_mA(LIPO_BATTERY_CHANNEL, self.shunt_bat)) - 350
         bat_voltage = float(busvoltage1 + (shuntvoltage1 / 1000))
         converter_current = float(self.shunt_load.getCurrent_mA(OUTPUT_CHANNEL, self.shunt_bat))
+
         if abs(bat_current) < 200:
             bat_current = 0
 
@@ -312,7 +313,7 @@ class SolarPond:
                 self.switch_to_solar_power()
 
             # converter switch OFF
-            if self.avg(self.FILO_BUFF['bat_voltage']) < CUT_OFF_VOLT and len(self.FILO_BUFF['bat_voltage']) > 30:
+            if self.avg(self.FILO_BUFF['bat_voltage']) < CUT_OFF_VOLT and len(self.FILO_BUFF['bat_voltage']) > 15:
                 self.switch_to_main_power()
                 self.send_avg_data()
 
@@ -326,15 +327,21 @@ class SolarPond:
             logging.warning(ex)
 
     def filter_flush_run(self):
-        cc = self.FIFO_BUFF['converter_current']
+        now_cc = self.FIFO_BUFF['converter_current']
+        avg_cc = self.avg(self.FILO_BUFF['converter_current'])
+        cc_size = len(self.FILO_BUFF['converter_current'])
         timestamp = int(time.time())
-        if abs(cc) > 11000:
-            self.FILTER_FLUSH.append(cc)
+        if abs(now_cc - avg_cc) > 8000 and cc_size > 30:
+            self.FILTER_FLUSH.append(now_cc)
         else:
-            if len(self.FILTER_FLUSH) > 0:
+            if len(self.FILTER_FLUSH) > 5:
                 self.send_ff_data('converter_current')
             self.FILTER_FLUSH = []
         return timestamp
+
+    def reset_ff(self):
+        if len(self.FILTER_FLUSH) < 5:
+            self.FILTER_FLUSH = []
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
@@ -362,8 +369,10 @@ class SolarPond:
             GPIO.input(INVER_CHECK)
             logging.error("-------------Something IS VERY Wrong pls check logs -----------------")
             logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
-            logging.error("-------------Switching to POND RELAY status is: %d ------------------" % GPIO.input(POND_RELAY))
-            logging.error("-------------Switching to INVERTER RELAY status is: %d --------------" % GPIO.input(INVER_CHECK))
+            logging.error(
+                "-------------Switching to POND RELAY status is: %d ------------------" % GPIO.input(POND_RELAY))
+            logging.error(
+                "-------------Switching to INVERTER RELAY status is: %d --------------" % GPIO.input(INVER_CHECK))
             logging.error("---------------------------------------------------------------------")
             self.switch_to_main_power()
 
@@ -372,5 +381,8 @@ if __name__ == '__main__':
     sp = SolarPond()
     sp.run_read_vals()
     while True:
+        timestamp = int(time.time())
         time.sleep(TIME_TIK)
         sp.processing_reads()
+        if timestamp % 120 == 0:
+            sp.reset_ff()
