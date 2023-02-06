@@ -145,7 +145,7 @@ class SolarPond:
     def read_vals(self):
         busvoltage1 = float(self.shunt_load.getBusVoltage_V(LIPO_BATTERY_CHANNEL))
         shuntvoltage1 = float(self.shunt_load.getShuntVoltage_mV(LIPO_BATTERY_CHANNEL))
-        bat_current = float(self.shunt_load.getCurrent_mA(LIPO_BATTERY_CHANNEL, self.shunt_bat)) - 350
+        bat_current = float(self.shunt_load.getCurrent_mA(LIPO_BATTERY_CHANNEL, self.shunt_bat)) - 340
         bat_voltage = float(busvoltage1 + (shuntvoltage1 / 1000))
         converter_current = float(self.shunt_load.getCurrent_mA(OUTPUT_CHANNEL, self.shunt_bat))
 
