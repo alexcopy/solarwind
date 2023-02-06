@@ -62,6 +62,7 @@ class SolarPond:
             'bat_voltage': [],
             'bat_current': [],
             'solar_current': [],
+            'status_check': [],
             '10m_converter_current': [],
             '10m_bat_voltage': [],
             '10m_bat_current': [],
@@ -89,6 +90,7 @@ class SolarPond:
         else:
             self.switch_to_main_power()
             logging.error("CANNOT SWITCH ON THE INVERTER PLS CHECK  !!!!!  the signal is: %d " % inverter_state)
+        return self.status_check
 
     def switch_to_main_power(self):
         self.inverter_switch('OFF')
@@ -98,7 +100,14 @@ class SolarPond:
             logging.info("All good Inverter has been switched off successfully: %d " % inverter_state)
         else:
             logging.error("CANNOT SWITCH OFF THE INVERTER PLS CHECK  !!!!!  the signal is: %d " % inverter_state)
+
+        logging.info("All good Switching to main power: %d " % inverter_state)
         self.pond_relay_on_off('MAIN')
+        return self.status_check
+
+    @property
+    def status_check(self):
+        return GPIO.input(POND_RELAY) ^ GPIO.input(INVER_CHECK)
 
     def pond_relay_on_off(self, on_off: str):
         on_off = on_off.upper()
@@ -115,7 +124,7 @@ class SolarPond:
 
     def conf_logger(self):
         current_path = Path(LOG_DIR)
-        log_name = time.strftime("%d_%m_%Y")
+        log_name = time.strftime("info")
         filename = current_path.joinpath(f'{log_name}.log')
         log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=6291456, backupCount=10)
         formatter = logging.Formatter(
@@ -157,6 +166,7 @@ class SolarPond:
         self.FILO_BUFF['bat_current'].append(round(bat_current, 2))
         self.FILO_BUFF['converter_current'].append(round(converter_current, 2))
         self.FILO_BUFF['solar_current'].append(round(solar_current, 2))
+        self.FILO_BUFF['status_check'].append(self.status_check),
 
     def update_filo_buffer(self):
         timestamp = int(time.time())
@@ -202,11 +212,14 @@ class SolarPond:
             return 1
         if on_off == 'OFF' and status == 0:
             return 0
+        self.inverter_on_off()
+        return GPIO.input(INVER_CHECK)
+
+    def inverter_on_off(self):
         time.sleep(.5)
         GPIO.output(INVER_RELAY, True)
         time.sleep(.5)
         GPIO.output(INVER_RELAY, False)
-        return GPIO.input(INVER_CHECK)
 
     def send_ff_data(self, shunt_name: str):
         payload = json.dumps({
@@ -278,6 +291,7 @@ class SolarPond:
         print("")
 
     def printing_vars(self):
+        wattage = (self.avg(self.FILO_BUFF['10m_bat_voltage']) * self.avg(self.FILO_BUFF['10m_solar_current'])) / 1000
         print("")
         print("--------------------------------------------")
         print("Bus Voltage: %3.2f V " % self.FIFO_BUFF['busvoltage1'])
@@ -287,6 +301,7 @@ class SolarPond:
         print("Converter Current 3:  %3.2f mA" % self.FIFO_BUFF['converter_current'])
         print("Solar Current:  %3.2f mA" % self.FIFO_BUFF['solar_current'])
         print("")
+        print(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
         print(" Inverter Status is: %d  " % GPIO.input(INVER_CHECK))
         print("############################################")
 
@@ -342,11 +357,14 @@ class SolarPond:
         # state should be 1 which mean relay isn't switched.
 
     def integrity_check(self):
-        status = GPIO.input(POND_RELAY) ^ GPIO.input(INVER_CHECK)
-
-        if status == 0:
-            logging.error("-------------Something IS VERY Wrong pls check logs --------------")
-            logging.error("-------------Switching to MAINS--------------")
+        avg_status = self.avg(self.FILO_BUFF['status_check'])
+        if avg_status < 0.5:
+            GPIO.input(INVER_CHECK)
+            logging.error("-------------Something IS VERY Wrong pls check logs -----------------")
+            logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
+            logging.error("-------------Switching to POND RELAY status is: %d ------------------" % GPIO.input(POND_RELAY))
+            logging.error("-------------Switching to INVERTER RELAY status is: %d --------------" % GPIO.input(INVER_CHECK))
+            logging.error("---------------------------------------------------------------------")
             self.switch_to_main_power()
 
 
