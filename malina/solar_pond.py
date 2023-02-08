@@ -10,6 +10,9 @@ import json
 from dotenv import dotenv_values
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from malina.LIB import PondPumpAuto
+from malina.LIB.PrintLogs import SolarLogging
+
 try:
     importlib.util.find_spec('RPi.GPIO')
     import RPi.GPIO as GPIO
@@ -49,13 +52,15 @@ def handler(signum, frame):
     os.system('kill -STOP %d' % os.getpid())
 
 
-class SolarPond:
+class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
         self.FIFO_BUFF = {}
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.shunt_bat = 0.00159
         self.conf_logger()
+        self.print_logs = SolarLogging(logging)
+        self.automation = PondPumpAuto.PondPumpAuto()
 
         self.FILO_BUFF = {
             'converter_current': [],
@@ -192,13 +197,16 @@ class SolarPond:
 
     def processing_reads(self):
         try:
+            wattage = (self.avg(self.FILO_BUFF['10m_bat_voltage']) * self.avg(
+                self.FILO_BUFF['10m_solar_current'])) / 1000
+            inv_status = GPIO.input(INVER_CHECK)
             self.cleanup_filo()
             self.read_vals()
             self.update_filo_buffer()
             self.filter_flush_run()
             self.cleanup_filo()
-            self.printing_vars()
-            self.log_run()
+            self.print_logs.printing_vars(self.FIFO_BUFF, inv_status, wattage)
+            self.print_logs.log_run(self.FILO_BUFF, inv_status, wattage)
         except Exception as ex:
             logging.warning(ex)
 
@@ -232,7 +240,7 @@ class SolarPond:
         self.send_to_remote(url_path, payload)
 
     def send_to_remote(self, url_path, payload):
-        self._loger_remote(url_path)
+        self.print_logs.loger_remote(url_path)
         headers = {
             'Content-Type': 'application/json'
         }
@@ -261,51 +269,6 @@ class SolarPond:
             url_path = "%ssolarpower" % API_URL
             self.send_to_remote(url_path, payload)
 
-    def _loger_remote(self, url_path):
-        logging.info("------------SENDING TO REMOTE--------------")
-        logging.info(url_path)
-        logging.info("--------------------------------------------")
-
-    def log_run(self):
-        logging.info("--------------------------------------------")
-        logging.info("AVG Battery Voltage:  %3.2f V" % self.avg(self.FILO_BUFF['bat_voltage']))
-        logging.info("AVG Battery Current 1:  %3.2f mA" % self.avg(self.FILO_BUFF['bat_current']))
-        logging.info("AVG Converter Current 3:  %3.2f mA" % self.avg(self.FILO_BUFF['converter_current']))
-        logging.info("AVG  Solar Current:  %3.2f mA" % self.avg(self.FILO_BUFF['solar_current']))
-        logging.info("--------------------------------------------")
-        logging.info("AVG 10m Battery Voltage:  %3.2f V" % self.avg(self.FILO_BUFF['10m_bat_voltage']))
-        logging.info("AVG 10m Battery Current 1:  %3.2f mA" % self.avg(self.FILO_BUFF['10m_bat_current']))
-        logging.info("AVG 10m Converter Current 3:  %3.2f mA" % self.avg(self.FILO_BUFF['10m_converter_current']))
-        logging.info("AVG 10m  Solar Current:  %3.2f mA" % self.avg(self.FILO_BUFF['10m_solar_current']))
-        logging.info("--------------------------------------------")
-        logging.info("AVG 1h  Battery Voltage:  %3.2f V" % self.avg(self.FILO_BUFF['1h_bat_voltage']))
-        logging.info("AVG 1h  Battery Current 1:  %3.2f mA" % self.avg(self.FILO_BUFF['1h_bat_current']))
-        logging.info("AVG 1h  Converter Current 3:  %3.2f mA" % self.avg(self.FILO_BUFF['1h_converter_current']))
-        logging.info("AVG 1h   Solar Current:  %3.2f mA" % self.avg(self.FILO_BUFF['1h_solar_current']))
-        logging.info("--------------------------------------------")
-        wattage = (self.avg(self.FILO_BUFF['10m_bat_voltage']) * self.avg(self.FILO_BUFF['10m_solar_current'])) / 1000
-        logging.info(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
-        logging.info(" Inverter Status is: %d  " % GPIO.input(INVER_CHECK))
-        logging.info("############################################")
-        logging.info("--------------------------------------------")
-        print("--------------------------------------------")
-        print("")
-
-    def printing_vars(self):
-        wattage = (self.avg(self.FILO_BUFF['10m_bat_voltage']) * self.avg(self.FILO_BUFF['10m_solar_current'])) / 1000
-        print("")
-        print("--------------------------------------------")
-        print("Bus Voltage: %3.2f V " % self.FIFO_BUFF['busvoltage1'])
-        print("Bat Voltage: %3.2f V " % self.FIFO_BUFF['bat_voltage'])
-        print("SHUNT  Voltage: %3.2f V " % self.FIFO_BUFF['busvoltage1'])
-        print("Battery Current 1:  %3.2f mA" % self.FIFO_BUFF['bat_current'])
-        print("Converter Current 3:  %3.2f mA" % self.FIFO_BUFF['converter_current'])
-        print("Solar Current:  %3.2f mA" % self.FIFO_BUFF['solar_current'])
-        print("")
-        print(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
-        print(" Inverter Status is: %d  " % GPIO.input(INVER_CHECK))
-        print("############################################")
-
     def inverter_run(self):
         try:
 
@@ -328,10 +291,10 @@ class SolarPond:
 
     def filter_flush_run(self):
         now_cc = self.FIFO_BUFF['converter_current']
-        avg_cc = self.avg(self.FILO_BUFF['converter_current'])
-        cc_size = len(self.FILO_BUFF['converter_current'])
+        avg_cc = self.avg(self.FILO_BUFF['10m_converter_current'])
+        cc_size = len(self.FILO_BUFF['10m_converter_current'])
         timestamp = int(time.time())
-        if abs(now_cc - avg_cc) > 8000 and cc_size > 30:
+        if abs(now_cc - avg_cc) > 5000 and cc_size > 10:
             self.FILTER_FLUSH.append(now_cc)
         else:
             if len(self.FILTER_FLUSH) > 5:
@@ -342,6 +305,10 @@ class SolarPond:
     def reset_ff(self):
         if len(self.FILTER_FLUSH) < 5:
             self.FILTER_FLUSH = []
+
+    def send_pump_stats(self):
+        relay_status = not int(GPIO.input(POND_RELAY))
+        self.automation.send_pond_stats(relay_status)
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
@@ -354,6 +321,7 @@ class SolarPond:
             send_time_slot = 1800
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
+        reed.add_job(self.send_pump_stats, 'interval', seconds=300)
         reed.add_job(self.inverter_run, 'interval', seconds=inv_time_slot)
         reed.start()
         # reed.shutdown()
@@ -384,5 +352,5 @@ if __name__ == '__main__':
         timestamp = int(time.time())
         time.sleep(TIME_TIK)
         sp.processing_reads()
-        if timestamp % 120 == 0:
+        if timestamp % 600 == 0:
             sp.reset_ff()
