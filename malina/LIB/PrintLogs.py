@@ -20,7 +20,7 @@ class SolarLogging:
         self.logging.info(url_path)
         self.logging.info("--------------------------------------------")
 
-    def log_run(self, filo_buffer, invert_status, wattage):
+    def log_run(self, filo_buffer, invert_status, wattage, pump_status):
         self.logging.info("--------------------------------------------")
         self.logging.info("AVG Battery Voltage:  %3.2f V" % self.avg(filo_buffer['bat_voltage']))
         self.logging.info("AVG Battery Current 1:  %3.2f mA" % self.avg(filo_buffer['bat_current']))
@@ -38,13 +38,14 @@ class SolarLogging:
         self.logging.info("AVG 1h   Solar Current:  %3.2f mA" % self.avg(filo_buffer['1h_solar_current']))
         self.logging.info("--------------------------------------------")
         self.logging.info(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
+        self.logging.info(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         self.logging.info(" Inverter Status is: %d  " % invert_status)
         self.logging.info("############################################")
         self.logging.info("--------------------------------------------")
         print("--------------------------------------------")
         print("")
 
-    def printing_vars(self, fifo_buffer, inverter_status, wattage):
+    def printing_vars(self, fifo_buffer, inverter_status, wattage,  pump_status):
         print("")
         print("--------------------------------------------")
         print("Bus Voltage: %3.2f V " % fifo_buffer['busvoltage1'])
@@ -56,4 +57,5 @@ class SolarLogging:
         print("")
         print(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
         print(" Inverter Status is: %d  " % inverter_status)
+        print(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         print("############################################")

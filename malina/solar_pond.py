@@ -208,8 +208,8 @@ class SolarPond():
             self.update_filo_buffer()
             self.filter_flush_run()
             self.cleanup_filo()
-            self.print_logs.printing_vars(self.FIFO_BUFF, inv_status, wattage)
-            self.print_logs.log_run(self.FILO_BUFF, inv_status, wattage)
+            self.print_logs.printing_vars(self.FIFO_BUFF, inv_status, wattage, self.pump_status)
+            self.print_logs.log_run(self.FILO_BUFF, inv_status, wattage, self.pump_status)
         except Exception as ex:
             logging.warning(ex)
 
@@ -286,7 +286,7 @@ class SolarPond():
             self.send_to_remote(url_path, payload)
 
     def load_checks(self):
-        self. inverter_run()
+        self.inverter_run()
         self.adjust_pump_speed()
 
     def inverter_run(self):
