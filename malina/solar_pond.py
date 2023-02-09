@@ -10,8 +10,8 @@ import json
 from dotenv import dotenv_values
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from malina.LIB import PondPumpAuto
-from malina.LIB.PrintLogs import SolarLogging
+from LIB import PondPumpAuto
+from LIB.PrintLogs import SolarLogging
 
 try:
     importlib.util.find_spec('RPi.GPIO')
@@ -307,8 +307,8 @@ class SolarPond():
             self.FILTER_FLUSH = []
 
     def send_pump_stats(self):
-        relay_status = not int(GPIO.input(POND_RELAY))
-        self.automation.send_pond_stats(relay_status)
+        relay_status = int(GPIO.input(POND_RELAY))
+        self.automation.send_pond_stats(not relay_status)
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
