@@ -36,6 +36,8 @@ MIN_POND_SPEED = 10
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 API_URL = config["API_URL"]
+MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
+MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 
 OUTPUT_CHANNEL = 1
@@ -239,9 +241,9 @@ class SolarPond():
         if self.avg(self.FILO_BUFF['main_relay_status']) > 0.7:
             return self.decrease_pump_speed(100)
 
-        if volt_avg > 26.5:
+        if volt_avg > MAX_BAT_VOLT:
             return self.increase_pump_speed(POND_SPEED_STEP)
-        if volt_avg < 25.5:
+        if volt_avg < MIN_BAT_VOLT:
             return self.decrease_pump_speed(POND_SPEED_STEP)
 
     def inverter_on_off(self):
