@@ -5,6 +5,8 @@ tx*
 *.xml
 *.temp
 *.test
+*.log
 .env
 nohup.out
 .idea
+logs/*.*

@@ -1,4 +1,5 @@
-from INA3221 import SDL_Pi_INA3221
+#!/usr/bin/env python
+from malina.INA3221 import SDL_Pi_INA3221
 import importlib.util
 import time
 from pathlib import Path
@@ -30,6 +31,7 @@ INVER_CHECK = 15
 CYCLE_COUNTER = 1
 CUT_OFF_VOLT = 21
 SWITCH_ON_VOLT = 26
+MIN_POND_SPEED = 5
 
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
@@ -60,7 +62,8 @@ class SolarPond():
         self.shunt_bat = 0.00159
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
-        self.automation = PondPumpAuto.PondPumpAuto()
+        self.automation = PondPumpAuto.PondPumpAuto(logging)
+        self.pump_status = self.automation.get_pump_status()
 
         self.FILO_BUFF = {
             'converter_current': [],
@@ -224,6 +227,19 @@ class SolarPond():
         self.inverter_on_off()
         return GPIO.input(INVER_CHECK)
 
+    def adjust_pump_speed(self):
+        step = 5
+        buffer_size = len(self.FILO_BUFF['bat_voltage'])
+        if buffer_size < 15:
+            logging.info(" ----It's too early to adjust %d pump_speed please wait until length over 15" % buffer_size)
+            return 0
+        volt_avg = self.avg(self.FILO_BUFF['bat_voltage'])
+
+        if volt_avg > 26.5:
+            return self.increase_pump_speed(step)
+        if volt_avg < 24:
+            return self.decrease_pump_speed(step)
+
     def inverter_on_off(self):
         time.sleep(.5)
         GPIO.output(INVER_RELAY, True)
@@ -269,9 +285,12 @@ class SolarPond():
             url_path = "%ssolarpower" % API_URL
             self.send_to_remote(url_path, payload)
 
+    def load_checks(self):
+        self. inverter_run()
+        self.adjust_pump_speed()
+
     def inverter_run(self):
         try:
-
             if time.strftime("%H:%M") == '12:00':
                 self.switch_to_solar_power()
 
@@ -314,7 +333,7 @@ class SolarPond():
         reed = BackgroundScheduler()
         hour = int(time.strftime("%H"))
         send_time_slot = 600
-        inv_time_slot = 30
+        load_time_slot = 30
 
         # Don't need to send stats overnight
         if hour > 21 or hour < 5:
@@ -322,7 +341,7 @@ class SolarPond():
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
         reed.add_job(self.send_pump_stats, 'interval', seconds=300)
-        reed.add_job(self.inverter_run, 'interval', seconds=inv_time_slot)
+        reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
         # reed.shutdown()
 
@@ -344,3 +363,23 @@ class SolarPond():
             logging.error("---------------------------------------------------------------------")
             self.switch_to_main_power()
 
+    def increase_pump_speed(self, step):
+        flow_speed = self.pump_status['flow_speed']
+        new_speed = flow_speed + step
+
+        if flow_speed > 95:
+            return True
+        if new_speed > 100:
+            new_speed = 100
+        self.pump_status = self.automation.adjust_pump_speed(new_speed)
+        return True
+
+    def decrease_pump_speed(self, step):
+        flow_speed = self.pump_status['flow_speed']
+        new_speed = flow_speed - step
+        if flow_speed == MIN_POND_SPEED:
+            return True
+        if new_speed < MIN_POND_SPEED:
+            new_speed = MIN_POND_SPEED
+        self.pump_status = self.automation.adjust_pump_speed(new_speed)
+        return True

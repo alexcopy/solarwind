@@ -46,28 +46,28 @@ openmq = TuyaOpenMQ(openapi)
 # Update device status
 deviceManager = TuyaDeviceManager(openapi, openmq)
 
-homeManager = TuyaHomeManager(openapi, openmq, deviceManager)
-homeManager.update_device_cache()
+# homeManager = TuyaHomeManager(openapi, openmq, deviceManager)
+# homeManager.update_device_cache()
 
 
 # # deviceManager.updateDeviceCaches(devIds)
 # device = deviceManager.deviceMap.get(DEVICE_ID)
 
 
-class tuyaDeviceListener(TuyaDeviceListener):
-    def update_device(self, device: TuyaDevice):
-        print("_update-->", '')
-
-    # def add_device(self, device: TuyaDevice):
-    #     print("_add-->", device)
-    #
-    # def remove_device(self, device_id: str):
-    #     pass
-
-
-# deviceManager.add_device_listener(tuyaDeviceListener())
-
-print('status: ', deviceManager.get_device_status(DEVICE_ID))
+# class tuyaDeviceListener(TuyaDeviceListener):
+#     def update_device(self, device: TuyaDevice):
+#         print("_update-->", '')
+#
+#     # def add_device(self, device: TuyaDevice):
+#     #     print("_add-->", device)
+#     #
+#     # def remove_device(self, device_id: str):
+#     #     pass
+#
+#
+# # deviceManager.add_device_listener(tuyaDeviceListener())
+#
+# print('status: ', deviceManager.get_device_status(DEVICE_ID))
 
 # Turn on the light
 # deviceManager.sendCommands(device.id, [{'code': 'switch_led', 'value': True}])
@@ -79,14 +79,17 @@ print('status: ', deviceManager.get_device_status(DEVICE_ID))
 # time.sleep(1)
 # print('status: ', device.status)
 
-command = {
-    "commands": [
-        {
-            "code": "P",
-            "value": 8
-        }
-    ]
-}
+command = [
+    {
+        "code": "P",
+        "value": 120
+    }
+]
+res = deviceManager.send_commands(DEVICE_ID, command)
+
+print(res)
+
+
 
 # flag = True
 # while True:
