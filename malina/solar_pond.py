@@ -177,6 +177,7 @@ class SolarPond():
         self.FILO_BUFF['converter_current'].append(round(converter_current, 2))
         self.FILO_BUFF['solar_current'].append(round(solar_current, 2))
         self.FILO_BUFF['status_check'].append(self.status_check),
+        self.FILO_BUFF['main_relay_status'].append(GPIO.input(POND_RELAY)),
 
     def update_filo_buffer(self):
         timestamp = int(time.time())
@@ -235,8 +236,7 @@ class SolarPond():
             return 0
         volt_avg = self.avg(self.FILO_BUFF['bat_voltage'])
 
-        # TODO add average value to buffer in case of reading error
-        if GPIO.input(POND_RELAY) == 1:
+        if self.avg(self.FILO_BUFF['main_relay_status']) > 0.7:
             return self.decrease_pump_speed(100)
 
         if volt_avg > 26.5:
@@ -328,7 +328,8 @@ class SolarPond():
     def reset_ff(self):
         if len(self.FILTER_FLUSH) < 5:
             self.FILTER_FLUSH = []
-# todo check for error in pump_status
+
+    # todo check for error in pump_status
     def send_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
         self.pump_status = self.automation.get_pump_status()
