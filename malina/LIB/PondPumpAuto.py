@@ -43,9 +43,9 @@ class PondPumpAuto():
         self.openapi.connect(USERNAME, PASSWORD)
         self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
 
-    def send_pond_stats(self, is_working_mains: int):
+    def send_pond_stats(self, is_working_mains: int, data_to_remote):
         try:
-            data_to_remote = self.get_pump_status()
+
             data_to_remote.update({'from_main': is_working_mains})
             payload = json.dumps(data_to_remote)
             headers = {
@@ -84,9 +84,9 @@ class PondPumpAuto():
         except Exception as ex:
             print(ex)
             self.logger.error(ex)
-            return {'flow_speed': 0, "Power": 0}
+            return {'flow_speed': 0, "Power": 0, 'error': True}
 
-    def adjust_pump_speed(self, value: int):
+    def adjust_pump_speed(self, value: int, is_working_mains: int):
         if value > 100:
             self.logger.error("The value of PumpSpeed is OUT of Range PLS Check %d" % value)
             value = 100
@@ -102,4 +102,8 @@ class PondPumpAuto():
         else:
             self.logger.error("!!!!   Pump's Speed has failed to adjust in speed to: %d !!!!" % value)
             self.logger.error(res)
-        return self.get_pump_status()
+
+        # todo check for error in pump_status before sending
+        status = self.get_pump_status()
+        self.send_pond_stats(is_working_mains, status)
+        return status

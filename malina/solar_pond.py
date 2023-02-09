@@ -31,7 +31,7 @@ INVER_CHECK = 15
 CYCLE_COUNTER = 1
 CUT_OFF_VOLT = 21
 SWITCH_ON_VOLT = 26
-MIN_POND_SPEED = 5
+MIN_POND_SPEED = 10
 
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
@@ -235,6 +235,10 @@ class SolarPond():
             return 0
         volt_avg = self.avg(self.FILO_BUFF['bat_voltage'])
 
+        # TODO add average value to buffer in case of reading error
+        if GPIO.input(POND_RELAY) == 1:
+            return self.decrease_pump_speed(100)
+
         if volt_avg > 26.5:
             return self.increase_pump_speed(POND_SPEED_STEP)
         if volt_avg < 25.5:
@@ -324,20 +328,22 @@ class SolarPond():
     def reset_ff(self):
         if len(self.FILTER_FLUSH) < 5:
             self.FILTER_FLUSH = []
-
+# todo check for error in pump_status
     def send_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
-        self.automation.send_pond_stats(relay_status)
+        self.pump_status = self.automation.get_pump_status()
+        self.automation.send_pond_stats(relay_status, self.pump_status)
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
         hour = int(time.strftime("%H"))
         send_time_slot = 600
-        load_time_slot = 30
+        load_time_slot = 10
 
         # Don't need to send stats overnight
         if hour > 21 or hour < 5:
             send_time_slot = 1800
+            load_time_slot = 60
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
         reed.add_job(self.send_pump_stats, 'interval', seconds=300)
@@ -353,7 +359,6 @@ class SolarPond():
     def integrity_check(self):
         avg_status = self.avg(self.FILO_BUFF['status_check'])
         if avg_status < 0.5:
-            GPIO.input(INVER_CHECK)
             logging.error("-------------Something IS VERY Wrong pls check logs -----------------")
             logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
             logging.error(
@@ -371,7 +376,7 @@ class SolarPond():
             return True
         if new_speed > 100:
             new_speed = 100
-        self.pump_status = self.automation.adjust_pump_speed(new_speed)
+        self.pump_status = self.automation.adjust_pump_speed(new_speed, GPIO.input(POND_RELAY))
         return True
 
     def decrease_pump_speed(self, step):
@@ -381,5 +386,5 @@ class SolarPond():
             return True
         if new_speed < MIN_POND_SPEED:
             new_speed = MIN_POND_SPEED
-        self.pump_status = self.automation.adjust_pump_speed(new_speed)
+        self.pump_status = self.automation.adjust_pump_speed(new_speed, GPIO.input(POND_RELAY))
         return True
