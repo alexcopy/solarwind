@@ -103,7 +103,8 @@ class PondPumpAuto():
             self.logger.error("!!!!   Pump's Speed has failed to adjust in speed to: %d !!!!" % value)
             self.logger.error(res)
 
-        # todo check for error in pump_status before sending
         status = self.get_pump_status()
+        if 'error' in status and status['error'] is True:
+            return status
         self.send_pond_stats(is_working_mains, status)
         return status
