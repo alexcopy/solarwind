@@ -308,7 +308,7 @@ class SolarPond():
 
     def send_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
-        self.automation.send_pond_stats(not relay_status)
+        self.automation.send_pond_stats(relay_status)
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
@@ -344,13 +344,3 @@ class SolarPond():
             logging.error("---------------------------------------------------------------------")
             self.switch_to_main_power()
 
-
-if __name__ == '__main__':
-    sp = SolarPond()
-    sp.run_read_vals()
-    while True:
-        timestamp = int(time.time())
-        time.sleep(TIME_TIK)
-        sp.processing_reads()
-        if timestamp % 600 == 0:
-            sp.reset_ff()
