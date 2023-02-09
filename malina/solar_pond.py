@@ -74,6 +74,7 @@ class SolarPond():
             'bat_current': [],
             'solar_current': [],
             'status_check': [],
+            'main_relay_status': [],
             '10m_converter_current': [],
             '10m_bat_voltage': [],
             '10m_bat_current': [],
