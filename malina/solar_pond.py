@@ -36,6 +36,7 @@ MIN_POND_SPEED = 5
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 API_URL = config["API_URL"]
+POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 
 OUTPUT_CHANNEL = 1
 SOLAR_CELL_CHANNEL = 2
@@ -228,7 +229,6 @@ class SolarPond():
         return GPIO.input(INVER_CHECK)
 
     def adjust_pump_speed(self):
-        step = 5
         buffer_size = len(self.FILO_BUFF['bat_voltage'])
         if buffer_size < 15:
             logging.info(" ----It's too early to adjust %d pump_speed please wait until length over 15" % buffer_size)
@@ -236,9 +236,9 @@ class SolarPond():
         volt_avg = self.avg(self.FILO_BUFF['bat_voltage'])
 
         if volt_avg > 26.5:
-            return self.increase_pump_speed(step)
-        if volt_avg < 24:
-            return self.decrease_pump_speed(step)
+            return self.increase_pump_speed(POND_SPEED_STEP)
+        if volt_avg < 25.5:
+            return self.decrease_pump_speed(POND_SPEED_STEP)
 
     def inverter_on_off(self):
         time.sleep(.5)
