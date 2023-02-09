@@ -11,8 +11,8 @@ import json
 from dotenv import dotenv_values
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from LIB import PondPumpAuto
-from LIB.PrintLogs import SolarLogging
+from malina.LIB import PondPumpAuto
+from malina.LIB.PrintLogs import SolarLogging
 
 try:
     importlib.util.find_spec('RPi.GPIO')
