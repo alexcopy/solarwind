@@ -30,7 +30,7 @@ class SolarLogging:
             else:
                 continue
             name = i.title().replace('_', " ")
-            print("AVG %s: %3.2f %s " % (name, filo_buffer[i], units))
+            self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(filo_buffer[i]), units))
 
         self.logging.info(" ")
         self.logging.info("--------------------------------------------")
