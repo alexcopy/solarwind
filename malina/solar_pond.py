@@ -182,6 +182,10 @@ class SolarPond():
         if abs(converter_current) < 300:
             converter_current = 0
 
+        if inverter_shunt_voltage < 0:
+            inverter_bus_voltage += 1
+            inverter_bat_voltage += 1
+
         solar_current = converter_current + leisure_bat_current + tiger_current
 
         self.FIFO_BUFF = {
