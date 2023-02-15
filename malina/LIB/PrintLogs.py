@@ -30,7 +30,7 @@ class SolarLogging:
             else:
                 continue
             name = i.title().replace('_', " ")
-            print("AVG %s: %3.2f %s " % (name, FIFO_BUFF[i], units))
+            print("AVG %s: %3.2f %s " % (name, filo_buffer[i], units))
 
         self.logging.info(" ")
         self.logging.info("--------------------------------------------")
@@ -53,7 +53,7 @@ class SolarLogging:
             else:
                 continue
             name = i.title().replace('_', " ")
-            print("%s: %3.2f %s " % (name, FIFO_BUFF[i], units))
+            print("%s: %3.2f %s " % (name, fifo_buffer[i], units))
 
         print("")
         print(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
