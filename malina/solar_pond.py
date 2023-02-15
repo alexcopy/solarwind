@@ -182,9 +182,13 @@ class SolarPond():
         if abs(converter_current) < 300:
             converter_current = 0
 
-        if inverter_shunt_voltage < 0:
+        if GPIO.input(INVER_CHECK) == 1:
             inverter_bus_voltage += 1
             inverter_bat_voltage += 1
+            leisure_bus_voltage += 1
+            leisure_bat_voltage += 1
+            tiger_bus_voltage += 1
+            tiger_bat_voltage += 1
 
         solar_current = converter_current + leisure_bat_current + tiger_current
 
