@@ -20,10 +20,11 @@ sudo ln -s /usr/local/bin/python3.10 python
 sudo apt-get install python3-pip -y
 sudo apt-get install screen -y
 
-pip3 install smbus
-pip3 install python-dotenv
-pip3 install apscheduler
-pip3 install tuya-iot-py-sdk
+pip install smbus
+sudo apt-get install python3-smbus
+pip install python-dotenv
+pip install apscheduler
+pip install tuya-iot-py-sdk
 sudo install vim -y
 python3 -m ensurepip
 #if error then add .10 to begging of file /usr/bin/lsb_release

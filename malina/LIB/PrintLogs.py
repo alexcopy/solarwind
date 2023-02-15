@@ -22,20 +22,17 @@ class SolarLogging:
 
     def log_run(self, filo_buffer, invert_status, wattage, pump_status):
         self.logging.info("--------------------------------------------")
-        self.logging.info("AVG Battery Voltage:  %3.2f V" % self.avg(filo_buffer['bat_voltage']))
-        self.logging.info("AVG Battery Current 1:  %3.2f mA" % self.avg(filo_buffer['bat_current']))
-        self.logging.info("AVG Converter Current 3:  %3.2f mA" % self.avg(filo_buffer['converter_current']))
-        self.logging.info("AVG  Solar Current:  %3.2f mA" % self.avg(filo_buffer['solar_current']))
-        self.logging.info("--------------------------------------------")
-        self.logging.info("AVG 10m Battery Voltage:  %3.2f V" % self.avg(filo_buffer['10m_bat_voltage']))
-        self.logging.info("AVG 10m Battery Current 1:  %3.2f mA" % self.avg(filo_buffer['10m_bat_current']))
-        self.logging.info("AVG 10m Converter Current 3:  %3.2f mA" % self.avg(filo_buffer['10m_converter_current']))
-        self.logging.info("AVG 10m  Solar Current:  %3.2f mA" % self.avg(filo_buffer['10m_solar_current']))
-        self.logging.info("--------------------------------------------")
-        self.logging.info("AVG 1h  Battery Voltage:  %3.2f V" % self.avg(filo_buffer['1h_bat_voltage']))
-        self.logging.info("AVG 1h  Battery Current 1:  %3.2f mA" % self.avg(filo_buffer['1h_bat_current']))
-        self.logging.info("AVG 1h  Converter Current 3:  %3.2f mA" % self.avg(filo_buffer['1h_converter_current']))
-        self.logging.info("AVG 1h   Solar Current:  %3.2f mA" % self.avg(filo_buffer['1h_solar_current']))
+        for i in filo_buffer:
+            if 'voltage' in i:
+                units = "V"
+            elif 'current' in i:
+                units = "mA"
+            else:
+                continue
+            name = i.title().replace('_', " ")
+            print("AVG %s: %3.2f %s " % (name, FIFO_BUFF[i], units))
+
+        self.logging.info(" ")
         self.logging.info("--------------------------------------------")
         self.logging.info(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
         self.logging.info(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
@@ -45,17 +42,22 @@ class SolarLogging:
         print("--------------------------------------------")
         print("")
 
-    def printing_vars(self, fifo_buffer, inverter_status, wattage,  pump_status):
+    def printing_vars(self, fifo_buffer, inverter_status, wattage, pump_status):
         print("")
         print("--------------------------------------------")
-        print("Bus Voltage: %3.2f V " % fifo_buffer['busvoltage1'])
-        print("Bat Voltage: %3.2f V " % fifo_buffer['bat_voltage'])
-        print("SHUNT  Voltage: %3.2f V " % fifo_buffer['busvoltage1'])
-        print("Battery Current 1:  %3.2f mA" % fifo_buffer['bat_current'])
-        print("Converter Current 3:  %3.2f mA" % fifo_buffer['converter_current'])
-        print("Solar Current:  %3.2f mA" % fifo_buffer['solar_current'])
+        for i in fifo_buffer:
+            if 'voltage' in i:
+                units = "V"
+            elif 'current' in i:
+                units = "mA"
+            else:
+                continue
+            name = i.title().replace('_', " ")
+            print("%s: %3.2f %s " % (name, FIFO_BUFF[i], units))
+
         print("")
         print(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
         print(" Inverter Status is: %d  " % inverter_status)
         print(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
-        print("############################################")
+        print(" ")
+        print("--------------------------------------------")

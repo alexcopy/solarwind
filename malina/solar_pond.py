@@ -40,9 +40,9 @@ MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
 MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 
-OUTPUT_CHANNEL = 1
-SOLAR_CELL_CHANNEL = 2
-LIPO_BATTERY_CHANNEL = 3
+INVERT_CHANNEL = 1
+LEISURE_BAT_CHANNEL = 2
+TIGER_BAT_CHANNEL = 3
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 
 GPIO.setmode(GPIO.BOARD)
@@ -70,18 +70,18 @@ class SolarPond():
 
         self.FILO_BUFF = {
             'converter_current': [],
-            'bat_voltage': [],
-            'bat_current': [],
+            'inverter_bus_voltage': [],
+            'leisure_bat_current': [],
             'solar_current': [],
             'status_check': [],
             'main_relay_status': [],
             '10m_converter_current': [],
-            '10m_bat_voltage': [],
-            '10m_bat_current': [],
+            '10m_inverter_bus_voltage': [],
+            '10m_leisure_bat_current': [],
             '10m_solar_current': [],
             '1h_converter_current': [],
-            '1h_bat_voltage': [],
-            '1h_bat_current': [],
+            '1h_inverter_bus_voltage': [],
+            '1h_leisure_bat_current': [],
             '1h_solar_current': [],
         }
         self.read_vals()
@@ -155,29 +155,55 @@ class SolarPond():
         logger.addHandler(error_log)
 
     def read_vals(self):
-        busvoltage1 = float(self.shunt_load.getBusVoltage_V(LIPO_BATTERY_CHANNEL))
-        shuntvoltage1 = float(self.shunt_load.getShuntVoltage_mV(LIPO_BATTERY_CHANNEL))
-        bat_current = float(self.shunt_load.getCurrent_mA(LIPO_BATTERY_CHANNEL, self.shunt_bat)) - 340
-        bat_voltage = float(busvoltage1 + (shuntvoltage1 / 1000))
-        converter_current = float(self.shunt_load.getCurrent_mA(OUTPUT_CHANNEL, self.shunt_bat))
+        tiger_bus_voltage = float(self.shunt_load.getBusVoltage_V(TIGER_BAT_CHANNEL))
+        tiger_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(TIGER_BAT_CHANNEL))
+        tiger_bat_voltage = float(tiger_bus_voltage + (tiger_shunt_voltage / 1000))
+        tiger_current = float(self.shunt_load.getCurrent_mA(TIGER_BAT_CHANNEL, self.shunt_bat))
 
-        if abs(bat_current) < 200:
-            bat_current = 0
+        leisure_bus_voltage = float(self.shunt_load.getBusVoltage_V(LEISURE_BAT_CHANNEL))
+        leisure_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(LEISURE_BAT_CHANNEL))
+        leisure_bat_voltage = float(tiger_bus_voltage + (leisure_shunt_voltage / 1000))
+        leisure_bat_current = float(self.shunt_load.getCurrent_mA(LEISURE_BAT_CHANNEL, self.shunt_bat)) - 340
+
+        inverter_bus_voltage = float(self.shunt_load.getBusVoltage_V(INVERT_CHANNEL))
+        inverter_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(INVERT_CHANNEL))
+        inverter_bat_voltage = float(tiger_bus_voltage + (inverter_shunt_voltage / 1000))
+        converter_current = float(self.shunt_load.getCurrent_mA(INVERT_CHANNEL, self.shunt_bat))
+
+        if abs(leisure_bat_current) < 200:
+            leisure_bat_current = 0
+
+        if abs(tiger_current) < 200:
+            tiger_current = 0
 
         if abs(converter_current) < 300:
             converter_current = 0
-        solar_current = converter_current + bat_current
+
+        solar_current = converter_current + leisure_bat_current + tiger_current
+
         self.FIFO_BUFF = {
-            'busvoltage1': round(busvoltage1, 2),
-            'bat_voltage': round(bat_voltage, 2),
-            'shuntvoltage1': round(shuntvoltage1, 2),
-            'bat_current': round(bat_current, 2),
+            'tiger_bus_voltage': round(tiger_bus_voltage, 2),
+            'tiger_bat_voltage': round(tiger_bat_voltage, 2),
+            'tiger_shunt_voltage': round(tiger_shunt_voltage, 2),
+            'tiger_current': round(tiger_current, 2),
+
+            'leisure_bus_voltage': round(leisure_bus_voltage, 2),
+            'leisure_shunt_voltage': round(leisure_shunt_voltage, 2),
+            'leisure_bat_voltage': round(leisure_bat_voltage, 2),
+            'leisure_bat_current': round(leisure_bat_current, 2),
+
+            'inverter_bus_voltage': round(inverter_bus_voltage, 2),
+            'inverter_bat_voltage': round(inverter_bat_voltage, 2),
+            'inverter_shunt_voltage': round(inverter_shunt_voltage, 2),
             'converter_current': round(converter_current, 2),
             'solar_current': round(solar_current, 2),
         }
-        self.FILO_BUFF['bat_voltage'].append(round(busvoltage1, 2))
-        self.FILO_BUFF['bat_current'].append(round(bat_current, 2))
+        self.FILO_BUFF['inverter_bus_voltage'].append(round(inverter_bus_voltage, 2))
+        self.FILO_BUFF['leisure_bat_current'].append(round(leisure_bat_current, 2))
+
+        self.FILO_BUFF['tiger_current'].append(round(tiger_current, 2))
         self.FILO_BUFF['converter_current'].append(round(converter_current, 2))
+
         self.FILO_BUFF['solar_current'].append(round(solar_current, 2))
         self.FILO_BUFF['status_check'].append(self.status_check),
         self.FILO_BUFF['main_relay_status'].append(GPIO.input(POND_RELAY)),
@@ -185,14 +211,16 @@ class SolarPond():
     def update_filo_buffer(self):
         timestamp = int(time.time())
         if timestamp % 10 == 0:
-            self.FILO_BUFF['10m_bat_voltage'].append(self.avg(self.FILO_BUFF['bat_voltage']))
-            self.FILO_BUFF['10m_bat_current'].append(self.avg(self.FILO_BUFF['bat_current']))
+            self.FILO_BUFF['10m_inverter_bus_voltage'].append(self.avg(self.FILO_BUFF['inverter_bus_voltage']))
+            self.FILO_BUFF['10m_leisure_bat_current'].append(self.avg(self.FILO_BUFF['leisure_bat_current']))
+            self.FILO_BUFF['10m_tiger_current'].append(self.avg(self.FILO_BUFF['tiger_current']))
             self.FILO_BUFF['10m_converter_current'].append(self.avg(self.FILO_BUFF['converter_current']))
             self.FILO_BUFF['10m_solar_current'].append(self.avg(self.FILO_BUFF['solar_current']))
 
         if timestamp % 60 == 0:
-            self.FILO_BUFF['1h_bat_voltage'].append(self.avg(self.FILO_BUFF['10m_bat_voltage']))
-            self.FILO_BUFF['1h_bat_current'].append(self.avg(self.FILO_BUFF['10m_bat_current']))
+            self.FILO_BUFF['1h_inverter_bus_voltage'].append(self.avg(self.FILO_BUFF['10m_inverter_bus_voltage']))
+            self.FILO_BUFF['1h_leisure_bat_current'].append(self.avg(self.FILO_BUFF['10m_leisure_bat_current']))
+            self.FILO_BUFF['1h_tiger_current'].append(self.avg(self.FILO_BUFF['10m_tiger_current']))
             self.FILO_BUFF['1h_converter_current'].append(self.avg(self.FILO_BUFF['10m_converter_current']))
             self.FILO_BUFF['1h_solar_current'].append(self.avg(self.FILO_BUFF['10m_solar_current']))
 
@@ -201,11 +229,11 @@ class SolarPond():
             self.FILO_BUFF[v] = self.FILO_BUFF[v][-60:]
 
     def ready_to_send_avg(self):
-        return len(self.FILO_BUFF['1h_bat_voltage']) > 10
+        return len(self.FILO_BUFF['1h_inverter_bus_voltage']) > 10
 
     def processing_reads(self):
         try:
-            wattage = (self.avg(self.FILO_BUFF['10m_bat_voltage']) * self.avg(
+            wattage = (self.avg(self.FILO_BUFF['10m_inverter_bus_voltage']) * self.avg(
                 self.FILO_BUFF['10m_solar_current'])) / 1000
             inv_status = GPIO.input(INVER_CHECK)
             self.cleanup_filo()
@@ -233,11 +261,11 @@ class SolarPond():
         return GPIO.input(INVER_CHECK)
 
     def adjust_pump_speed(self):
-        buffer_size = len(self.FILO_BUFF['bat_voltage'])
+        buffer_size = len(self.FILO_BUFF['inverter_bus_voltage'])
         if buffer_size < 15:
             logging.info(" ----It's too early to adjust %d pump_speed please wait until length over 15" % buffer_size)
             return 0
-        volt_avg = self.avg(self.FILO_BUFF['bat_voltage'])
+        volt_avg = self.avg(self.FILO_BUFF['inverter_bus_voltage'])
 
         if self.avg(self.FILO_BUFF['main_relay_status']) > 0.7:
             return self.decrease_pump_speed(100)
@@ -302,12 +330,14 @@ class SolarPond():
                 self.switch_to_solar_power()
 
             # converter switch OFF
-            if self.avg(self.FILO_BUFF['bat_voltage']) < CUT_OFF_VOLT and len(self.FILO_BUFF['bat_voltage']) > 15:
+            if self.avg(self.FILO_BUFF['inverter_bus_voltage']) < CUT_OFF_VOLT and len(
+                    self.FILO_BUFF['inverter_bus_voltage']) > 15:
                 self.switch_to_main_power()
                 self.send_avg_data()
 
             # converter switch ON
-            if self.avg(self.FILO_BUFF['bat_voltage']) > SWITCH_ON_VOLT and len(self.FILO_BUFF['bat_voltage']) > 30:
+            if self.avg(self.FILO_BUFF['inverter_bus_voltage']) > SWITCH_ON_VOLT and len(
+                    self.FILO_BUFF['inverter_bus_voltage']) > 30:
                 self.switch_to_solar_power()
                 self.send_avg_data()
             self.integrity_check()
