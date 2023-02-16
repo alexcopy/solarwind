@@ -8,17 +8,18 @@ from mpmath import rand
 INVERT_CHANNEL = 1
 LEISURE_BAT_CHANNEL = 2
 TIGER_BAT_CHANNEL = 3
+SHUNT_IMP = 0.00159
 
 
 class FiloFifo:
-    def __init__(self, logging, shunt_load, bus_voltage='bus_voltage', shunt_voltage='shunt_voltage',
+    def __init__(self, logging, shunt_load, bus_voltage='bus_voltage', wattage='wattage',
                  bat_current='bat_current'):
 
-        self.shunt_bat = 0.00159
+        self.shunt_bat = SHUNT_IMP
         self.logging = logging
-        self.buffer_fields = [bus_voltage, shunt_voltage, bat_current]
+        self.buffer_fields = [bus_voltage, wattage, bat_current]
         self.bus_voltage = bus_voltage
-        self.shunt_voltage = shunt_voltage
+        self.wattage = wattage
         self.bat_current = bat_current
         self.prefixes = ['1s_', '10m_', '1h_']
         self.FILO = {}
@@ -53,13 +54,6 @@ class FiloFifo:
     def fifo_buff(self):
         return self.FIFO
 
-    def get_wattage(self):
-        suff = 'solar_current'
-        filo = self.FILO
-        buf_keys = {k + suff: [].append(filo[k + ln + "_" + "bat_current"]) for k in self.prefixes for ln in
-                    self.load_names}
-        return buf_keys
-
     def _update_filo_buffer(self):
         timestamp = int(time.time())
         if timestamp % 10 == 0:
@@ -76,10 +70,12 @@ class FiloFifo:
                 self.FILO[h_field].append(self.avg(self.filo_buff[field]))
 
     def _read_vals(self, channel):
+        voltage = round(float(self.shunt_load.getBusVoltage_V(channel)), 2)
+        current = round(float(self.shunt_load.getCurrent_mA(channel, self.shunt_bat)), 2)
         return {
-            self.bus_voltage: round(float(self.shunt_load.getBusVoltage_V(channel)), 2),
-            self.shunt_voltage: round(float(self.shunt_load.getShuntVoltage_mV(channel)), 2),
-            self.bat_current: round(float(self.shunt_load.getCurrent_mA(channel, self.shunt_bat)), 2)
+            self.bus_voltage: voltage,
+            self.bat_current: current,
+            self.wattage: round(current * voltage, 2),
         }
 
     def fill_buffers(self):
@@ -103,23 +99,3 @@ class FiloFifo:
         self.fill_buffers()
         self._update_filo_buffer()
         self.cleanup_filo()
-
-    def get_wattage_tot(self, time_slot, load_name):
-
-        key = "%s_%s_bus_voltage" % (time_slot, load_name)
-        wattage = (self.avg(self.filo_buff[key]) * self.avg(
-            self.fifo_buff['10m_solar_current'])) / 1000
-
-
-
-
-
-# leisure_bus_voltage = float(self.shunt_load.getBusVoltage_V(LEISURE_BAT_CHANNEL))
-# leisure_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(LEISURE_BAT_CHANNEL))
-# leisure_bat_voltage = float(leisure_bus_voltage + (leisure_shunt_voltage / 1000))
-# leisure_bat_current = float(self.shunt_load.getCurrent_mA(LEISURE_BAT_CHANNEL, self.shunt_bat)) - 340
-#
-# inverter_bus_voltage = float(self.shunt_load.getBusVoltage_V(INVERT_CHANNEL))
-# inverter_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(INVERT_CHANNEL))
-# inverter_bat_voltage = float(inverter_bus_voltage + (inverter_shunt_voltage / 1000))
-# converter_current = float(self.shunt_load.getCurrent_mA(INVERT_CHANNEL, self.shunt_bat))
