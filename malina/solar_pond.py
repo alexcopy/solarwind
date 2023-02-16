@@ -11,6 +11,7 @@ import json
 from dotenv import dotenv_values
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from malina.LIB import FiloFifo
 from malina.LIB import PondPumpAuto
 from malina.LIB.PrintLogs import SolarLogging
 
@@ -65,27 +66,28 @@ class SolarPond():
         self.shunt_bat = 0.00159
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
+        self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging)
         self.pump_status = self.automation.get_pump_status()
 
         self.FILO_BUFF = {
-            'converter_current': [],
+            'inverter_current': [],
             'inverter_bus_voltage': [],
             'leisure_bat_current': [],
             'tiger_current': [],
-            'solar_current': [],
-            'status_check': [],
-            'main_relay_status': [],
             '10m_tiger_current': [],
-            '10m_converter_current': [],
+            '10m_inverter_current': [],
             '10m_inverter_bus_voltage': [],
             '10m_leisure_bat_current': [],
             '10m_solar_current': [],
             '1h_tiger_current': [],
-            '1h_converter_current': [],
+            '1h_inverter_current': [],
             '1h_inverter_bus_voltage': [],
             '1h_leisure_bat_current': [],
             '1h_solar_current': [],
+            'solar_current': [],
+            'status_check': [],
+            'main_relay_status': [],
         }
         self.read_vals()
         self.switch_to_solar_power()
@@ -171,7 +173,7 @@ class SolarPond():
         inverter_bus_voltage = float(self.shunt_load.getBusVoltage_V(INVERT_CHANNEL))
         inverter_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(INVERT_CHANNEL))
         inverter_bat_voltage = float(tiger_bus_voltage + (inverter_shunt_voltage / 1000))
-        converter_current = float(self.shunt_load.getCurrent_mA(INVERT_CHANNEL, self.shunt_bat))
+        inverter_current = float(self.shunt_load.getCurrent_mA(INVERT_CHANNEL, self.shunt_bat))
 
         if abs(leisure_bat_current) < 200:
             leisure_bat_current = 0
@@ -179,8 +181,8 @@ class SolarPond():
         if abs(tiger_current) < 200:
             tiger_current = 0
 
-        if abs(converter_current) < 300:
-            converter_current = 0
+        if abs(inverter_current) < 300:
+            inverter_current = 0
 
         if GPIO.input(INVER_CHECK) == 1:
             inverter_bus_voltage += 1
@@ -190,7 +192,7 @@ class SolarPond():
             tiger_bus_voltage += 1
             tiger_bat_voltage += 1
 
-        solar_current = converter_current + leisure_bat_current + tiger_current
+        solar_current = inverter_current + leisure_bat_current + tiger_current
 
         self.FIFO_BUFF = {
             'tiger_bus_voltage': round(tiger_bus_voltage, 2),
@@ -206,14 +208,14 @@ class SolarPond():
             'inverter_bus_voltage': round(inverter_bus_voltage, 2),
             'inverter_bat_voltage': round(inverter_bat_voltage, 2),
             'inverter_shunt_voltage': round(inverter_shunt_voltage, 2),
-            'converter_current': round(converter_current, 2),
+            'inverter_current': round(inverter_current, 2),
             'solar_current': round(solar_current, 2),
         }
         self.FILO_BUFF['inverter_bus_voltage'].append(round(inverter_bus_voltage, 2))
         self.FILO_BUFF['leisure_bat_current'].append(round(leisure_bat_current, 2))
 
         self.FILO_BUFF['tiger_current'].append(round(tiger_current, 2))
-        self.FILO_BUFF['converter_current'].append(round(converter_current, 2))
+        self.FILO_BUFF['inverter_current'].append(round(inverter_current, 2))
 
         self.FILO_BUFF['solar_current'].append(round(solar_current, 2))
         self.FILO_BUFF['status_check'].append(self.status_check),
@@ -254,6 +256,7 @@ class SolarPond():
             self.cleanup_filo()
             self.print_logs.printing_vars(self.FIFO_BUFF, inv_status, wattage, self.pump_status)
             self.print_logs.log_run(self.FILO_BUFF, inv_status, wattage, self.pump_status)
+            self.filo_fifo.buffers_run()  # ToDO experimental replace later
         except Exception as ex:
             logging.warning(ex)
 
@@ -357,15 +360,15 @@ class SolarPond():
             logging.warning(ex)
 
     def filter_flush_run(self):
-        now_cc = self.FIFO_BUFF['converter_current']
-        avg_cc = self.avg(self.FILO_BUFF['10m_converter_current'])
-        cc_size = len(self.FILO_BUFF['10m_converter_current'])
+        now_cc = self.FIFO_BUFF['inverter_current']
+        avg_cc = self.avg(self.FILO_BUFF['10m_inverter_current'])
+        cc_size = len(self.FILO_BUFF['10m_inverter_current'])
         timestamp = int(time.time())
         if abs(now_cc - avg_cc) > 5000 and cc_size > 10:
             self.FILTER_FLUSH.append(now_cc)
         else:
             if len(self.FILTER_FLUSH) > 5:
-                self.send_ff_data('converter_current')
+                self.send_ff_data('inverter_current')
             self.FILTER_FLUSH = []
         return timestamp
 
