@@ -73,7 +73,7 @@ class FiloFifoTestCase(unittest.TestCase):
     def test_update_filo_buffer_10m(self):
         times_to_run = 12
         for l in range(0, times_to_run):
-            self.ff_buff.fill_buffers()
+            self.ff_buff._fill_buffers()
             self.ff_buff._update_filo_buffer()
             filo_buff = self.ff_buff.filo_buff
             fifo_buff = self.ff_buff.fifo_buff
@@ -85,7 +85,7 @@ class FiloFifoTestCase(unittest.TestCase):
                 ten_min_field = i.replace('1s', '10m')
                 hour_field = i.replace('1s', '1h')
                 self.assertEqual(len(filo_buff[i]), l + 1)
-                avg_1s_field = self.ff_buff.avg(filo_buff[i])
+                avg_1s_field = self.ff_buff._avg(filo_buff[i])
                 self.assertEqual(val_fifo, filo_buff[i][l])
                 # assert what 10min filed has an average value from 1s list field
                 self.assertEqual(filo_buff[ten_min_field][l], avg_1s_field)
@@ -97,7 +97,7 @@ class FiloFifoTestCase(unittest.TestCase):
     def test_update_filo_buffer_1h(self):
         times_to_run = 10
         for l in range(0, times_to_run):
-            self.ff_buff.fill_buffers()
+            self.ff_buff._fill_buffers()
             self.ff_buff._update_filo_buffer()
             filo_buff = self.ff_buff.filo_buff
             fifo_buff = self.ff_buff.fifo_buff
@@ -109,14 +109,14 @@ class FiloFifoTestCase(unittest.TestCase):
                 ten_min_field = i.replace('1s', '10m')
                 hour_field = i.replace('1s', '1h')
                 self.assertEqual(len(filo_buff[i]), l + 1)
-                avg_1s_field = self.ff_buff.avg(filo_buff[i])
+                avg_1s_field = self.ff_buff._avg(filo_buff[i])
                 self.assertEqual(val_fifo, filo_buff[i][l])
                 # assert what 10min filed has an average value from 1s list field
                 self.assertEqual(filo_buff[ten_min_field][l], avg_1s_field)
                 # doesn't go anything into 1hour field
                 self.assertNotEqual(len(filo_buff[hour_field]), 0)
                 # assert what averege from each  10m field goes to 1h field
-                ten_min_avg = self.ff_buff.avg(filo_buff[ten_min_field])
+                ten_min_avg = self.ff_buff._avg(filo_buff[ten_min_field])
                 self.assertEqual(filo_buff[hour_field][l], ten_min_avg)
 
     @freeze_time("2012-01-01 00:00:00")
@@ -124,13 +124,13 @@ class FiloFifoTestCase(unittest.TestCase):
         times_to_run = 100
         max_buf_length = 60
         for l in range(0, times_to_run):
-            self.ff_buff.fill_buffers()
+            self.ff_buff._fill_buffers()
             self.ff_buff._update_filo_buffer()
 
         filo_buff = self.ff_buff.filo_buff
         for i in filo_buff:
             self.assertEqual(len(filo_buff[i]), times_to_run)
-        self.ff_buff.cleanup_filo()
+        self.ff_buff._cleanup_filo()
 
         for i in filo_buff:
             self.assertEqual(len(filo_buff[i]), max_buf_length)

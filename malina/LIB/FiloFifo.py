@@ -40,7 +40,7 @@ class FiloFifo:
         return {p + l_n + '_' + i: [] for p in self.prefixes if p == '1s_' for l_n in self.load_names for i in
                 self.buffer_fields}
 
-    def avg(self, l):
+    def _avg(self, l):
         if len(l) == 0:
             return 0
         return float(round(sum(l, 0.0) / len(l), 2))
@@ -60,14 +60,14 @@ class FiloFifo:
             prefix = '10m_'
             for field in self.fifo_buff:
                 m_field = field.replace('1s_', prefix)
-                self.FILO[m_field].append(self.avg(self.filo_buff[field]))
+                self.FILO[m_field].append(self._avg(self.filo_buff[field]))
 
         if timestamp % 60 == 0:
             prefix = '1h_'
             for field in self.filo_buff:
                 if not '10m_' in field: continue
                 h_field = field.replace('10m_', prefix)
-                self.FILO[h_field].append(self.avg(self.filo_buff[field]))
+                self.FILO[h_field].append(self._avg(self.filo_buff[field]))
 
     def _read_vals(self, channel):
         voltage = round(float(self.shunt_load.getBusVoltage_V(channel)), 2)
@@ -78,7 +78,7 @@ class FiloFifo:
             self.wattage: round(current * voltage, 2),
         }
 
-    def fill_buffers(self):
+    def _fill_buffers(self):
         channels = {
             'tiger': self._read_vals(TIGER_BAT_CHANNEL),
             'leisure': self._read_vals(LEISURE_BAT_CHANNEL),
@@ -91,11 +91,11 @@ class FiloFifo:
                 self.FIFO[key] = channels[ch][val]
                 self.FILO[key].append(channels[ch][val])
 
-    def cleanup_filo(self):
+    def _cleanup_filo(self):
         for v in self.FILO:
             self.FILO[v] = self.FILO[v][-60:]
 
     def buffers_run(self):
-        self.fill_buffers()
+        self._fill_buffers()
         self._update_filo_buffer()
-        self.cleanup_filo()
+        self._cleanup_filo()
