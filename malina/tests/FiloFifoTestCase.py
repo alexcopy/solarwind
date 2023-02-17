@@ -4,11 +4,8 @@ import unittest
 import random as rnd
 from freezegun import freeze_time
 
-import mock
-
 sys.path.append('../')
 import malina.LIB.FiloFifo as FF
-from malina.LIB.FiloFifo import time as ftime
 from mock import Mock
 
 mock_time = 60
@@ -24,10 +21,6 @@ class TestOs(Mock):
     def getBusVoltage_V(self, ch, defined_val=20):
         self.bus_voltage = rnd.uniform(0, 100)
         return self.bus_voltage
-
-    def getShuntVoltage_mV(self, defined_val=20):
-        self.shunt_voltage = rnd.uniform(0, 100)
-        return self.shunt_voltage
 
     def getCurrent_mA(self, ch, shunt_bat, defined_val=20):
         self.bat_current = rnd.uniform(0, 100)
@@ -59,6 +52,20 @@ class FiloFifoTestCase(unittest.TestCase):
                               '1h_inverter_test_field_2': [], '1h_inverter_test_field_3': []}
 
         self.ff_buff = FF.FiloFifo(self.logger, self.shunt, 'test_field_1', 'test_field_2', 'test_field_3')
+        self.current_only = {'1s_tiger_test_field_1': [0.0, 0.0], '1s_tiger_test_field_2': [0.0, 0.0],
+                             '1s_tiger_test_field_3': [300.0, 300.0], '1s_leisure_test_field_1': [0.0, 0.0],
+                             '1s_leisure_test_field_2': [0.0, 0.0], '1s_leisure_test_field_3': [300.0, 300.0],
+                             '1s_inverter_test_field_1': [0.0, 0.0], '1s_inverter_test_field_2': [0.0, 0.0],
+                             '1s_inverter_test_field_3': [300.0, 300.0], '10m_tiger_test_field_1': [0.0, 0.0],
+                             '10m_tiger_test_field_2': [0.0, 0.0], '10m_tiger_test_field_3': [300.0, 300.0],
+                             '10m_leisure_test_field_1': [0.0, 0.0], '10m_leisure_test_field_2': [0.0, 0.0],
+                             '10m_leisure_test_field_3': [300.0, 300.0], '10m_inverter_test_field_1': [0.0, 0.0],
+                             '10m_inverter_test_field_2': [0.0, 0.0], '10m_inverter_test_field_3': [300.0, 300.0],
+                             '1h_tiger_test_field_1': [0.0, 0.0], '1h_tiger_test_field_2': [0.0, 0.0],
+                             '1h_tiger_test_field_3': [300.0, 300.0], '1h_leisure_test_field_1': [0.0, 0.0],
+                             '1h_leisure_test_field_2': [0.0, 0.0], '1h_leisure_test_field_3': [300.0, 300.0],
+                             '1h_inverter_test_field_1': [0.0, 0.0], '1h_inverter_test_field_2': [0.0, 0.0],
+                             '1h_inverter_test_field_3': [300.0, 300.0]}
 
     def testInit(self):
         read_vals = self.ff_buff._read_vals(1)
@@ -134,6 +141,18 @@ class FiloFifoTestCase(unittest.TestCase):
 
         for i in filo_buff:
             self.assertEqual(len(filo_buff[i]), max_buf_length)
+
+    @freeze_time("2012-01-01 00:00:00")
+    def test_solar_current(self):
+        times_to_run = 2
+        for l in range(0, times_to_run):
+            self.ff_buff.buffers_run(1)
+        solar_cur = self.ff_buff.solar_current
+        self.assertEqual(len(solar_cur), 3)
+        self.ff_buff.FILO = self.current_only
+        solar_current = self.ff_buff.solar_current
+        for fild, val in solar_current.items():
+            self.assertEqual(val, 900.0)
 
 
 if __name__ == '__main__':

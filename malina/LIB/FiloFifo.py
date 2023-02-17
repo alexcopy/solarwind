@@ -20,6 +20,7 @@ class FiloFifo:
         self.buffer_fields = [bus_voltage, wattage, bat_current]
         self.bus_voltage = bus_voltage
         self.wattage = wattage
+        self.inverter_on = 0
         self.bat_current = bat_current
         self.prefixes = ['1s_', '10m_', '1h_']
         self.FILO = {}
@@ -51,6 +52,18 @@ class FiloFifo:
         return filo
 
     @property
+    def solar_current(self):
+        ret_dict = {}
+        field_name = "solar_current"
+        for pref in self.prefixes:
+            ret_dict.update({("%s%s" % (pref, field_name)):
+                                 round(
+                                     sum([self._avg(v) for k, v in self.filo_buff.items() if
+                                            k.startswith(pref) and k.endswith(self.bat_current)]), 2)}
+                            )
+        return ret_dict
+
+    @property
     def fifo_buff(self):
         return self.FIFO
 
@@ -70,15 +83,18 @@ class FiloFifo:
                 self.FILO[h_field].append(self._avg(self.filo_buff[field]))
 
     def _read_vals(self, channel):
-        voltage = round(float(self.shunt_load.getBusVoltage_V(channel)), 2)
+        voltage = round(float(self.shunt_load.getBusVoltage_V(channel)), 2) + self.inverter_on
         current = round(float(self.shunt_load.getCurrent_mA(channel, self.shunt_bat)), 2)
+        if abs(current) < 250:
+            current = 0
         return {
             self.bus_voltage: voltage,
             self.bat_current: current,
-            self.wattage: round(current * voltage, 2),
+            self.wattage: round((current / 1000) * voltage, 2),
         }
 
     def _fill_buffers(self):
+
         channels = {
             'tiger': self._read_vals(TIGER_BAT_CHANNEL),
             'leisure': self._read_vals(LEISURE_BAT_CHANNEL),
@@ -95,7 +111,8 @@ class FiloFifo:
         for v in self.FILO:
             self.FILO[v] = self.FILO[v][-60:]
 
-    def buffers_run(self):
+    def buffers_run(self, inverter_state):
+        self.inverter_on = inverter_state
         self._fill_buffers()
         self._update_filo_buffer()
         self._cleanup_filo()
