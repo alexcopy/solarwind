@@ -261,9 +261,9 @@ class SolarPond():
         return inverter_voltage
 
     def filter_flush_run(self):
-        now_cc = self.get_inverter_values('1s', 'current')
+        now_cc = self.avg(self.get_inverter_values('1s', 'current'))
         avg_cc = self.avg(self.get_inverter_values('10m', 'current'))
-        cc_size = len(self.get_inverter_values('10m', 'current'))
+        cc_size = len(self.get_inverter_values('10s', 'current'))
         timestamp = int(time.time())
         if abs(now_cc - avg_cc) > 5000 and cc_size > 10:
             self.FILTER_FLUSH.append(now_cc)

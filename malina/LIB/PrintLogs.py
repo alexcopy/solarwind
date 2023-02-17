@@ -54,7 +54,7 @@ class SolarLogging:
             elif 'wattage' in i:
                 units = "Watt"
             else:
-                continue
+                units = "UN"
             name = i.title().replace('_', " ")
             print("%s: %3.2f %s " % (name, fifo_buffer[i], units))
 

@@ -6,6 +6,7 @@ from freezegun import freeze_time
 
 sys.path.append('../')
 import malina.LIB.FiloFifo as FF
+import malina.LIB.PrintLogs as SolarLogging
 from mock import Mock
 
 mock_time = 60
@@ -160,6 +161,14 @@ class FiloFifoTestCase(unittest.TestCase):
         for fild, val in solar_current.items():
             self.assertEqual(val, 900.0)
 
+    @freeze_time("2012-01-01 00:00:00")
+    def test_printing_logs(self):
+        print_logs = SolarLogging.SolarLogging('')
+        times_to_run = 10
+        for l in range(0, times_to_run):
+            self.ff_buff.buffers_run(1)
+
+        print_logs.printing_vars(self.ff_buff.fifo_buff, 1, {'flow_speed':20})
 
 if __name__ == '__main__':
     unittest.main()
