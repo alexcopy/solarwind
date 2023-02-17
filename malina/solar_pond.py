@@ -69,7 +69,7 @@ class SolarPond():
         self.automation = PondPumpAuto.PondPumpAuto(logging)
         self.pump_status = self.automation.get_pump_status()
 
-        self.switch_to_solar_power()
+        # self.switch_to_solar_power()
 
     def avg(self, l):
         if len(l) == 0:
