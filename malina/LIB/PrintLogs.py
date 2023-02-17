@@ -20,13 +20,15 @@ class SolarLogging:
         self.logging.info(url_path)
         self.logging.info("--------------------------------------------")
 
-    def log_run(self, filo_buffer, invert_status, wattage, pump_status):
+    def log_run(self, filo_buffer, invert_status, pump_status):
         self.logging.info("--------------------------------------------")
         for i in filo_buffer:
             if 'voltage' in i:
                 units = "V"
             elif 'current' in i:
                 units = "mA"
+            elif 'wattage' in i:
+                units = "W"
             else:
                 continue
             name = i.title().replace('_', " ")
@@ -34,7 +36,6 @@ class SolarLogging:
 
         self.logging.info(" ")
         self.logging.info("--------------------------------------------")
-        self.logging.info(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
         self.logging.info(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         self.logging.info(" Inverter Status is: %d  " % invert_status)
         self.logging.info("############################################")
@@ -42,7 +43,7 @@ class SolarLogging:
         print("--------------------------------------------")
         print("")
 
-    def printing_vars(self, fifo_buffer, inverter_status, wattage, pump_status):
+    def printing_vars(self, fifo_buffer, inverter_status, pump_status):
         print("")
         print("--------------------------------------------")
         for i in fifo_buffer:
@@ -50,13 +51,14 @@ class SolarLogging:
                 units = "V"
             elif 'current' in i:
                 units = "mA"
+            elif 'wattage' in i:
+                units = "Watt"
             else:
                 continue
             name = i.title().replace('_', " ")
             print("%s: %3.2f %s " % (name, fifo_buffer[i], units))
 
         print("")
-        print(" AVG 10 min Solar Wattage is: %3.2f  W" % wattage)
         print(" Inverter Status is: %d  " % inverter_status)
         print(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         print(" ")

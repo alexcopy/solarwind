@@ -25,6 +25,7 @@ class FiloFifo:
         self.prefixes = ['1s_', '10m_', '1h_']
         self.FILO = {}
         self.FIFO = {}
+        self.REL_STATUS = {'inverter_relay': [], 'main_relay_status': [], 'status_check': []}
         self.shunt_load = shunt_load
         self.load_names = {'tiger': TIGER_BAT_CHANNEL, 'leisure': LEISURE_BAT_CHANNEL, 'inverter': INVERT_CHANNEL}
         self._setup_buffers()
@@ -57,10 +58,10 @@ class FiloFifo:
         field_name = "solar_current"
         for pref in self.prefixes:
             ret_dict.update({("%s%s" % (pref, field_name)):
-                                 round(
-                                     sum([self._avg(v) for k, v in self.filo_buff.items() if
-                                            k.startswith(pref) and k.endswith(self.bat_current)]), 2)}
-                            )
+                round(
+                    sum([self._avg(v) for k, v in self.filo_buff.items() if
+                         k.startswith(pref) and k.endswith(self.bat_current)]), 2)}
+            )
         return ret_dict
 
     @property
@@ -93,6 +94,10 @@ class FiloFifo:
             self.wattage: round((current / 1000) * voltage, 2),
         }
 
+    def get_filo_value(self, pref, suffix):
+        return [v for k, v in self.filo_buff.items() if
+                k.startswith(pref) and k.endswith(suffix)]
+
     def _fill_buffers(self):
 
         channels = {
@@ -107,12 +112,26 @@ class FiloFifo:
                 self.FIFO[key] = channels[ch][val]
                 self.FILO[key].append(channels[ch][val])
 
-    def _cleanup_filo(self):
-        for v in self.FILO:
-            self.FILO[v] = self.FILO[v][-60:]
+    def _cleanup_filo(self, filo, pos=-60):
+        for v in filo:
+            filo[v] = filo[v][pos:]
+
+    def update_rel_status(self, statuses: dict):
+        self.REL_STATUS['inverter_relay'].append(statuses['inverter_relay'])
+        self.REL_STATUS['main_relay_status'].append(statuses['main_relay_status'])
+        self.REL_STATUS['status_check'].append(statuses['status_check'])
+
+    @property
+    def get_main_rel_status(self):
+        return self._avg(self.REL_STATUS['main_relay_status'])
+
+    @property
+    def get_avg_rel_status(self):
+        return self._avg(self.REL_STATUS['status_check'])
 
     def buffers_run(self, inverter_state):
         self.inverter_on = inverter_state
         self._fill_buffers()
         self._update_filo_buffer()
-        self._cleanup_filo()
+        self._cleanup_filo(self.FILO)
+        self._cleanup_filo(self.REL_STATUS, -10)

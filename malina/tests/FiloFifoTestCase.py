@@ -19,11 +19,11 @@ class TestOs(Mock):
         self.bus_voltage = 0
 
     def getBusVoltage_V(self, ch, defined_val=20):
-        self.bus_voltage = rnd.uniform(0, 100)
+        self.bus_voltage = rnd.uniform(300, 700)
         return self.bus_voltage
 
     def getCurrent_mA(self, ch, shunt_bat, defined_val=20):
-        self.bat_current = rnd.uniform(0, 100)
+        self.bat_current = rnd.uniform(300, 800)
         return self.bat_current
 
 
@@ -137,18 +137,24 @@ class FiloFifoTestCase(unittest.TestCase):
         filo_buff = self.ff_buff.filo_buff
         for i in filo_buff:
             self.assertEqual(len(filo_buff[i]), times_to_run)
-        self.ff_buff._cleanup_filo()
+        self.ff_buff._cleanup_filo(filo_buff)
 
         for i in filo_buff:
             self.assertEqual(len(filo_buff[i]), max_buf_length)
 
     @freeze_time("2012-01-01 00:00:00")
     def test_solar_current(self):
-        times_to_run = 2
+        times_to_run = 10
         for l in range(0, times_to_run):
             self.ff_buff.buffers_run(1)
         solar_cur = self.ff_buff.solar_current
+
+        # checking what we're calculating sum of currents correctly fo example 1s test_3
+        filo_value = self.ff_buff.get_filo_value('1s_', 'field_3')
+        cur_1s = round(sum([self.ff_buff._avg(i) for i in filo_value]), 2)
+        self.assertEqual(cur_1s, solar_cur['1s_solar_current'])
         self.assertEqual(len(solar_cur), 3)
+
         self.ff_buff.FILO = self.current_only
         solar_current = self.ff_buff.solar_current
         for fild, val in solar_current.items():

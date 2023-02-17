@@ -61,7 +61,6 @@ def handler(signum, frame):
 class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
-        self.FIFO_BUFF = {}
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.shunt_bat = 0.00159
         self.conf_logger()
@@ -70,26 +69,6 @@ class SolarPond():
         self.automation = PondPumpAuto.PondPumpAuto(logging)
         self.pump_status = self.automation.get_pump_status()
 
-        self.FILO_BUFF = {
-            'inverter_current': [],
-            'inverter_bus_voltage': [],
-            'leisure_bat_current': [],
-            'tiger_current': [],
-            '10m_tiger_current': [],
-            '10m_inverter_current': [],
-            '10m_inverter_bus_voltage': [],
-            '10m_leisure_bat_current': [],
-            '10m_solar_current': [],
-            '1h_tiger_current': [],
-            '1h_inverter_current': [],
-            '1h_inverter_bus_voltage': [],
-            '1h_leisure_bat_current': [],
-            '1h_solar_current': [],
-            'solar_current': [],
-            'status_check': [],
-            'main_relay_status': [],
-        }
-        self.read_vals()
         self.switch_to_solar_power()
 
     def avg(self, l):
@@ -159,104 +138,18 @@ class SolarPond():
         error_log.setLevel(logging.ERROR)
         logger.addHandler(error_log)
 
-    def read_vals(self):
-        tiger_bus_voltage = float(self.shunt_load.getBusVoltage_V(TIGER_BAT_CHANNEL))
-        tiger_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(TIGER_BAT_CHANNEL))
-        tiger_bat_voltage = float(tiger_bus_voltage + (tiger_shunt_voltage / 1000))
-        tiger_current = float(self.shunt_load.getCurrent_mA(TIGER_BAT_CHANNEL, self.shunt_bat))
-
-        leisure_bus_voltage = float(self.shunt_load.getBusVoltage_V(LEISURE_BAT_CHANNEL))
-        leisure_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(LEISURE_BAT_CHANNEL))
-        leisure_bat_voltage = float(tiger_bus_voltage + (leisure_shunt_voltage / 1000))
-        leisure_bat_current = float(self.shunt_load.getCurrent_mA(LEISURE_BAT_CHANNEL, self.shunt_bat)) - 340
-
-        inverter_bus_voltage = float(self.shunt_load.getBusVoltage_V(INVERT_CHANNEL))
-        inverter_shunt_voltage = float(self.shunt_load.getShuntVoltage_mV(INVERT_CHANNEL))
-        inverter_bat_voltage = float(tiger_bus_voltage + (inverter_shunt_voltage / 1000))
-        inverter_current = float(self.shunt_load.getCurrent_mA(INVERT_CHANNEL, self.shunt_bat))
-
-        if abs(leisure_bat_current) < 200:
-            leisure_bat_current = 0
-
-        if abs(tiger_current) < 200:
-            tiger_current = 0
-
-        if abs(inverter_current) < 300:
-            inverter_current = 0
-
-        if GPIO.input(INVER_CHECK) == 1:
-            inverter_bus_voltage += 1
-            inverter_bat_voltage += 1
-            leisure_bus_voltage += 1
-            leisure_bat_voltage += 1
-            tiger_bus_voltage += 1
-            tiger_bat_voltage += 1
-
-        solar_current = inverter_current + leisure_bat_current + tiger_current
-
-        self.FIFO_BUFF = {
-            'tiger_bus_voltage': round(tiger_bus_voltage, 2),
-            'tiger_bat_voltage': round(tiger_bat_voltage, 2),
-            'tiger_shunt_voltage': round(tiger_shunt_voltage, 2),
-            'tiger_current': round(tiger_current, 2),
-
-            'leisure_bus_voltage': round(leisure_bus_voltage, 2),
-            'leisure_shunt_voltage': round(leisure_shunt_voltage, 2),
-            'leisure_bat_voltage': round(leisure_bat_voltage, 2),
-            'leisure_bat_current': round(leisure_bat_current, 2),
-
-            'inverter_bus_voltage': round(inverter_bus_voltage, 2),
-            'inverter_bat_voltage': round(inverter_bat_voltage, 2),
-            'inverter_shunt_voltage': round(inverter_shunt_voltage, 2),
-            'inverter_current': round(inverter_current, 2),
-            'solar_current': round(solar_current, 2),
-        }
-        self.FILO_BUFF['inverter_bus_voltage'].append(round(inverter_bus_voltage, 2))
-        self.FILO_BUFF['leisure_bat_current'].append(round(leisure_bat_current, 2))
-
-        self.FILO_BUFF['tiger_current'].append(round(tiger_current, 2))
-        self.FILO_BUFF['inverter_current'].append(round(inverter_current, 2))
-
-        self.FILO_BUFF['solar_current'].append(round(solar_current, 2))
-        self.FILO_BUFF['status_check'].append(self.status_check),
-        self.FILO_BUFF['main_relay_status'].append(GPIO.input(POND_RELAY)),
-
-    def update_filo_buffer(self):
-        timestamp = int(time.time())
-        if timestamp % 10 == 0:
-            self.FILO_BUFF['10m_inverter_bus_voltage'].append(self.avg(self.FILO_BUFF['inverter_bus_voltage']))
-            self.FILO_BUFF['10m_leisure_bat_current'].append(self.avg(self.FILO_BUFF['leisure_bat_current']))
-            self.FILO_BUFF['10m_tiger_current'].append(self.avg(self.FILO_BUFF['tiger_current']))
-            self.FILO_BUFF['10m_converter_current'].append(self.avg(self.FILO_BUFF['converter_current']))
-            self.FILO_BUFF['10m_solar_current'].append(self.avg(self.FILO_BUFF['solar_current']))
-
-        if timestamp % 60 == 0:
-            self.FILO_BUFF['1h_inverter_bus_voltage'].append(self.avg(self.FILO_BUFF['10m_inverter_bus_voltage']))
-            self.FILO_BUFF['1h_leisure_bat_current'].append(self.avg(self.FILO_BUFF['10m_leisure_bat_current']))
-            self.FILO_BUFF['1h_tiger_current'].append(self.avg(self.FILO_BUFF['10m_tiger_current']))
-            self.FILO_BUFF['1h_converter_current'].append(self.avg(self.FILO_BUFF['10m_converter_current']))
-            self.FILO_BUFF['1h_solar_current'].append(self.avg(self.FILO_BUFF['10m_solar_current']))
-
-    def cleanup_filo(self):
-        for v in self.FILO_BUFF:
-            self.FILO_BUFF[v] = self.FILO_BUFF[v][-60:]
-
-    def ready_to_send_avg(self):
-        return len(self.FILO_BUFF['1h_inverter_bus_voltage']) > 10
-
     def processing_reads(self):
         try:
-            wattage = (self.avg(self.FILO_BUFF['10m_inverter_bus_voltage']) * self.avg(
-                self.FILO_BUFF['10m_solar_current'])) / 1000
             inv_status = GPIO.input(INVER_CHECK)
-            self.cleanup_filo()
-            self.read_vals()
-            self.update_filo_buffer()
+            self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
-            self.cleanup_filo()
-            self.print_logs.printing_vars(self.FIFO_BUFF, inv_status, wattage, self.pump_status)
-            self.print_logs.log_run(self.FILO_BUFF, inv_status, wattage, self.pump_status)
-            self.filo_fifo.buffers_run()  # ToDO experimental replace later
+            self.filo_fifo.update_rel_status({
+                'status_check': self.status_check,
+                'inverter_relay': inv_status,
+                'main_relay_status': GPIO.input(POND_RELAY),
+            })
+            self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.pump_status)
+            self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.pump_status)
         except Exception as ex:
             logging.warning(ex)
 
@@ -275,13 +168,15 @@ class SolarPond():
         return GPIO.input(INVER_CHECK)
 
     def adjust_pump_speed(self):
-        buffer_size = len(self.FILO_BUFF['inverter_bus_voltage'])
-        if buffer_size < 15:
-            logging.info(" ----It's too early to adjust %d pump_speed please wait until length over 15" % buffer_size)
+        inverter_voltage = self.get_inverter_values()
+        if len(inverter_voltage) > 15:
+            logging.info(
+                " ----It's too early to adjust %d pump_speed please wait until length over 15" % len(inverter_voltage))
             return 0
-        volt_avg = self.avg(self.FILO_BUFF['inverter_bus_voltage'])
+        volt_avg = self.avg(inverter_voltage)
 
-        if self.avg(self.FILO_BUFF['main_relay_status']) > 0.7:
+        # in case if we're working from mains switching to minimum allowed speed
+        if self.filo_fifo.get_main_rel_status > 0.7:
             return self.decrease_pump_speed(100)
 
         if volt_avg > MAX_BAT_VOLT:
@@ -317,7 +212,8 @@ class SolarPond():
             return "error"
 
     def send_avg_data(self):
-        for v in self.FILO_BUFF:
+        filo_buff = self.filo_fifo.filo_buff
+        for v in filo_buff:
             if not '1h' in v:
                 continue
             val_type = "V"
@@ -328,8 +224,8 @@ class SolarPond():
                 "value_type": val_type,
                 "name": v,
                 "inverter_status": GPIO.input(INVER_CHECK),
-                "avg_value": self.avg(self.FILO_BUFF[v]),
-                "serialized": self.FILO_BUFF[v],
+                "avg_value": self.avg(filo_buff[v]),
+                "serialized": filo_buff[v],
             })
             url_path = "%ssolarpower" % API_URL
             self.send_to_remote(url_path, payload)
@@ -342,16 +238,16 @@ class SolarPond():
         try:
             if time.strftime("%H:%M") == '12:00':
                 self.switch_to_solar_power()
-
+            inverter_voltage = self.get_inverter_values()
             # converter switch OFF
-            if self.avg(self.FILO_BUFF['inverter_bus_voltage']) < CUT_OFF_VOLT and len(
-                    self.FILO_BUFF['inverter_bus_voltage']) > 15:
+            if self.avg(inverter_voltage) < CUT_OFF_VOLT and len(
+                    inverter_voltage) > 15:
                 self.switch_to_main_power()
                 self.send_avg_data()
 
             # converter switch ON
-            if self.avg(self.FILO_BUFF['inverter_bus_voltage']) > SWITCH_ON_VOLT and len(
-                    self.FILO_BUFF['inverter_bus_voltage']) > 30:
+            if self.avg(inverter_voltage) > SWITCH_ON_VOLT and len(
+                    inverter_voltage) > 30:
                 self.switch_to_solar_power()
                 self.send_avg_data()
             self.integrity_check()
@@ -359,10 +255,15 @@ class SolarPond():
         except Exception as ex:
             logging.warning(ex)
 
+    def get_inverter_values(self, slot='1s', value='voltage'):
+
+        inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value).pop()
+        return inverter_voltage
+
     def filter_flush_run(self):
-        now_cc = self.FIFO_BUFF['inverter_current']
-        avg_cc = self.avg(self.FILO_BUFF['10m_inverter_current'])
-        cc_size = len(self.FILO_BUFF['10m_inverter_current'])
+        now_cc = self.get_inverter_values('1s', 'current')
+        avg_cc = self.avg(self.get_inverter_values('10m', 'current'))
+        cc_size = len(self.get_inverter_values('10m', 'current'))
         timestamp = int(time.time())
         if abs(now_cc - avg_cc) > 5000 and cc_size > 10:
             self.FILTER_FLUSH.append(now_cc)
@@ -405,7 +306,7 @@ class SolarPond():
         # state should be 1 which mean relay isn't switched.
 
     def integrity_check(self):
-        avg_status = self.avg(self.FILO_BUFF['status_check'])
+        avg_status = self.filo_fifo.get_avg_rel_status
         if avg_status < 0.5:
             logging.error("-------------Something IS VERY Wrong pls check logs -----------------")
             logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
