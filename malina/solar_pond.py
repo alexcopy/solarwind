@@ -29,7 +29,6 @@ TIME_TIK = 1
 POND_RELAY = 11
 INVER_RELAY = 12
 INVER_CHECK = 10
-CYCLE_COUNTER = 1
 CUT_OFF_VOLT = 21
 SWITCH_ON_VOLT = 26
 MIN_POND_SPEED = 10
@@ -122,7 +121,7 @@ class SolarPond():
         current_path = Path(LOG_DIR)
         log_name = time.strftime("info")
         filename = current_path.joinpath(f'{log_name}.log')
-        log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=6291456, backupCount=10)
+        log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=5000000, backupCount=5)
         formatter = logging.Formatter(
             '%(asctime)s program_name [%(process)d]: %(message)s',
             '%b %d %H:%M:%S')
@@ -148,7 +147,9 @@ class SolarPond():
                 'inverter_relay': inv_status,
                 'main_relay_status': GPIO.input(POND_RELAY),
             })
-            self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.pump_status)
+
+            self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
+                                          self.pump_status)
             self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.pump_status)
         except Exception as ex:
             logging.warning(ex)
@@ -308,7 +309,7 @@ class SolarPond():
 
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
-        if avg_status < 0.5:
+        if avg_status < 0.5 and self.filo_fifo.len_sts_chk > 8:
             logging.error("-------------Something IS VERY Wrong pls check logs -----------------")
             logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
             logging.error(

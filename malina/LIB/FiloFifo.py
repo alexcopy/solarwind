@@ -126,6 +126,15 @@ class FiloFifo:
         return self._avg(self.REL_STATUS['main_relay_status'])
 
     @property
+    def get_avg_rel_stats(self):
+        return {i: self._avg(val) for i, val in self.REL_STATUS.items()}
+
+
+    @property
+    def len_sts_chk(self):
+        return len(self.REL_STATUS['status_check'])
+
+    @property
     def get_avg_rel_status(self):
         return self._avg(self.REL_STATUS['status_check'])
 

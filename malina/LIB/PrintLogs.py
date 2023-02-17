@@ -43,7 +43,7 @@ class SolarLogging:
         print("--------------------------------------------")
         print("")
 
-    def printing_vars(self, fifo_buffer, inverter_status, pump_status):
+    def printing_vars(self, fifo_buffer, inverter_status, statuses, pump_status):
         print("")
         print("--------------------------------------------")
         for i in fifo_buffer:
@@ -59,6 +59,9 @@ class SolarLogging:
             print("%s: %3.2f %s " % (name, fifo_buffer[i], units))
 
         print("")
+        print(" Inverter Relay Status: %3.2f " % statuses['inverter_relay'])
+        print(" Main Relay Status: %3.2f " % statuses['main_relay_status'])
+        print(" Statuses Check: %3.2f " % statuses['status_check'])
         print(" Inverter Status is: %d  " % inverter_status)
         print(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         print(" ")
