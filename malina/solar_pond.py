@@ -256,9 +256,10 @@ class SolarPond():
             logging.warning(ex)
 
     def get_inverter_values(self, slot='1s', value='voltage'):
-
-        inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value).pop()
-        return inverter_voltage
+        inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value)
+        if len(inverter_voltage) == 0:
+            return []
+        return inverter_voltage.pop()
 
     def filter_flush_run(self):
         now_cc = self.avg(self.get_inverter_values('1s', 'current'))
