@@ -147,10 +147,10 @@ class SolarPond():
                 'inverter_relay': inv_status,
                 'main_relay_status': GPIO.input(POND_RELAY),
             })
-
+            solar_current = self.filo_fifo.solar_current
             self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                          self.pump_status)
-            self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.pump_status)
+                                          self.pump_status, solar_current)
+            self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.pump_status, solar_current)
         except Exception as ex:
             logging.warning(ex)
 
