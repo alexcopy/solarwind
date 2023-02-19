@@ -170,7 +170,7 @@ class SolarPond():
 
     def adjust_pump_speed(self):
         inverter_voltage = self.get_inverter_values()
-        if len(inverter_voltage) > 15:
+        if len(inverter_voltage) < 15:
             logging.info(
                 " ----It's too early to adjust %d pump_speed please wait until length over 15" % len(inverter_voltage))
             return 0
@@ -232,8 +232,8 @@ class SolarPond():
             self.send_to_remote(url_path, payload)
 
     def load_checks(self):
-        self.inverter_run()
         self.adjust_pump_speed()
+        self.inverter_run()
 
     def inverter_run(self):
         try:
