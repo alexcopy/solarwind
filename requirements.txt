@@ -1,0 +1,11 @@
+certifi==2022.12.7
+charset-normalizer==3.0.1
+fake-rpi @ git+https://github.com/sn4k3/FakeRPi@0f30d320d5f715d8a4fb94e7105448508586ae94
+idna==3.4
+paho-mqtt==1.6.1
+pycryptodome==3.17
+python-dotenv==0.21.1
+requests==2.28.2
+tuya-iot-py-sdk==0.6.6
+urllib3==1.26.14
+websocket-client==1.5.1
