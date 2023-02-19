@@ -221,6 +221,9 @@ class SolarPond():
             if 'current' in v:
                 val_type = "A"
 
+            if 'wattage' in v:
+                val_type = "W"
+
             payload = json.dumps({
                 "value_type": val_type,
                 "name": v,

@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
 import time
-import random as rnd
-
-from mpmath import rand
 
 INVERT_CHANNEL = 1
 LEISURE_BAT_CHANNEL = 2
@@ -128,7 +125,6 @@ class FiloFifo:
     @property
     def get_avg_rel_stats(self):
         return {i: self._avg(val) for i, val in self.REL_STATUS.items()}
-
 
     @property
     def len_sts_chk(self):
