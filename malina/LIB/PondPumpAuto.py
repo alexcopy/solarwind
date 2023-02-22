@@ -47,6 +47,7 @@ class PondPumpAuto():
         self.openapi.connect(USERNAME, PASSWORD)
         self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
         self.pump_status = {'flow_speed': 0}
+        self.get_pump_status()
 
     def send_pond_stats(self, is_working_mains: int):
         try:
@@ -81,10 +82,13 @@ class PondPumpAuto():
 
     def _update_pump_status(self, tuya_responce):
         pump = {}
-        pond_pump = tuya_responce['result']
         if not 'result' in tuya_responce:
             print(tuya_responce)
-            exit()
+            logging.error("-----------------------")
+            logging.error(tuya_responce)
+            logging.error("-----------------------")
+
+        pond_pump = tuya_responce['result']
         for k in pond_pump:
             if k['value'] is True:
                 k['value'] = 1

@@ -69,7 +69,6 @@ class SolarPond():
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging)
-        self.automation.get_pump_status()
 
         # self.switch_to_solar_power()
 
