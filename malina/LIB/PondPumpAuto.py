@@ -77,7 +77,7 @@ class PondPumpAuto():
             return {'flow_speed': 0, "Power": 0, 'error': True}
 
     def update_pump_status(self, tuya_responce):
-        self.pumps_status = {}
+        pumps_status = {}
         pond_pump = tuya_responce['result']
         if not 'result' in tuya_responce:
             print(tuya_responce)
@@ -91,9 +91,10 @@ class PondPumpAuto():
             if k['code'] == 'P':
                 k['code'] = 'flow_speed'
 
-            self.pumps_status.update({k['code']: k['value']})
-        self.pumps_status.update({'name': PUMP_NAME})
-        self.pumps_status.update({'timestamp': time.time()})
+            pumps_status.update({k['code']: k['value']})
+        pumps_status.update({'name': PUMP_NAME})
+        pumps_status.update({'timestamp': time.time()})
+        self.pump_status = pumps_status
 
     def adjust_pump_speed(self, value: int, is_working_mains: int):
         if value > 100:
