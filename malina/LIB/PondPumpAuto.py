@@ -119,10 +119,6 @@ class PondPumpAuto():
         self.send_pond_stats(is_working_mains)
         return status
 
-    def is_adj_needed(self):
-
-
-
     def is_minimum_speed(self, min_speed):
         return min_speed == self.get_current_status['flow_speed']
 
