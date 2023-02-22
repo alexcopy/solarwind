@@ -245,7 +245,7 @@ class SolarPond():
     # todo check for error in pump_status
     def send_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
-        self.automation.get_pump_status()
+        self.automation.refresh_pump_status()
         self.automation.send_pond_stats(relay_status)
 
     def send_avg_data(self):

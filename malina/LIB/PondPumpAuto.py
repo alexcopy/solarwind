@@ -47,7 +47,7 @@ class PondPumpAuto():
         self.openapi.connect(USERNAME, PASSWORD)
         self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
         self.pump_status = {'flow_speed': 0}
-        self.get_pump_status()
+        self.refresh_pump_status()
 
     def send_pond_stats(self, is_working_mains: int):
         try:
@@ -65,15 +65,13 @@ class PondPumpAuto():
             self.logger.error(ex)
             return ex
 
-    def get_pump_status(self):
+    def refresh_pump_status(self):
         try:
             device_status = self.deviceManager.get_device_status(DEVICE_ID)
             if device_status['success'] is False:
                 self.logger.error(device_status)
                 raise Exception(device_status)
-
             self._update_pump_status(device_status)
-            return self.pump_status
 
         except Exception as ex:
             print(ex)
@@ -82,12 +80,6 @@ class PondPumpAuto():
 
     def _update_pump_status(self, tuya_responce):
         pump = {}
-        if not 'result' in tuya_responce:
-            print(tuya_responce)
-            logging.error("-----------------------")
-            logging.error(tuya_responce)
-            logging.error("-----------------------")
-
         pond_pump = tuya_responce['result']
         for k in pond_pump:
             if k['value'] is True:
@@ -120,12 +112,8 @@ class PondPumpAuto():
             self.logger.error("!!!!   Pump's Speed has failed to adjust in speed to: %d !!!!" % value)
             self.logger.error(res)
 
-        status = self.get_pump_status()
-        if 'error' in status and status['error'] is True:
-            return status
-        self._update_pump_status(status)
+        self.refresh_pump_status()
         self.send_pond_stats(is_working_mains)
-        return status
 
     def is_minimum_speed(self, min_speed):
         return min_speed == self.get_current_status['flow_speed']
@@ -137,7 +125,7 @@ class PondPumpAuto():
     @property
     def get_current_status(self):
         if self.pump_status['flow_speed'] == 0:
-            self.get_pump_status()
+            self.refresh_pump_status()
         return self.pump_status
 
     def _decrease_pump_speed(self, step, min_pump_speed, mains_relay_status):
