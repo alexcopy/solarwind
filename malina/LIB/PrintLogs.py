@@ -20,7 +20,28 @@ class SolarLogging:
         self.logging.info(url_path)
         self.logging.info("--------------------------------------------")
 
-    def log_run(self, filo_buffer, invert_status, pump_status, solar_current):
+    def integrity_error(self, avg_status, pond_relay, inverter):
+        self.logging.error("-------------Something IS VERY Wrong pls check logs -----------------")
+        self.logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
+        self.logging.error(
+            "-------------Switching to POND RELAY status is: %d ------------------" % pond_relay)
+        self.logging.error(
+            "-------------Switching to INVERTER RELAY status is: %d --------------" % inverter)
+        self.logging.error("---------------------------------------------------------------------")
+
+    def log_run(self, filo_buffer: dict, invert_status, pump_status, solar_current):
+
+        sec_voltage = {k: v for k, v in filo_buffer.values() if k.startswith('1s') and k.endswith('voltage')}
+        sec_current = {k: v for k, v in filo_buffer.values() if k.startswith('1s') and k.endswith('current')}
+        sec_wattage = {k: v for k, v in filo_buffer.values() if k.startswith('1s') and k.endswith('wattage')}
+
+        ten_voltage = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('voltage')}
+        ten_current = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('current')}
+        ten_wattage = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('wattage')}
+
+        ten_voltage = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('voltage')}
+        ten_current = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('current')}
+        ten_wattage = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('wattage')}
         self.logging.info("--------------------------------------------")
         for i in filo_buffer:
             if 'voltage' in i:
@@ -43,7 +64,6 @@ class SolarLogging:
         self.logging.info(" Inverter Status is: %d  " % invert_status)
         self.logging.info("############################################")
         self.logging.info("--------------------------------------------")
-
 
     def printing_vars(self, fifo_buffer, inverter_status, statuses, pump_status, solar_current):
         print("")

@@ -39,7 +39,8 @@ class FiloFifo:
         return {p + l_n + '_' + i: [] for p in self.prefixes if p == '1s_' for l_n in self.load_names for i in
                 self.buffer_fields}
 
-    def _avg(self, l):
+    @staticmethod
+    def avg(l):
         if len(l) == 0:
             return 0
         return float(round(sum(l, 0.0) / len(l), 2))
@@ -56,7 +57,7 @@ class FiloFifo:
         for pref in self.prefixes:
             ret_dict.update({("%s%s" % (pref, field_name)):
                 round(
-                    sum([self._avg(v) for k, v in self.filo_buff.items() if
+                    sum([self.avg(v) for k, v in self.filo_buff.items() if
                          k.startswith(pref) and k.endswith(self.bat_current)]), 2)}
             )
         return ret_dict
@@ -71,14 +72,14 @@ class FiloFifo:
             prefix = '10m_'
             for field in self.fifo_buff:
                 m_field = field.replace('1s_', prefix)
-                self.FILO[m_field].append(self._avg(self.filo_buff[field]))
+                self.FILO[m_field].append(self.avg(self.filo_buff[field]))
 
         if timestamp % 60 == 0:
             prefix = '1h_'
             for field in self.filo_buff:
                 if not '10m_' in field: continue
                 h_field = field.replace('10m_', prefix)
-                self.FILO[h_field].append(self._avg(self.filo_buff[field]))
+                self.FILO[h_field].append(self.avg(self.filo_buff[field]))
 
     def _read_vals(self, channel):
         voltage = round(float(self.shunt_load.getBusVoltage_V(channel)), 2) + self.inverter_on
@@ -120,11 +121,11 @@ class FiloFifo:
 
     @property
     def get_main_rel_status(self):
-        return self._avg(self.REL_STATUS['main_relay_status'])
+        return self.avg(self.REL_STATUS['main_relay_status'])
 
     @property
     def get_avg_rel_stats(self):
-        return {i: self._avg(val) for i, val in self.REL_STATUS.items()}
+        return {i: self.avg(val) for i, val in self.REL_STATUS.items()}
 
     @property
     def len_sts_chk(self):
@@ -132,7 +133,7 @@ class FiloFifo:
 
     @property
     def get_avg_rel_status(self):
-        return self._avg(self.REL_STATUS['status_check'])
+        return self.avg(self.REL_STATUS['status_check'])
 
     def buffers_run(self, inverter_state):
         self.inverter_on = inverter_state

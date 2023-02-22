@@ -5,15 +5,18 @@ import time
 from pathlib import Path
 import logging
 import os
-import requests
+
 import logging.handlers
-import json
+
 from dotenv import dotenv_values
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from malina.LIB import SendApiData
 from malina.LIB import FiloFifo
 from malina.LIB import PondPumpAuto
 from malina.LIB.PrintLogs import SolarLogging
+import python_weather
+import asyncio
 
 try:
     importlib.util.find_spec('RPi.GPIO')
@@ -36,6 +39,7 @@ MIN_POND_SPEED = 10
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 API_URL = config["API_URL"]
+WEATHER_TOWN = config["WEATHER_TOWN"]
 MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
 MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
@@ -60,17 +64,19 @@ def handler(signum, frame):
 class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
+        self.send_data = SendApiData.SendApiData(logging, API_URL)
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.shunt_bat = 0.00159
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging)
-        self.pump_status = self.automation.get_pump_status()
+        self.automation.get_pump_status()
 
         # self.switch_to_solar_power()
 
-    def avg(self, l):
+    @staticmethod
+    def avg(l):
         if len(l) == 0:
             return 0
         return float(round(sum(l, 0.0) / len(l), 2))
@@ -107,7 +113,7 @@ class SolarPond():
     def pond_relay_on_off(self, on_off: str):
         on_off = on_off.upper()
         if on_off not in ['INV', 'MAIN']:
-            logging.error("The  WRONG Signal to POND_RELAY SENT!!!!!  the signal is: %s " % on_off)
+            logging.error("The  WRONG Signal to mains_relay_status SENT!!!!!  the signal is: %s " % on_off)
             return GPIO.output(POND_RELAY, True)
         if on_off == 'INV':
             return GPIO.output(POND_RELAY, False)
@@ -149,8 +155,9 @@ class SolarPond():
             })
             solar_current = self.filo_fifo.solar_current
             self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                          self.pump_status, solar_current)
-            self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.pump_status, solar_current)
+                                          self.automation.get_current_status, solar_current)
+            self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
+                                    solar_current)
         except Exception as ex:
             logging.warning(ex)
 
@@ -177,62 +184,19 @@ class SolarPond():
         volt_avg = self.avg(inverter_voltage)
 
         # in case if we're working from mains switching to minimum allowed speed
-        if self.filo_fifo.get_main_rel_status > 0.7:
-            return self.decrease_pump_speed(100)
+        if self.filo_fifo.get_main_rel_status > 0.7 and (not self.automation.is_minimum_speed(MIN_POND_SPEED)):
+            return self.automation.decrease_pump_speed(100, MIN_POND_SPEED, GPIO.input(POND_RELAY))
 
-        if volt_avg > MAX_BAT_VOLT:
-            return self.increase_pump_speed(POND_SPEED_STEP)
+        if volt_avg > MAX_BAT_VOLT and (not self.automation.is_max_speed):
+            return self.automation.increase_pump_speed(POND_SPEED_STEP, GPIO.input(POND_RELAY))
         if volt_avg < MIN_BAT_VOLT:
-            return self.decrease_pump_speed(POND_SPEED_STEP)
+            return self.automation.decrease_pump_speed(POND_SPEED_STEP, MIN_POND_SPEED, GPIO.input(POND_RELAY))
 
     def inverter_on_off(self):
         time.sleep(.5)
         GPIO.output(INVER_RELAY, True)
         time.sleep(.5)
         GPIO.output(INVER_RELAY, False)
-
-    def send_ff_data(self, shunt_name: str):
-        payload = json.dumps({
-            "max_current": max(self.FILTER_FLUSH),
-            "duration": len(self.FILTER_FLUSH) * TIME_TIK,
-            "name": shunt_name
-        })
-        url_path = "%sfflash" % API_URL
-        self.send_to_remote(url_path, payload)
-
-    def send_to_remote(self, url_path, payload):
-        self.print_logs.loger_remote(url_path)
-        headers = {
-            'Content-Type': 'application/json'
-        }
-        try:
-            response = requests.request("POST", url_path, headers=headers, data=payload)
-            return response.text
-        except Exception as ex:
-            logging.info(ex)
-            return "error"
-
-    def send_avg_data(self):
-        filo_buff = self.filo_fifo.filo_buff
-        for v in filo_buff:
-            if not '1h' in v:
-                continue
-            val_type = "V"
-            if 'current' in v:
-                val_type = "A"
-
-            if 'wattage' in v:
-                val_type = "W"
-
-            payload = json.dumps({
-                "value_type": val_type,
-                "name": v,
-                "inverter_status": GPIO.input(INVER_CHECK),
-                "avg_value": self.avg(filo_buff[v]),
-                "serialized": filo_buff[v],
-            })
-            url_path = "%ssolarpower" % API_URL
-            self.send_to_remote(url_path, payload)
 
     def load_checks(self):
         self.adjust_pump_speed()
@@ -247,13 +211,13 @@ class SolarPond():
             if self.avg(inverter_voltage) < CUT_OFF_VOLT and len(
                     inverter_voltage) > 15:
                 self.switch_to_main_power()
-                self.send_avg_data()
+                self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
 
             # converter switch ON
             if self.avg(inverter_voltage) > SWITCH_ON_VOLT and len(
                     inverter_voltage) > 30:
                 self.switch_to_solar_power()
-                self.send_avg_data()
+                self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
             self.integrity_check()
 
         except Exception as ex:
@@ -274,7 +238,7 @@ class SolarPond():
             self.FILTER_FLUSH.append(now_cc)
         else:
             if len(self.FILTER_FLUSH) > 5:
-                self.send_ff_data('inverter_current')
+                self.send_data.send_ff_data('inverter_current', self.FILTER_FLUSH)
             self.FILTER_FLUSH = []
         return timestamp
 
@@ -285,8 +249,11 @@ class SolarPond():
     # todo check for error in pump_status
     def send_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
-        self.pump_status = self.automation.get_pump_status()
-        self.automation.send_pond_stats(relay_status, self.pump_status)
+        self.automation.get_pump_status()
+        self.automation.send_pond_stats(relay_status)
+
+    def send_avg_data(self):
+        self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
@@ -306,39 +273,26 @@ class SolarPond():
         # reed.shutdown()
 
         # logical XOR in case of to equal states. Inverter is ON when GPIO.input(INVER_CHECK) == 1
-        # so in this case GPIO.input(POND_RELAY) should be in 0 meaning we're working from battery and vice versa
-        # in case  we're working from mains Inverter should be in state GPIO.input(INVER_CHECK) == 0 and POND_RELAY
+        # so in this case GPIO.input(mains_relay_status) should be in 0 meaning we're working from battery and vice versa
+        # in case  we're working from mains Inverter should be in state GPIO.input(INVER_CHECK) == 0 and mains_relay_status
         # state should be 1 which mean relay isn't switched.
 
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
         if avg_status < 0.5 and self.filo_fifo.len_sts_chk > 8:
-            logging.error("-------------Something IS VERY Wrong pls check logs -----------------")
-            logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
-            logging.error(
-                "-------------Switching to POND RELAY status is: %d ------------------" % GPIO.input(POND_RELAY))
-            logging.error(
-                "-------------Switching to INVERTER RELAY status is: %d --------------" % GPIO.input(INVER_CHECK))
-            logging.error("---------------------------------------------------------------------")
+            self.print_logs.integrity_error(avg_status, GPIO.input(POND_RELAY), GPIO.input(INVER_CHECK))
             self.switch_to_main_power()
 
-    def increase_pump_speed(self, step):
-        flow_speed = self.pump_status['flow_speed']
-        new_speed = flow_speed + step
+    async def _getweather(self):
+        # declare the client. format defaults to the metric system (celcius, km/h, etc.)
+        async with python_weather.Client(format=python_weather.METRIC) as client:
+            # fetch a weather forecast from a city
+            weather = await client.get(WEATHER_TOWN)
 
-        if flow_speed > 95:
-            return True
-        if new_speed > 100:
-            new_speed = 100
-        self.pump_status = self.automation.adjust_pump_speed(new_speed, GPIO.input(POND_RELAY))
-        return True
+            return weather
 
-    def decrease_pump_speed(self, step):
-        flow_speed = self.pump_status['flow_speed']
-        new_speed = flow_speed - step
-        if flow_speed == MIN_POND_SPEED:
-            return True
-        if new_speed < MIN_POND_SPEED:
-            new_speed = MIN_POND_SPEED
-        self.pump_status = self.automation.adjust_pump_speed(new_speed, GPIO.input(POND_RELAY))
-        return True
+    def weather_data(self):
+        weather = asyncio.run(self._getweather())
+        return {'temperature': weather.current.temperature, 'wind_speed': weather.current.wind_speed,
+                'visibility': weather.current.visibility, 'uv_index': weather.current.uv_index,
+                'humidity': weather.current.humidity, 'precipitation': weather.current.precipitation, }

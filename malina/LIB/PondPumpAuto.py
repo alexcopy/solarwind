@@ -8,6 +8,7 @@
 
 import json
 import logging
+import time
 from urllib.parse import urljoin
 import requests
 from dotenv import dotenv_values
@@ -42,12 +43,13 @@ class PondPumpAuto():
         self.openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY, AuthType.CUSTOM)
         self.openapi.connect(USERNAME, PASSWORD)
         self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
+        self.pump_status = {'flow_speed': 0}
 
-    def send_pond_stats(self, is_working_mains: int, data_to_remote):
+    def send_pond_stats(self, is_working_mains: int):
         try:
 
-            data_to_remote.update({'from_main': is_working_mains})
-            payload = json.dumps(data_to_remote)
+            self.pump_status.update({'from_main': is_working_mains})
+            payload = json.dumps(self.get_current_status)
             headers = {
                 'Content-Type': 'application/json'
             }
@@ -60,31 +62,35 @@ class PondPumpAuto():
             return ex
 
     def get_pump_status(self):
-        pumps_status = {}
         try:
             device_status = self.deviceManager.get_device_status(DEVICE_ID)
             if device_status['success'] is False:
                 self.logger.error(device_status)
                 raise Exception(device_status)
 
-            pond_pump = device_status['result']
-            for k in pond_pump:
-                if k['value'] is True:
-                    k['value'] = 1
-                elif k['value'] is False:
-                    k['value'] = 0
-
-                if k['code'] == 'P':
-                    k['code'] = 'flow_speed'
-
-                pumps_status.update({k['code']: k['value']})
-            pumps_status.update({'name': PUMP_NAME})
-            return pumps_status
+            self.update_pump_status(device_status)
+            return self.pumps_status
 
         except Exception as ex:
             print(ex)
             self.logger.error(ex)
             return {'flow_speed': 0, "Power": 0, 'error': True}
+
+    def update_pump_status(self, tuya_responce):
+        self.pumps_status = {}
+        pond_pump = tuya_responce['result']
+        for k in pond_pump:
+            if k['value'] is True:
+                k['value'] = 1
+            elif k['value'] is False:
+                k['value'] = 0
+
+            if k['code'] == 'P':
+                k['code'] = 'flow_speed'
+
+            self.pumps_status.update({k['code']: k['value']})
+        self.pumps_status.update({'name': PUMP_NAME})
+        self.pumps_status.update({'timestamp': time.time()})
 
     def adjust_pump_speed(self, value: int, is_working_mains: int):
         if value > 100:
@@ -106,5 +112,36 @@ class PondPumpAuto():
         status = self.get_pump_status()
         if 'error' in status and status['error'] is True:
             return status
-        self.send_pond_stats(is_working_mains, status)
+        self.update_pump_status(status)
+        self.send_pond_stats(is_working_mains)
         return status
+
+    def is_minimum_speed(self, min_speed):
+        return min_speed == self.pump_status['flow_speed']
+
+    @property
+    def is_max_speed(self):
+        return self.pump_status['flow_speed'] == 100
+
+    @property
+    def get_current_status(self):
+        if self.pump_status['flow_speed'] == 0:
+            self.get_pump_status()
+        return self.pump_status
+
+    def decrease_pump_speed(self, step, min_pump_speed, mains_relay_status):
+        flow_speed = self.pump_status['flow_speed']
+        new_speed = flow_speed - step
+        if flow_speed == min_pump_speed or new_speed < min_pump_speed:
+            new_speed = min_pump_speed
+
+        self.adjust_pump_speed(new_speed, mains_relay_status)
+        return self.pump_status
+
+    def increase_pump_speed(self, step, mains_relay_status):
+        flow_speed = self.pump_status['flow_speed']
+        new_speed = flow_speed + step
+        if flow_speed > 95 or new_speed > 95:
+            new_speed = 100
+        self.adjust_pump_speed(new_speed, mains_relay_status)
+        return self.pump_status
