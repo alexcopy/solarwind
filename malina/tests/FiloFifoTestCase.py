@@ -93,7 +93,7 @@ class FiloFifoTestCase(unittest.TestCase):
                 ten_min_field = i.replace('1s', '10m')
                 hour_field = i.replace('1s', '1h')
                 self.assertEqual(len(filo_buff[i]), l + 1)
-                avg_1s_field = self.ff_buff._avg(filo_buff[i])
+                avg_1s_field = self.ff_buff.avg(filo_buff[i])
                 self.assertEqual(val_fifo, filo_buff[i][l])
                 # assert what 10min filed has an average value from 1s list field
                 self.assertEqual(filo_buff[ten_min_field][l], avg_1s_field)
@@ -117,14 +117,14 @@ class FiloFifoTestCase(unittest.TestCase):
                 ten_min_field = i.replace('1s', '10m')
                 hour_field = i.replace('1s', '1h')
                 self.assertEqual(len(filo_buff[i]), l + 1)
-                avg_1s_field = self.ff_buff._avg(filo_buff[i])
+                avg_1s_field = self.ff_buff.avg(filo_buff[i])
                 self.assertEqual(val_fifo, filo_buff[i][l])
                 # assert what 10min filed has an average value from 1s list field
                 self.assertEqual(filo_buff[ten_min_field][l], avg_1s_field)
                 # doesn't go anything into 1hour field
                 self.assertNotEqual(len(filo_buff[hour_field]), 0)
                 # assert what averege from each  10m field goes to 1h field
-                ten_min_avg = self.ff_buff._avg(filo_buff[ten_min_field])
+                ten_min_avg = self.ff_buff.avg(filo_buff[ten_min_field])
                 self.assertEqual(filo_buff[hour_field][l], ten_min_avg)
 
     @freeze_time("2012-01-01 00:00:00")
@@ -152,7 +152,7 @@ class FiloFifoTestCase(unittest.TestCase):
 
         # checking what we're calculating sum of currents correctly fo example 1s test_3
         filo_value = self.ff_buff.get_filo_value('1s_', 'field_3')
-        cur_1s = round(sum([self.ff_buff._avg(i) for i in filo_value]), 2)
+        cur_1s = round(sum([self.ff_buff.avg(i) for i in filo_value]), 2)
         self.assertEqual(cur_1s, solar_cur['1s_solar_current'])
         self.assertEqual(len(solar_cur), 3)
 
