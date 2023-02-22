@@ -184,13 +184,28 @@ class SolarPond():
         volt_avg = self.avg(inverter_voltage)
 
         # in case if we're working from mains switching to minimum allowed speed
-        if self.filo_fifo.get_main_rel_status > 0.7 and (not self.automation.is_minimum_speed(MIN_POND_SPEED)):
-            return self.automation.decrease_pump_speed(100, MIN_POND_SPEED, GPIO.input(POND_RELAY))
 
-        if volt_avg > MAX_BAT_VOLT and (not self.automation.is_max_speed):
-            return self.automation.increase_pump_speed(POND_SPEED_STEP, GPIO.input(POND_RELAY))
-        if volt_avg < MIN_BAT_VOLT:
-            return self.automation.decrease_pump_speed(POND_SPEED_STEP, MIN_POND_SPEED, GPIO.input(POND_RELAY))
+        min_speed = MIN_POND_SPEED
+        min_bat_volt = MIN_BAT_VOLT
+        max_bat_volt = MAX_BAT_VOLT
+        speed_step = POND_SPEED_STEP
+        mains_relay_status = GPIO.input(POND_RELAY)
+
+        if self.filo_fifo.get_main_rel_status > 0.7:
+            if not self.automation.is_minimum_speed(min_speed):
+                return self.automation.decrease_pump_speed(100, min_speed, mains_relay_status)
+
+        if min_bat_volt < volt_avg < max_bat_volt:
+            return True
+
+        if volt_avg > max_bat_volt:
+            if not self.automation.is_max_speed:
+                return self.automation.increase_pump_speed(speed_step, mains_relay_status)
+
+        if self.automation.is_minimum_speed(min_speed):
+            return True
+        if volt_avg < min_bat_volt:
+            return self.automation.decrease_pump_speed(speed_step, min_speed, mains_relay_status)
 
     def inverter_on_off(self):
         time.sleep(.5)

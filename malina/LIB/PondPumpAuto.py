@@ -79,6 +79,9 @@ class PondPumpAuto():
     def update_pump_status(self, tuya_responce):
         self.pumps_status = {}
         pond_pump = tuya_responce['result']
+        if not 'result' in tuya_responce:
+            print(tuya_responce)
+            exit()
         for k in pond_pump:
             if k['value'] is True:
                 k['value'] = 1
@@ -116,8 +119,12 @@ class PondPumpAuto():
         self.send_pond_stats(is_working_mains)
         return status
 
+    def is_adj_needed(self):
+
+
+
     def is_minimum_speed(self, min_speed):
-        return min_speed == self.pump_status['flow_speed']
+        return min_speed == self.get_current_status['flow_speed']
 
     @property
     def is_max_speed(self):
