@@ -40,9 +40,7 @@ config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 API_URL = config["API_URL"]
 WEATHER_TOWN = config["WEATHER_TOWN"]
-MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
-MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
-POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
+
 
 INVERT_CHANNEL = 1
 LEISURE_BAT_CHANNEL = 2
@@ -181,31 +179,15 @@ class SolarPond():
             logging.info(
                 " ----It's too early to adjust %d pump_speed please wait until length over 15" % len(inverter_voltage))
             return 0
-        volt_avg = self.avg(inverter_voltage)
 
         # in case if we're working from mains switching to minimum allowed speed
 
+        volt_avg = self.avg(inverter_voltage)
         min_speed = MIN_POND_SPEED
-        min_bat_volt = MIN_BAT_VOLT
-        max_bat_volt = MAX_BAT_VOLT
-        speed_step = POND_SPEED_STEP
-        mains_relay_status = GPIO.input(POND_RELAY)
 
-        if self.filo_fifo.get_main_rel_status > 0.7:
-            if not self.automation.is_minimum_speed(min_speed):
-                return self.automation.decrease_pump_speed(100, min_speed, mains_relay_status)
+        mains_relay_status=self.filo_fifo.get_main_rel_status
+        self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
 
-        if min_bat_volt < volt_avg < max_bat_volt:
-            return True
-
-        if volt_avg > max_bat_volt:
-            if not self.automation.is_max_speed:
-                return self.automation.increase_pump_speed(speed_step, mains_relay_status)
-
-        if self.automation.is_minimum_speed(min_speed):
-            return True
-        if volt_avg < min_bat_volt:
-            return self.automation.decrease_pump_speed(speed_step, min_speed, mains_relay_status)
 
     def inverter_on_off(self):
         time.sleep(.5)

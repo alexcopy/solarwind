@@ -34,6 +34,9 @@ USERNAME = config['USERNAME']
 PASSWORD = config['PASSWORD']
 DEVICE_ID = config['DEVICE_ID']
 PUMP_NAME = config['PUMP_NAME']
+MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
+MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
+POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 
 
 class PondPumpAuto():
@@ -149,3 +152,24 @@ class PondPumpAuto():
             new_speed = 100
         self.adjust_pump_speed(new_speed, mains_relay_status)
         return self.pump_status
+
+    def pond_pump_adj(self, min_speed, volt_avg, mains_relay_status):
+        min_bat_volt = MIN_BAT_VOLT
+        max_bat_volt = MAX_BAT_VOLT
+        speed_step = POND_SPEED_STEP
+        mains_relay_status = int(round(mains_relay_status, 0))
+        if mains_relay_status == 1:
+            if not self.is_minimum_speed(min_speed):
+                return self.decrease_pump_speed(100, min_speed, mains_relay_status)
+
+        if min_bat_volt < volt_avg < max_bat_volt:
+            return True
+
+        if volt_avg > max_bat_volt:
+            if not self.is_max_speed:
+                return self.increase_pump_speed(speed_step, mains_relay_status)
+
+        if self.is_minimum_speed(min_speed):
+            return True
+        if volt_avg < min_bat_volt:
+            return self.decrease_pump_speed(speed_step, min_speed, mains_relay_status)
