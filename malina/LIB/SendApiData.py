@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import requests
 import json
 
-from malina.LIB.PrintLogs import SolarLogging
+import requests
+
 from malina.LIB.FiloFifo import FiloFifo
+from malina.LIB.PrintLogs import SolarLogging
 
 
 class SendApiData():

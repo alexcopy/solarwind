@@ -1,7 +1,8 @@
 #!/usr/bin/env python
+import random as rnd
 import sys
 import unittest
-import random as rnd
+
 from freezegun import freeze_time
 
 sys.path.append('../')

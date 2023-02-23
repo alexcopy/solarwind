@@ -10,18 +10,14 @@ import json
 import logging
 import time
 from urllib.parse import urljoin
+
 import requests
 from dotenv import dotenv_values
-
 from tuya_iot import (
     TuyaOpenAPI,
     AuthType,
     TuyaOpenMQ,
     TuyaDeviceManager,
-    TuyaHomeManager,
-    TuyaDeviceListener,
-    TuyaDevice,
-    TuyaTokenInfo,
     TUYA_LOGGER
 )
 
