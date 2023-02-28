@@ -1,0 +1,19 @@
+{
+  "Power": 1,
+  "Fault": 0,
+  "countdown_left": 600,
+  "feeding": 0,
+  "flow_speed": 10,
+  "customize": "000007060007F150007",
+  "day_and_night": "03004107028550C004B0C2D640D0F41",
+  "spring_and_autumn": "0000E00230F002315001E",
+  "summer": "00000101GH120001",
+  "winter": "0000C000F12000A",
+  "mode": "6",
+  "power_show": "20",
+  "voltage": "240",
+  "rotating_speed": "1308",
+  "timer_power": 0,
+  "name": "pond_pump",
+  "timestamp": 1677454577.379781
+}

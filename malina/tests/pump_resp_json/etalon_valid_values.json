@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type" : "object",
+  "properties": {
+    "Power": {
+      "type": "integer"
+    },
+    "Fault": {
+      "type": "integer"
+    },
+    "countdown_left": {
+      "type": "integer"
+    },
+    "feeding": {
+      "type": "integer"
+    },
+    "flow_speed": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "exclusiveMaximum": true
+    },
+    "customize": {
+      "type": "string"
+    },
+    "day_and_night": {
+      "type": "string"
+    },
+    "spring_and_autumn": {
+      "type": "string"
+    },
+    "summer": {
+      "type": "string"
+    },
+    "winter": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 6,
+      "exclusiveMaximum": false
+    },
+    "power_show": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 200,
+      "exclusiveMaximum": true
+    },
+    "voltage": {
+      "type": "number",
+      "minimum": 150,
+      "maximum": 250,
+      "exclusiveMaximum": true
+    },
+    "rotating_speed": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 2600,
+      "exclusiveMaximum": true
+    },
+    "timer_power": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "flow_speed",
+    "timestamp",
+    "timer_power",
+    "Power",
+    "power_show",
+    "voltage",
+    "rotating_speed"
+  ]
+}

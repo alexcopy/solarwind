@@ -1,0 +1,67 @@
+{
+  "result": [
+    {
+      "code": "Power",
+      "value": true
+    },
+    {
+      "code": "Fault",
+      "value": 0
+    },
+    {
+      "code": "countdown_left",
+      "value": 600
+    },
+    {
+      "code": "feeding",
+      "value": false
+    },
+    {
+      "code": "P",
+      "value": 10
+    },
+    {
+      "code": "customize",
+      "value": "000007060007F150007"
+    },
+    {
+      "code": "day_and_night",
+      "value": "03004107028550C004B0C2D640D0F41"
+    },
+    {
+      "code": "spring_and_autumn",
+      "value": "0000E00230F002315001E"
+    },
+    {
+      "code": "summer",
+      "value": "0000AS0101120001"
+    },
+    {
+      "code": "winter",
+      "value": "0000C000F12000A"
+    },
+    {
+      "code": "mode",
+      "value": "6"
+    },
+    {
+      "code": "power_show",
+      "value": "20"
+    },
+    {
+      "code": "voltage",
+      "value": "240"
+    },
+    {
+      "code": "rotating_speed",
+      "value": "1308"
+    },
+    {
+      "code": "timer_power",
+      "value": 0
+    }
+  ],
+  "success": true,
+  "t": 1677145699306,
+  "tid": "23565533d7a154bad19e734a24"
+}

@@ -169,7 +169,6 @@ class FiloFifoTestCase(unittest.TestCase):
         for l in range(0, times_to_run):
             self.ff_buff.buffers_run(1)
 
-        print_logs.printing_vars(self.ff_buff.fifo_buff, 1, {'flow_speed':20})
 
 if __name__ == '__main__':
     unittest.main()

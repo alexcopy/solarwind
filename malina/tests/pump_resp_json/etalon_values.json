@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type" : "object",
+  "properties": {
+    "Power": {
+      "type": "number"
+    },
+    "Fault": {
+      "type": "integer"
+    },
+    "countdown_left": {
+      "type": "integer"
+    },
+    "feeding": {
+      "type": "integer"
+    },
+    "flow_speed": {
+      "type": "integer"
+    },
+    "customize": {
+      "type": "string"
+    },
+    "day_and_night": {
+      "type": "string"
+    },
+    "spring_and_autumn": {
+      "type": "string"
+    },
+    "summer": {
+      "type": "string"
+    },
+    "winter": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "integer"
+    },
+    "power_show": {
+      "type": "integer"
+    },
+    "voltage": {
+      "type": "integer"
+    },
+    "rotating_speed": {
+      "type": "integer"
+    },
+    "timer_power": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "number"
+    }
+  }
+}
