@@ -40,7 +40,6 @@ LOG_DIR = config['LOG_DIR']
 API_URL = config["API_URL"]
 WEATHER_TOWN = config["WEATHER_TOWN"]
 
-
 INVERT_CHANNEL = 1
 LEISURE_BAT_CHANNEL = 2
 TIGER_BAT_CHANNEL = 3
@@ -150,10 +149,17 @@ class SolarPond():
                 'main_relay_status': GPIO.input(POND_RELAY),
             })
             solar_current = self.filo_fifo.solar_current
-            self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                          self.automation.get_current_status, solar_current)
-            self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
-                                    solar_current)
+            cur_t = int(time.time())
+            hour = int(time.strftime("%H"))
+            diviser = 4
+            if hour > 21 or hour < 5:
+                diviser = 30
+
+            if cur_t % diviser:
+                self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
+                                              self.automation.get_current_status, solar_current)
+                self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
+                                        solar_current)
         except Exception as ex:
             logging.warning(ex)
 
@@ -183,9 +189,8 @@ class SolarPond():
         volt_avg = self.avg(inverter_voltage)
         min_speed = MIN_POND_SPEED
 
-        mains_relay_status=self.filo_fifo.get_main_rel_status
+        mains_relay_status = self.filo_fifo.get_main_rel_status
         self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
-
 
     def inverter_on_off(self):
         time.sleep(.5)
@@ -225,9 +230,9 @@ class SolarPond():
         return inverter_voltage.pop()
 
     def filter_flush_run(self):
-        now_cc = self.avg(self.get_inverter_values('1s', 'current'))
+        now_cc = self.filo_fifo.fifo_buff['1s_inverter_bat_current']
         avg_cc = self.avg(self.get_inverter_values('10m', 'current'))
-        cc_size = len(self.get_inverter_values('10s', 'current'))
+        cc_size = len(self.get_inverter_values('1s', 'current'))
         timestamp = int(time.time())
         if abs(now_cc - avg_cc) > 5000 and cc_size > 10:
             self.FILTER_FLUSH.append(now_cc)
