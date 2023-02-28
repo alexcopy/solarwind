@@ -10,18 +10,14 @@ import json
 import logging
 import time
 from urllib.parse import urljoin
+
 import requests
 from dotenv import dotenv_values
-
 from tuya_iot import (
     TuyaOpenAPI,
     AuthType,
     TuyaOpenMQ,
     TuyaDeviceManager,
-    TuyaHomeManager,
-    TuyaDeviceListener,
-    TuyaDevice,
-    TuyaTokenInfo,
     TUYA_LOGGER
 )
 
@@ -90,7 +86,7 @@ class PondPumpAuto():
             if k['code'] == 'P':
                 k['code'] = 'flow_speed'
 
-            pump.update({k['code']: k['value']})
+            pump.update({k['code']: self.is_integer(k['value'])})
         pump.update({'name': PUMP_NAME})
         pump.update({'timestamp': time.time()})
         self.pump_status = pump
@@ -165,3 +161,14 @@ class PondPumpAuto():
             return True
         if volt_avg < min_bat_volt:
             return self._decrease_pump_speed(speed_step, min_speed, mains_relay_status)
+
+    def is_integer(self, n):
+        try:
+            return int(n)
+        except ValueError:
+            flag = False
+        if not flag:
+            try:
+                return float(n)
+            except ValueError:
+                return str(n)

@@ -1,22 +1,21 @@
 #!/usr/bin/env python
-from malina.INA3221 import SDL_Pi_INA3221
+import asyncio
 import importlib.util
+import logging
+import logging.handlers
+import os
 import time
 from pathlib import Path
-import logging
-import os
 
-import logging.handlers
-
-from dotenv import dotenv_values
+import python_weather
 from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import dotenv_values
 
-from malina.LIB import SendApiData
+from malina.INA3221 import SDL_Pi_INA3221
 from malina.LIB import FiloFifo
 from malina.LIB import PondPumpAuto
+from malina.LIB import SendApiData
 from malina.LIB.PrintLogs import SolarLogging
-import python_weather
-import asyncio
 
 try:
     importlib.util.find_spec('RPi.GPIO')

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type" : "object",
+  "properties": {
+    "success": {
+      "type": "boolean"
+    },
+    "t": {
+      "type": "integer"
+    },
+    "tid": {
+      "type": "string"
+    },
+    "result": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "success",
+    "t",
+    "tid",
+    "result"
+  ]
+}
