@@ -155,7 +155,7 @@ class SolarPond():
             if hour > 21 or hour < 5:
                 diviser = 30
 
-            if cur_t % diviser:
+            if cur_t % diviser==0:
                 self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
                                               self.automation.get_current_status, solar_current)
                 self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
