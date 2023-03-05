@@ -58,6 +58,7 @@ class PondPumpAuto():
         except Exception as ex:
             print(ex)
             self.logger.error(ex)
+            time.sleep(10)
             return {'errors': True}
 
     def refresh_pump_status(self):
@@ -109,7 +110,7 @@ class PondPumpAuto():
 
         self.refresh_pump_status()
         resp = self.send_pond_stats(is_working_mains)
-        erros_resp = resp.json()['errors']
+        erros_resp = resp['errors']
 
         if erros_resp:
             time.sleep(5)

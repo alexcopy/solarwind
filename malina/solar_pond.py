@@ -250,7 +250,7 @@ class SolarPond():
         relay_status = int(GPIO.input(POND_RELAY))
         self.automation.refresh_pump_status()
         resp = self.automation.send_pond_stats(relay_status)
-        err_resp = resp.json()['errors']
+        err_resp = resp['errors']
         if err_resp:
             time.sleep(5)
             self.automation.refresh_pump_status()
