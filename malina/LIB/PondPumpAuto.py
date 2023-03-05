@@ -47,7 +47,6 @@ class PondPumpAuto():
 
     def send_pond_stats(self, is_working_mains: int):
         try:
-
             self.pump_status.update({'from_main': is_working_mains})
             payload = json.dumps(self.get_current_status)
             headers = {
@@ -55,11 +54,11 @@ class PondPumpAuto():
             }
             url = urljoin(BASE_URL, 'pondpump/')
             response = requests.request("POST", url, headers=headers, data=payload)
-            return response.text
+            return response.json()
         except Exception as ex:
             print(ex)
             self.logger.error(ex)
-            return ex
+            return {'errors': True}
 
     def refresh_pump_status(self):
         try:
@@ -109,7 +108,13 @@ class PondPumpAuto():
             self.logger.error(res)
 
         self.refresh_pump_status()
-        self.send_pond_stats(is_working_mains)
+        resp = self.send_pond_stats(is_working_mains)
+        erros_resp = resp.json()['errors']
+
+        if erros_resp:
+            time.sleep(5)
+            self.refresh_pump_status()
+            self.send_pond_stats(is_working_mains)
 
     def is_minimum_speed(self, min_speed):
         return min_speed == self.get_current_status['flow_speed']

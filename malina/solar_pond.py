@@ -62,7 +62,6 @@ class SolarPond():
         self.FILTER_FLUSH = []
         self.send_data = SendApiData.SendApiData(logging, API_URL)
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
-        self.shunt_bat = 0.00159
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
@@ -155,7 +154,7 @@ class SolarPond():
             if hour > 21 or hour < 5:
                 diviser = 30
 
-            if cur_t % diviser==0:
+            if cur_t % diviser == 0:
                 self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
                                               self.automation.get_current_status, solar_current)
                 self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
@@ -250,7 +249,12 @@ class SolarPond():
     def send_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
         self.automation.refresh_pump_status()
-        self.automation.send_pond_stats(relay_status)
+        resp = self.automation.send_pond_stats(relay_status)
+        err_resp = resp.json()['errors']
+        if err_resp:
+            time.sleep(5)
+            self.automation.refresh_pump_status()
+            self.automation.send_pond_stats(relay_status)
 
     def send_avg_data(self):
         self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
