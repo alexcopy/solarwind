@@ -245,8 +245,7 @@ class SolarPond():
         if len(self.FILTER_FLUSH) < 5:
             self.FILTER_FLUSH = []
 
-    # todo check for error in pump_status
-    def send_pump_stats(self):
+    def pond_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
         self.automation.refresh_pump_status()
         resp = self.automation.send_pump_stats(relay_status)
@@ -271,7 +270,7 @@ class SolarPond():
             load_time_slot = 60
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
-        reed.add_job(self.send_pump_stats, 'interval', seconds=300)
+        reed.add_job(self.pond_pump_stats, 'interval', seconds=300)
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
         # reed.shutdown()

@@ -53,10 +53,10 @@ class PondPumpAuto():
                 'Content-Type': 'application/json'
             }
             url = urljoin(BASE_URL, 'pondpump/')
-            response = requests.request("POST", url, headers=headers, data=payload)
+            response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
                 self.logger.error(response['payload'])
-            return response.json()
+            return response
         except Exception as ex:
             print(ex)
             self.logger.error(ex)
