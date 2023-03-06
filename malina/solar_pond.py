@@ -249,12 +249,12 @@ class SolarPond():
     def send_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
         self.automation.refresh_pump_status()
-        resp = self.automation.send_pond_stats(relay_status)
+        resp = self.automation.send_pump_stats(relay_status)
         err_resp = resp['errors']
         if err_resp:
             time.sleep(5)
             self.automation.refresh_pump_status()
-            self.automation.send_pond_stats(relay_status)
+            self.automation.send_pump_stats(relay_status)
 
     def send_avg_data(self):
         self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
