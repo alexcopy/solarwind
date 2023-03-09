@@ -38,6 +38,7 @@ MIN_POND_SPEED = 10
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 API_URL = config["API_URL"]
+POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 WEATHER_TOWN = config["WEATHER_TOWN"]
 
 INVERT_CHANNEL = 1
@@ -194,17 +195,16 @@ class SolarPond():
         else:
             logging.info("Pump working mode is not 6 so no adjustments could be done ")
 
-    #
-    # def adjust_speed_nonstepped_val(self):
-    #
-    #     if not self.automation.pump_status['flow_speed'] % POND_SPEED_STEP == 0:
-    #         rounded = round(int(self.pump_status['flow_speed']) / 10) * 10
-    #         if rounded < POND_SPEED_STEP:
-    #             rounded = POND_SPEED_STEP
-    #         logging.error("The device status is not divisible by POND_SPEED_STEP %d" % rounded)
-    #         self._adjust_pump_speed(rounded, self.get_current_status['from_main'])
-    #
-    #         # todo add adjustment here later, after tests
+    def adjust_speed_non_stepped_val(self):
+        if not self.automation.pump_status['flow_speed'] % POND_SPEED_STEP == 0:
+            rounded = round(int(self.automation.pump_status['flow_speed']) / 10) * 10
+            if rounded < POND_SPEED_STEP:
+                rounded = POND_SPEED_STEP
+            logging.error("The device status is not divisible by POND_SPEED_STEP %d" % rounded)
+            relay_status = int(GPIO.input(POND_RELAY))
+            self.automation.change_pump_speed(rounded, relay_status)
+
+            # todo add adjustment here later, after tests
 
     def inverter_on_off(self):
         time.sleep(.5)
@@ -215,6 +215,7 @@ class SolarPond():
     def load_checks(self):
         self.adjust_pump_speed()
         self.inverter_run()
+        self.adjust_speed_non_stepped_val()
 
     def inverter_run(self):
         try:

@@ -93,7 +93,7 @@ class PondPumpAuto():
         pump.update({'timestamp': time.time()})
         self.pump_status = pump
 
-    def _adjust_pump_speed(self, value: int, is_working_mains: int):
+    def change_pump_speed(self, value: int, is_working_mains: int):
         if value > 100:
             self.logger.error("The value of PumpSpeed is OUT of Range PLS Check %d" % value)
             value = 100
@@ -137,7 +137,7 @@ class PondPumpAuto():
         if flow_speed == min_pump_speed or new_speed < min_pump_speed:
             new_speed = min_pump_speed
 
-        self._adjust_pump_speed(new_speed, mains_relay_status)
+        self.change_pump_speed(new_speed, mains_relay_status)
         return self.pump_status
 
     def _increase_pump_speed(self, step, mains_relay_status):
@@ -145,7 +145,7 @@ class PondPumpAuto():
         new_speed = flow_speed + step
         if flow_speed > 95 or new_speed > 95:
             new_speed = 100
-        self._adjust_pump_speed(new_speed, mains_relay_status)
+        self.change_pump_speed(new_speed, mains_relay_status)
         return self.pump_status
 
     def pond_pump_adj(self, min_speed, volt_avg, mains_relay_status):
