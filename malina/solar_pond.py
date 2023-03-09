@@ -189,7 +189,22 @@ class SolarPond():
         min_speed = MIN_POND_SPEED
 
         mains_relay_status = self.filo_fifo.get_main_rel_status
-        self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
+        if int(self.automation.get_current_status['mode']) == 6:
+            self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
+        else:
+            logging.info("Pump working mode is not 6 so no adjustments could be done ")
+
+    #
+    # def adjust_speed_nonstepped_val(self):
+    #
+    #     if not self.automation.pump_status['flow_speed'] % POND_SPEED_STEP == 0:
+    #         rounded = round(int(self.pump_status['flow_speed']) / 10) * 10
+    #         if rounded < POND_SPEED_STEP:
+    #             rounded = POND_SPEED_STEP
+    #         logging.error("The device status is not divisible by POND_SPEED_STEP %d" % rounded)
+    #         self._adjust_pump_speed(rounded, self.get_current_status['from_main'])
+    #
+    #         # todo add adjustment here later, after tests
 
     def inverter_on_off(self):
         time.sleep(.5)
@@ -274,11 +289,6 @@ class SolarPond():
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
         # reed.shutdown()
-
-        # logical XOR in case of to equal states. Inverter is ON when GPIO.input(INVER_CHECK) == 1
-        # so in this case GPIO.input(mains_relay_status) should be in 0 meaning we're working from battery and vice versa
-        # in case  we're working from mains Inverter should be in state GPIO.input(INVER_CHECK) == 0 and mains_relay_status
-        # state should be 1 which mean relay isn't switched.
 
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
