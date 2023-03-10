@@ -21,7 +21,7 @@ class SendApiData():
         }
         try:
             response = requests.request("POST", url_path, headers=headers, data=payload)
-            return response.text
+            return response.json()
         except Exception as ex:
             self.logger.error(ex)
             return "error"

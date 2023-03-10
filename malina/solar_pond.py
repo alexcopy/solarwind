@@ -38,6 +38,7 @@ MIN_POND_SPEED = 10
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 API_URL = config["API_URL"]
+POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 WEATHER_TOWN = config["WEATHER_TOWN"]
 
 INVERT_CHANNEL = 1
@@ -62,7 +63,6 @@ class SolarPond():
         self.FILTER_FLUSH = []
         self.send_data = SendApiData.SendApiData(logging, API_URL)
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
-        self.shunt_bat = 0.00159
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
@@ -155,7 +155,7 @@ class SolarPond():
             if hour > 21 or hour < 5:
                 diviser = 30
 
-            if cur_t % diviser:
+            if cur_t % diviser == 0:
                 self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
                                               self.automation.get_current_status, solar_current)
                 self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
@@ -183,14 +183,25 @@ class SolarPond():
             logging.info(
                 " ----It's too early to adjust %d pump_speed please wait until length over 15" % len(inverter_voltage))
             return 0
-
         # in case if we're working from mains switching to minimum allowed speed
-
         volt_avg = self.avg(inverter_voltage)
         min_speed = MIN_POND_SPEED
-
         mains_relay_status = self.filo_fifo.get_main_rel_status
-        self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
+        if int(self.automation.get_current_status['mode']) == 6:
+            self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
+        else:
+            logging.info("Pump working mode is not 6 so no adjustments could be done ")
+
+    def adjust_speed_non_stepped_val(self):
+        if not self.automation.pump_status['flow_speed'] % POND_SPEED_STEP == 0:
+            rounded = round(int(self.automation.pump_status['flow_speed']) / 10) * 10
+            if rounded < POND_SPEED_STEP:
+                rounded = POND_SPEED_STEP
+            logging.error("The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
+            logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
+            relay_status = int(GPIO.input(POND_RELAY))
+            self.automation.change_pump_speed(rounded, relay_status)
+
 
     def inverter_on_off(self):
         time.sleep(.5)
@@ -201,6 +212,7 @@ class SolarPond():
     def load_checks(self):
         self.adjust_pump_speed()
         self.inverter_run()
+        self.adjust_speed_non_stepped_val()
 
     def inverter_run(self):
         try:
@@ -246,11 +258,15 @@ class SolarPond():
         if len(self.FILTER_FLUSH) < 5:
             self.FILTER_FLUSH = []
 
-    # todo check for error in pump_status
-    def send_pump_stats(self):
+    def pond_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
         self.automation.refresh_pump_status()
-        self.automation.send_pond_stats(relay_status)
+        resp = self.automation.send_pump_stats(relay_status)
+        err_resp = resp['errors']
+        if err_resp:
+            time.sleep(5)
+            self.automation.refresh_pump_status()
+            self.automation.send_pump_stats(relay_status)
 
     def send_avg_data(self):
         self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
@@ -267,15 +283,10 @@ class SolarPond():
             load_time_slot = 60
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
-        reed.add_job(self.send_pump_stats, 'interval', seconds=300)
+        reed.add_job(self.pond_pump_stats, 'interval', seconds=300)
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
         # reed.shutdown()
-
-        # logical XOR in case of to equal states. Inverter is ON when GPIO.input(INVER_CHECK) == 1
-        # so in this case GPIO.input(mains_relay_status) should be in 0 meaning we're working from battery and vice versa
-        # in case  we're working from mains Inverter should be in state GPIO.input(INVER_CHECK) == 0 and mains_relay_status
-        # state should be 1 which mean relay isn't switched.
 
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
