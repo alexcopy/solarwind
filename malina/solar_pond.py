@@ -183,12 +183,9 @@ class SolarPond():
             logging.info(
                 " ----It's too early to adjust %d pump_speed please wait until length over 15" % len(inverter_voltage))
             return 0
-
         # in case if we're working from mains switching to minimum allowed speed
-
         volt_avg = self.avg(inverter_voltage)
         min_speed = MIN_POND_SPEED
-
         mains_relay_status = self.filo_fifo.get_main_rel_status
         if int(self.automation.get_current_status['mode']) == 6:
             self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
@@ -200,11 +197,11 @@ class SolarPond():
             rounded = round(int(self.automation.pump_status['flow_speed']) / 10) * 10
             if rounded < POND_SPEED_STEP:
                 rounded = POND_SPEED_STEP
-            logging.error("The device status is not divisible by POND_SPEED_STEP %d" % rounded)
+            logging.error("The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
+            logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
             relay_status = int(GPIO.input(POND_RELAY))
             self.automation.change_pump_speed(rounded, relay_status)
 
-            # todo add adjustment here later, after tests
 
     def inverter_on_off(self):
         time.sleep(.5)
