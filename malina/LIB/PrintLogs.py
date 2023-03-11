@@ -88,7 +88,17 @@ class SolarLogging:
         print(" 10m Solar Current: %3.2f " % solar_current['10m_solar_current'])
         print("")
         print("---")
-        print(" Inverter Status is: %d  " % inverter_status)
+
+        status = "OFF"
+        if inverter_status == 1:
+            status = 'ON'
+
+        m_r = "MAIN"
+        if statuses['main_relay_status'][0] == 0:
+            m_r = 'INVERT'
+
+        print(" Inverter Status is: %s  " % status)
+        print(" Main Relay works from: %s  " % m_r)
         print(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         print("---")
         print("--------------------------------------------")
