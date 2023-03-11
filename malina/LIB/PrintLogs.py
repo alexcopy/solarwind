@@ -94,7 +94,7 @@ class SolarLogging:
             status = 'ON'
 
         m_r = "MAIN"
-        if statuses['main_relay_status'][0] == 0:
+        if statuses['main_relay_status'] == 0:
             m_r = 'INVERT'
 
         print(" Inverter Status is: %s  " % status)
