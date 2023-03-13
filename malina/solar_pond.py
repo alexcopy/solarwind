@@ -197,11 +197,11 @@ class SolarPond():
             rounded = round(int(self.automation.pump_status['flow_speed']) / 10) * 10
             if rounded < POND_SPEED_STEP:
                 rounded = POND_SPEED_STEP
-            logging.error("The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
+            logging.error(
+                "The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
             logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
             relay_status = int(GPIO.input(POND_RELAY))
             self.automation.change_pump_speed(rounded, relay_status)
-
 
     def inverter_on_off(self):
         time.sleep(.5)
@@ -276,14 +276,16 @@ class SolarPond():
         hour = int(time.strftime("%H"))
         send_time_slot = 600
         load_time_slot = 10
+        pump_stats = 300
 
         # Don't need to send stats overnight
         if hour > 21 or hour < 5:
             send_time_slot = 1800
+            pump_stats = 1800
             load_time_slot = 60
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
-        reed.add_job(self.pond_pump_stats, 'interval', seconds=300)
+        reed.add_job(self.pond_pump_stats, 'interval', seconds=pump_stats)
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
         # reed.shutdown()
