@@ -98,8 +98,8 @@ class SolarLogging:
 
         print(" Inverter Status is: %s  " % status)
         print(" Main Relay works from: %s  " % m_r)
-        print(" Solar 10m Power: %3.2f W " % solar_current['10m_solar_current'] * solar_current[
-            '1s_inverter_bus_voltage'])
+        print(" Solar 10m Power: %3.2f W " % (solar_current['10m_solar_current'] * solar_current[
+            '1s_inverter_bus_voltage']))
         print(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         print("---")
         print("--------------------------------------------")
