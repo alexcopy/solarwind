@@ -21,7 +21,6 @@ class SolarLogging:
         self.logging.info("--------------------------------------------")
 
     def integrity_error(self, avg_status, pond_relay, inverter):
-        self.logging.error("-------------Something IS VERY Wrong pls check logs -----------------")
         self.logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
         self.logging.error(
             "-------------Switching to POND RELAY status is: %d ------------------" % pond_relay)
@@ -77,7 +76,7 @@ class SolarLogging:
                 units = "Watt"
             else:
                 units = "UN"
-            name = i.title().replace('_', " ")
+            name = i.title().replace('1s', " ").replace('_', " ")
             print("%s: %3.2f %s " % (name, fifo_buffer[i], units))
 
         print("")
@@ -99,6 +98,8 @@ class SolarLogging:
 
         print(" Inverter Status is: %s  " % status)
         print(" Main Relay works from: %s  " % m_r)
+        print(" Solar 10m Power: %3.2f W " % solar_current['10m_solar_current'] * solar_current[
+            '1s_inverter_bus_voltage'])
         print(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         print("---")
         print("--------------------------------------------")

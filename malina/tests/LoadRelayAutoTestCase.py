@@ -15,9 +15,9 @@ class LoadRelayAutoTestCase(unittest.TestCase):
     def test_something(self):
 
         self.assertEqual(True, True)  # add assertion here
-        self.load_automation.switch_on_load('')
+        self.load_automation.switch_on_load('9b8ae2c7b4add0e9e8dshh')
         time.sleep(5)
-        self.load_automation.switch_off_load('')
+        self.load_automation.switch_off_load('9b8ae2c7b4add0e9e8dshh')
 
         print(self.load_automation.get_device_statuses)
 
