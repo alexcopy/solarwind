@@ -37,9 +37,9 @@ class LoadRelayAutomation():
         TUYA_LOGGER.setLevel(logging.DEBUG)
         self.logger = logger
         self.openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY, AuthType.CUSTOM)
-        print(USERNAME)
-        # self.openapi.connect(USERNAME, PASSWORD)
-        # self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
+
+        self.openapi.connect(USERNAME, PASSWORD)
+        self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
         self.deviceStatuses = {}
 
     # def send_pump_stats(self, is_working_mains: int):
@@ -61,12 +61,30 @@ class LoadRelayAutomation():
     #         return {'errors': True}
 
     def switch_on_load(self, device_id):
-        device_status = self.deviceManager.get_device_status(device_id)
-        self.deviceStatuses.update({device_id: device_status})
+        status = self.update_status(device_id)
+        if not status['switch_1']:
+            command = [
+                {
+                    "code": "switch_1",
+                    "value": True
+                }]
+            self.deviceManager.send_commands(device_id, command)
 
     def switch_off_load(self, device_id):
-        device_status = self.deviceManager.get_device_status(device_id)
-        self.deviceStatuses.update({device_id: device_status})
+        status = self.update_status(device_id)
+        if status['switch_1']:
+            command = [
+                {
+                    "code": "switch_1",
+                    "value": False
+                }]
+            self.deviceManager.send_commands(device_id, command)
+
+    def update_status(self, device_id):
+        device_status = self.deviceManager.get_device_list_status([device_id])['result'][0]['status']
+        sw_status = {v['code']: v['value'] for v in device_status}
+        self.deviceStatuses.update({device_id: sw_status})
+        return sw_status
 
     @property
     def get_device_statuses(self):

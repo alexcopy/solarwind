@@ -180,7 +180,7 @@ class SolarPond():
     def adjust_pump_speed(self):
         inverter_voltage = self.get_inverter_values()
         if len(inverter_voltage) < 15:
-            logging.info(
+            logging.error(
                 " ----It's too early to adjust %d pump_speed please wait until length over 15" % len(inverter_voltage))
             return 0
         # in case if we're working from mains switching to minimum allowed speed
@@ -309,3 +309,9 @@ class SolarPond():
         return {'temperature': weather.current.temperature, 'wind_speed': weather.current.wind_speed,
                 'visibility': weather.current.visibility, 'uv_index': weather.current.uv_index,
                 'humidity': weather.current.humidity, 'precipitation': weather.current.precipitation, }
+
+# todo: improve pump speed adjustments (sometime it's very slow to speedup or slow down,
+#  add another level of logging (debug or warnings)
+#  add weather to table and advance in table pond self temp from future gauge
+#  finish switch automation
+
