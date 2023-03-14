@@ -96,10 +96,10 @@ class SolarLogging:
         if statuses['main_relay_status'] == 0:
             m_r = 'INVERT'
 
-        wtg = solar_current['10m_solar_current'] * solar_current['1s_inverter_bus_voltage']
+        # wtg = solar_current['10m_solar_current'] * solar_current['1s_inverter_bus_voltage']
         print(" Inverter Status is: %s  " % status)
         print(" Main Relay works from: %s  " % m_r)
-        print(" Solar 10m Power: %3.2f W " % wtg)
+        # print(" Solar 10m Power: %3.2f W " % wtg)
         print(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         print("---")
         print("--------------------------------------------")
