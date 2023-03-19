@@ -161,7 +161,7 @@ class SolarPond():
                 self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
                                         solar_current)
         except Exception as ex:
-            logging.warning(ex)
+            logging.error(ex)
 
     def inverter_switch(self, on_off: str):
         on_off = on_off.upper()
@@ -228,12 +228,19 @@ class SolarPond():
             # converter switch ON
             if self.avg(inverter_voltage) > SWITCH_ON_VOLT and len(
                     inverter_voltage) > 30:
+                if self.is_average_relays_on():
+                    # all good relay is ON
+                    return True
                 self.switch_to_solar_power()
                 self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
             self.integrity_check()
 
         except Exception as ex:
-            logging.warning(ex)
+            logging.error(ex)
+
+    def is_average_relays_on(self):
+        invert_status = self.filo_fifo.get_avg_rel_stats
+        return invert_status['inverter_relay'] > 0.3 and invert_status['status_check'] > 0.3
 
     def get_inverter_values(self, slot='1s', value='voltage'):
         inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value)
@@ -274,13 +281,13 @@ class SolarPond():
     def run_read_vals(self):
         reed = BackgroundScheduler()
         hour = int(time.strftime("%H"))
-        send_time_slot = 600
+        send_time_slot = 1200
         load_time_slot = 10
         pump_stats = 300
 
         # Don't need to send stats overnight
         if hour > 21 or hour < 5:
-            send_time_slot = 1800
+            send_time_slot = 2400
             pump_stats = 1800
             load_time_slot = 60
 
@@ -292,7 +299,7 @@ class SolarPond():
 
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
-        if avg_status < 0.5 and self.filo_fifo.len_sts_chk > 8:
+        if avg_status < 0.3 and self.filo_fifo.len_sts_chk > 8:
             self.print_logs.integrity_error(avg_status, GPIO.input(POND_RELAY), GPIO.input(INVER_CHECK))
             self.switch_to_main_power()
 
@@ -314,4 +321,3 @@ class SolarPond():
 #  add another level of logging (debug or warnings)
 #  add weather to table and advance in table pond self temp from future gauge
 #  finish switch automation
-

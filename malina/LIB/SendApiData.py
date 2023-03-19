@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import json
+import logging
 
 import requests
 
@@ -24,7 +25,7 @@ class SendApiData():
             return response.json()
         except Exception as ex:
             self.logger.error(ex)
-            return "error"
+            return {'errors': True}
 
     def send_avg_data(self, filo_fifo: FiloFifo, inverter_status):
 
@@ -55,4 +56,8 @@ class SendApiData():
             "name": shunt_name
         })
         url_path = "%sfflash" % self.api_url
-        self.send_to_remote(url_path, payload)
+        resp = self.send_to_remote(url_path, payload)
+        erros_resp = resp['errors']
+
+        if erros_resp:
+            logging.error(resp)
