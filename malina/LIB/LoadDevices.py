@@ -18,6 +18,8 @@ class LoadDevices:
         self.fnt_device_id = FNT_DEVICE
         self.logging = logger
         self.load_auto = LoadRelayAutomation(logger)
+        self.update_uv_stats_info()
+        self.update_fnt_dev_stats()
 
     @property
     def uv_sterilizer(self):
