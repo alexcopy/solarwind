@@ -13,11 +13,11 @@ FNT_STOP_VOLT = config['FNT_STOP_VOLT']
 
 
 class LoadDevices:
-    def __int__(self, logging):
+    def __init__(self, logger):
         self.uv_device_id = UV_DEVICE
         self.fnt_device_id = FNT_DEVICE
-        self.logging = logging
-        self.load_auto = LoadRelayAutomation(logging)
+        self.logging = logger
+        self.load_auto = LoadRelayAutomation(logger)
 
     @property
     def uv_sterilizer(self):
