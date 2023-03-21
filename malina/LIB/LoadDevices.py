@@ -4,12 +4,12 @@ from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 
 config = dotenv_values(".env")
 UV_DEVICE = config['SWITCH_UV_ID']
-UV_START_VOLT = config['UV_START_VOLT']
-UV_STOP_VOLT = config['UV_STOP_VOLT']
-
 FNT_DEVICE = config['SWITCH_FNT_ID']
-FNT_START_VOLT = config['FNT_START_VOLT']
-FNT_STOP_VOLT = config['FNT_STOP_VOLT']
+
+UV_START_VOLT = float(config['UV_START_VOLT'])
+UV_STOP_VOLT = float(config['UV_STOP_VOLT'])
+FNT_START_VOLT = float(config['FNT_START_VOLT'])
+FNT_STOP_VOLT = float(config['FNT_STOP_VOLT'])
 
 
 class LoadDevices:
