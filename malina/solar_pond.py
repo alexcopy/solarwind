@@ -15,6 +15,8 @@ from malina.INA3221 import SDL_Pi_INA3221
 from malina.LIB import FiloFifo
 from malina.LIB import PondPumpAuto
 from malina.LIB import SendApiData
+from malina.LIB.LoadDevices import LoadDevices
+from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 from malina.LIB.PrintLogs import SolarLogging
 
 try:
@@ -67,6 +69,8 @@ class SolarPond():
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging)
+        self.devices = LoadDevices(logging)
+
 
         # self.switch_to_solar_power()
 
@@ -157,9 +161,12 @@ class SolarPond():
 
             if cur_t % diviser == 0:
                 self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                              self.automation.get_current_status, solar_current)
+                                              self.automation.get_current_status, solar_current, self.devices)
                 self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
                                         solar_current)
+        except IOError as io_err:
+            logging.info(io_err)
+
         except Exception as ex:
             logging.error(ex)
 
@@ -213,6 +220,7 @@ class SolarPond():
         self.adjust_pump_speed()
         self.inverter_run()
         self.adjust_speed_non_stepped_val()
+        self.check_load_devices()
 
     def inverter_run(self):
         try:
@@ -265,6 +273,20 @@ class SolarPond():
         if len(self.FILTER_FLUSH) < 5:
             self.FILTER_FLUSH = []
 
+    def check_load_devices(self):
+        inverter_volt = self.get_inverter_values()
+        self.devices.check_uv_devices(inverter_volt)
+        # self.devices.check_fnt_device(inverter_volt) todo uncomment when ready
+
+
+    def update_devs_stats(self):
+        self.pond_pump_stats()
+        time.sleep(3)
+        self.devices.update_uv_stats_info()
+        time.sleep(3)
+        self.devices.update_fnt_dev_stats()
+
+
     def pond_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
         self.automation.refresh_pump_status()
@@ -289,10 +311,10 @@ class SolarPond():
         if hour > 21 or hour < 5:
             send_time_slot = 2400
             pump_stats = 1800
-            load_time_slot = 60
+            load_time_slot = 120
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
-        reed.add_job(self.pond_pump_stats, 'interval', seconds=pump_stats)
+        reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats)
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
         # reed.shutdown()
