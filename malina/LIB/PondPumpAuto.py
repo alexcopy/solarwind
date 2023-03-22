@@ -13,21 +13,9 @@ from urllib.parse import urljoin
 
 import requests
 from dotenv import dotenv_values
-from tuya_iot import (
-    TuyaOpenAPI,
-    AuthType,
-    TuyaOpenMQ,
-    TuyaDeviceManager,
-    TUYA_LOGGER
-)
 
 config = dotenv_values(".env")
-ENDPOINT = config['ENDPOINT']
-ACCESS_ID = config['ACCESS_ID']
-ACCESS_KEY = config['ACCESS_KEY']
 BASE_URL = config['API_URL']
-USERNAME = config['USERNAME']
-PASSWORD = config['PASSWORD']
 DEVICE_ID = config['DEVICE_ID']
 PUMP_NAME = config['PUMP_NAME']
 MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
@@ -36,14 +24,11 @@ POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 
 
 class PondPumpAuto():
-    def __init__(self, logger):
-        TUYA_LOGGER.setLevel(logging.DEBUG)
+    def __init__(self, logger, device_manager):
         self.logger = logger
-        self.openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY, AuthType.CUSTOM)
-        self.openapi.connect(USERNAME, PASSWORD)
-        self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
         self.pump_status = {'flow_speed': 0}
         self.refresh_pump_status()
+        self.deviceManager = device_manager
 
     def send_pump_stats(self, is_working_mains: int):
         try:

@@ -30,15 +30,10 @@ USERNAME = config['USERNAME']
 PASSWORD = config['PASSWORD']
 
 
-
 class LoadRelayAutomation():
-    def __init__(self, logger):
-        TUYA_LOGGER.setLevel(logging.DEBUG)
+    def __init__(self, logger, device_manager):
         self.logger = logger
-        self.openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY, AuthType.CUSTOM)
-
-        self.openapi.connect(USERNAME, PASSWORD)
-        self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
+        self.deviceManager = device_manager
         self.deviceStatuses = {}
 
     # def send_load_stats(self, is_working_mains: int):

@@ -13,11 +13,11 @@ FNT_STOP_VOLT = float(config['FNT_STOP_VOLT'])
 
 
 class LoadDevices:
-    def __init__(self, logger):
+    def __init__(self, logger, device_manager):
+        self.load_auto = LoadRelayAutomation(logger, device_manager)
         self.uv_device_id = UV_DEVICE
         self.fnt_device_id = FNT_DEVICE
         self.logging = logger
-        self.load_auto = LoadRelayAutomation(logger)
         self.update_uv_stats_info()
         self.update_fnt_dev_stats()
 

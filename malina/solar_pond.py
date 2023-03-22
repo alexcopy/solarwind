@@ -18,6 +18,7 @@ from malina.LIB import SendApiData
 from malina.LIB.LoadDevices import LoadDevices
 from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 from malina.LIB.PrintLogs import SolarLogging
+from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 
 try:
     importlib.util.find_spec('RPi.GPIO')
@@ -63,13 +64,14 @@ def handler(signum, frame):
 class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
+        tuya_auth = TuyaAuthorisation(logging)
         self.send_data = SendApiData.SendApiData(logging, API_URL)
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
-        self.automation = PondPumpAuto.PondPumpAuto(logging)
-        self.devices = LoadDevices(logging)
+        self.automation = PondPumpAuto.PondPumpAuto(logging, tuya_auth.device_manager)
+        self.devices = LoadDevices(logging, tuya_auth.device_manager)
 
 
         # self.switch_to_solar_power()
