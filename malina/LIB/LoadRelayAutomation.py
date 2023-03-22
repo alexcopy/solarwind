@@ -86,8 +86,10 @@ class LoadRelayAutomation():
 
     def update_status(self, device_id):
         try:
-            device_status = self.deviceManager.get_device_list_status([device_id])['result'][0]['status']
+            status = self.deviceManager.get_device_list_status([device_id])
+            device_status = status['result'][0]['status']
             sw_status = {v['code']: v['value'] for v in device_status}
+            sw_status.update({'t': int(status['t'] / 1000)})
             self.deviceStatuses.update({device_id: sw_status})
             return sw_status
         except Exception as ex:

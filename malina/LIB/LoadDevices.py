@@ -1,3 +1,5 @@
+import time
+
 from dotenv import dotenv_values
 
 from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
@@ -22,11 +24,11 @@ class LoadDevices:
         self.update_fnt_dev_stats()
 
     @property
-    def uv_sterilizer(self):
+    def uv_sterilizer_id(self):
         return self.uv_device_id
 
     @property
-    def fountain(self):
+    def fountain_id(self):
         return self.fnt_device_id
 
     def _is_uv_ready_to_start(self, inverter):
