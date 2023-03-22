@@ -72,7 +72,7 @@ class SolarPond():
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging, tuya_auth.device_manager)
         self.devices = LoadDevices(logging, tuya_auth.device_manager)
-
+        self.invert_status = 0
 
         # self.switch_to_solar_power()
 
@@ -109,7 +109,11 @@ class SolarPond():
 
     @property
     def status_check(self):
-        return GPIO.input(POND_RELAY) ^ GPIO.input(INVER_CHECK)
+        return GPIO.input(POND_RELAY) ^ self.inver_status_check()
+
+    def inver_status_check(self):
+        return self.invert_status
+        # return GPIO.input(INVER_CHECK) todo in case of ENCOA inverter with switch off
 
     def pond_relay_on_off(self, on_off: str):
         on_off = on_off.upper()
@@ -146,7 +150,7 @@ class SolarPond():
 
     def processing_reads(self):
         try:
-            inv_status = GPIO.input(INVER_CHECK)
+            inv_status = self.inver_status_check()
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
@@ -176,15 +180,15 @@ class SolarPond():
         on_off = on_off.upper()
         if not on_off in ['ON', 'OFF']:
             logging.error("The  WRONG Signal to INVERTER SWITCH SENT!!!!!  the signal is: %s " % on_off)
-            return GPIO.input(INVER_CHECK)
+            return self.inver_status_check()
 
-        status = GPIO.input(INVER_CHECK)
+        status = self.inver_status_check()
         if on_off == 'ON' and status == 1:
             return 1
         if on_off == 'OFF' and status == 0:
             return 0
         self.inverter_on_off()
-        return GPIO.input(INVER_CHECK)
+        return self.inver_status_check()
 
     def adjust_pump_speed(self):
         inverter_voltage = self.get_inverter_values()
@@ -213,10 +217,12 @@ class SolarPond():
             self.automation.change_pump_speed(rounded, relay_status)
 
     def inverter_on_off(self):
-        time.sleep(.5)
-        GPIO.output(INVER_RELAY, True)
-        time.sleep(.5)
-        GPIO.output(INVER_RELAY, False)
+        self.invert_status = int(not self.invert_status)
+        # todo in case ENCOA inverter
+        # time.sleep(.5)
+        # GPIO.output(INVER_RELAY, True)
+        # time.sleep(.5)
+        # GPIO.output(INVER_RELAY, False)
 
     def load_checks(self):
         self.adjust_pump_speed()
@@ -233,7 +239,7 @@ class SolarPond():
             if self.avg(inverter_voltage) < CUT_OFF_VOLT and len(
                     inverter_voltage) > 15:
                 self.switch_to_main_power()
-                self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
+                self.send_data.send_avg_data(self.filo_fifo, self.inver_status_check())
 
             # converter switch ON
             if self.avg(inverter_voltage) > SWITCH_ON_VOLT and len(
@@ -242,7 +248,7 @@ class SolarPond():
                     # all good relay is ON
                     return True
                 self.switch_to_solar_power()
-                self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
+                self.send_data.send_avg_data(self.filo_fifo, self.inver_status_check())
             self.integrity_check()
 
         except Exception as ex:
@@ -280,14 +286,12 @@ class SolarPond():
         self.devices.check_uv_devices(avg_invert_volt)
         # self.devices.check_fnt_device(inverter_volt) todo uncomment when ready
 
-
     def update_devs_stats(self):
         self.pond_pump_stats()
         time.sleep(3)
         self.devices.update_uv_stats_info()
         time.sleep(3)
         self.devices.update_fnt_dev_stats()
-
 
     def pond_pump_stats(self):
         relay_status = int(GPIO.input(POND_RELAY))
@@ -300,7 +304,7 @@ class SolarPond():
             self.automation.send_pump_stats(relay_status)
 
     def send_avg_data(self):
-        self.send_data.send_avg_data(self.filo_fifo, GPIO.input(INVER_CHECK))
+        self.send_data.send_avg_data(self.filo_fifo, self.inver_status_check())
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
@@ -324,7 +328,7 @@ class SolarPond():
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
         if avg_status < 0.3 and self.filo_fifo.len_sts_chk > 8:
-            self.print_logs.integrity_error(avg_status, GPIO.input(POND_RELAY), GPIO.input(INVER_CHECK))
+            self.print_logs.integrity_error(avg_status, GPIO.input(POND_RELAY), self.inver_status_check())
             self.switch_to_main_power()
 
     async def _getweather(self):
