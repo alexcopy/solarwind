@@ -72,9 +72,8 @@ class SolarPond():
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging, tuya_auth.device_manager)
         self.devices = LoadDevices(logging, tuya_auth.device_manager)
-        self.invert_status = 0
-
-        # self.switch_to_solar_power()
+        self.invert_status = 1
+        self.switch_to_solar_power()
 
     @staticmethod
     def avg(l):
