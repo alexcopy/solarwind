@@ -56,8 +56,8 @@ class LoadRelayAutomation():
 
     def load_switch_on(self, device_id):
         try:
-            status = self.update_status(device_id)
-            if not status['switch_1']:
+            status = self.get_device_statuses_by_id(device_id)['switch_1']
+            if not status:
                 command = [
                     {
                         "code": "switch_1",
@@ -71,8 +71,8 @@ class LoadRelayAutomation():
 
     def load_switch_off(self, device_id):
         try:
-            status = self.update_status(device_id)
-            if status['switch_1']:
+            status = self.get_device_statuses_by_id(device_id)['switch_1']
+            if status:
                 command = [
                     {
                         "code": "switch_1",

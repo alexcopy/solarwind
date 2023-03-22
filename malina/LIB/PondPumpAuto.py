@@ -26,9 +26,9 @@ POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 class PondPumpAuto():
     def __init__(self, logger, device_manager):
         self.logger = logger
+        self.deviceManager = device_manager
         self.pump_status = {'flow_speed': 0}
         self.refresh_pump_status()
-        self.deviceManager = device_manager
 
     def send_pump_stats(self, is_working_mains: int):
         try:
