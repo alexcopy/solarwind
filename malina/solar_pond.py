@@ -283,7 +283,7 @@ class SolarPond():
     def check_load_devices(self):
         avg_invert_volt = self.avg(self.get_inverter_values())
         self.devices.check_uv_devices(avg_invert_volt)
-        # self.devices.check_fnt_device(inverter_volt) todo uncomment when ready
+        self.devices.check_fnt_device(avg_invert_volt)
 
     def update_devs_stats(self):
         self.pond_pump_stats()
