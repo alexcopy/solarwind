@@ -101,7 +101,7 @@ class SolarLogging:
         print(" Main Relay works from: %s  " % m_r)
         print("")
         uv="OFF"
-        if load_devices.get_uv_sw_state:
+        if load_devices.get_uv_sw_state['switch_1']:
             uv="ON"
         print(" UV Sterilizer is: %s " % uv)
         print("")

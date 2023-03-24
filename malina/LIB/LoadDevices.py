@@ -67,8 +67,8 @@ class LoadDevices:
 
     @property
     def get_uv_sw_state(self):
-        return self.load_auto.get_device_statuses_by_id(self.uv_device_id)['switch_1']
+        return self.load_auto.get_device_statuses_by_id(self.uv_device_id)
 
     @property
     def get_fnt_sw_state(self):
-        return self.load_auto.get_device_statuses_by_id(self.fnt_device_id)['switch_1']
+        return self.load_auto.get_device_statuses_by_id(self.fnt_device_id)

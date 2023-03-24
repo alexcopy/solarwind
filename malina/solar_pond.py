@@ -336,7 +336,6 @@ class SolarPond():
         self.send_data.send_load_stats(uv_data)
         self.send_data.send_load_stats(fnt_sw)
 
-
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
         if avg_status < 0.3 and self.filo_fifo.len_sts_chk > 8:
