@@ -27,7 +27,7 @@ class LoadRelayAutomation():
                 self.deviceManager.send_commands(device_id, command)
                 time.sleep(2)
                 self.update_status(device_id, name)
-                # self.remote_api.send_load_stats(api_data)
+                self.remote_api.send_load_stats(self.get_device_statuses_by_id(device_id, name))
         except Exception as ex:
             self.logger.error("---------Problem in Load Switch ON---------")
             self.logger.error(ex)
@@ -44,7 +44,7 @@ class LoadRelayAutomation():
                 self.deviceManager.send_commands(device_id, command)
                 time.sleep(2)
                 self.update_status(device_id, name)
-                # self.remote_api.send_load_stats(api_data)
+                self.remote_api.send_load_stats(self.get_device_statuses_by_id(device_id, name))
         except Exception as ex:
             self.logger.error("---------Problem in Load Switch OFF---------")
             self.logger.error(ex)
