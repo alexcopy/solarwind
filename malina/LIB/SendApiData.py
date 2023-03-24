@@ -94,6 +94,7 @@ class SendApiData():
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
                 self.logger.error(response['payload'])
+                self.logger.error(response['errors_msg'])
             return response
         except Exception as ex:
             print(ex)

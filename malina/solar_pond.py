@@ -331,8 +331,8 @@ class SolarPond():
         time.sleep(3)
         uv_data = self.devices.get_uv_sw_state
         fnt_sw = self.devices.get_fnt_sw_state
-        uv_data.update({'name': "UV_Clarifier ", 'from_main': relay_status})
-        fnt_sw.update({'name': "Pond Fountain ", 'from_main': relay_status})
+        uv_data.update({'name': "UV_Clarifier ", 'from_main': relay_status, 'status': int(uv_data['switch_1']) })
+        fnt_sw.update({'name': "Pond Fountain ", 'from_main': relay_status, 'status': int(fnt_sw['switch_1'])})
         self.send_data.send_load_stats(uv_data)
         self.send_data.send_load_stats(fnt_sw)
 
