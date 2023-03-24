@@ -285,9 +285,12 @@ class SolarPond():
 
     def check_load_devices(self):
         avg_invert_volt = self.avg(self.get_inverter_values())
-        flow_speed = self.automation.get_current_status['flow_speed']
-        self.devices.check_uv_devices(avg_invert_volt, flow_speed)
-        self.devices.check_fnt_device(avg_invert_volt, flow_speed)
+        pump_params = self.automation.get_current_status
+
+        # switch management only if pond pump in mode =6
+        if int(pump_params) == 6:
+            self.devices.uv_switch_on_off(avg_invert_volt, pump_params['flow_speed'])
+            self.devices.fnt_switch_on_off(avg_invert_volt, pump_params['flow_speed'])
 
     def update_devs_stats(self):
         self.automation.refresh_pump_status()
@@ -357,4 +360,4 @@ class SolarPond():
 # todo: improve pump speed adjustments (sometime it's very slow to speedup or slow down,
 #  add another level of logging (debug or warnings)
 #  add weather to table and advance in table pond self temp from future gauge
-#  finish switch automation
+

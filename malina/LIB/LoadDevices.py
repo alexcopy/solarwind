@@ -4,6 +4,10 @@ from dotenv import dotenv_values
 
 from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 
+POND_FOUNTAIN = "Pond Fountain"
+
+UV_CLARIFIER = "UV_Clarifier"
+
 config = dotenv_values(".env")
 UV_DEVICE = config['SWITCH_UV_ID']
 FNT_DEVICE = config['SWITCH_FNT_ID']
@@ -32,45 +36,53 @@ class LoadDevices:
         return self.fnt_device_id
 
     def _is_uv_ready_to_start(self, inverter):
+        if self.load_auto.get_main_relay_status == 1:
+            return False
         return inverter >= UV_START_VOLT
 
     def _is_uv_ready_to_stop(self, inverter, pump_flow_speed):
+        if self.load_auto.get_main_relay_status == 1:
+            return True
         return inverter <= UV_STOP_VOLT or pump_flow_speed <= 50
 
     def _is_fnt_ready_to_start(self, inverter):
+        if self.load_auto.get_main_relay_status == 1:
+            return False
         return inverter >= FNT_START_VOLT
 
     def _is_fnt_ready_to_stop(self, inverter, pump_flow_speed):
+        if self.load_auto.get_main_relay_status == 1:
+            return True
         return inverter <= FNT_STOP_VOLT or pump_flow_speed <= 70
 
-    def check_uv_devices(self, inverter_volt, pump_flow_speed):
+    def uv_switch_on_off(self, inverter_volt, pump_flow_speed):
         uv_id = self.uv_device_id
         api_data = self.get_uv_sw_state
 
         if self._is_uv_ready_to_start(inverter_volt):
-            self.load_auto.load_switch_on(uv_id, "UV_Clarifier")
+            self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)
 
         if self._is_uv_ready_to_stop(inverter_volt, pump_flow_speed):
-            self.load_auto.load_switch_off(uv_id, "UV_Clarifier")
+            self.load_auto.load_switch_off(uv_id, UV_CLARIFIER)
 
-    def check_fnt_device(self, inverter_volt, pump_flow_speed):
+    def fnt_switch_on_off(self, inverter_volt, pump_flow_speed):
         fnt_id = self.fnt_device_id
         if self._is_fnt_ready_to_start(inverter_volt):
-            self.load_auto.load_switch_on(fnt_id, "Pond Fountain")
+            self.load_auto.load_switch_on(fnt_id, POND_FOUNTAIN)
 
         if self._is_fnt_ready_to_stop(inverter_volt, pump_flow_speed):
-            self.load_auto.load_switch_off(fnt_id, "Pond Fountain")
+            self.load_auto.load_switch_off(fnt_id, POND_FOUNTAIN)
 
     def update_uv_stats_info(self):
-        self.load_auto.update_status(self.uv_device_id, "UV_Clarifier")
+        self.load_auto.update_status(self.uv_device_id, UV_CLARIFIER)
 
     def update_fnt_dev_stats(self):
-        self.load_auto.update_status(self.fnt_device_id, "Pond Fountain")
+        self.load_auto.update_status(self.fnt_device_id, POND_FOUNTAIN)
 
     @property
     def get_uv_sw_state(self):
-        return self.load_auto.get_device_statuses_by_id(self.uv_device_id, "UV_Clarifier")
+        return self.load_auto.get_device_statuses_by_id(self.uv_device_id, UV_CLARIFIER)
 
     @property
     def get_fnt_sw_state(self):
-        return self.load_auto.get_device_statuses_by_id(self.fnt_device_id, "Pond Fountain")
+        return self.load_auto.get_device_statuses_by_id(self.fnt_device_id, POND_FOUNTAIN)
