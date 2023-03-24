@@ -64,13 +64,15 @@ class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
         tuya_auth = TuyaAuthorisation(logging)
+        device_manager = tuya_auth.device_manager
         self.send_data = SendApiData.SendApiData(logging)
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
-        self.automation = PondPumpAuto.PondPumpAuto(logging, tuya_auth.device_manager, self.send_data)
-        self.devices = LoadDevices(logging, tuya_auth.device_manager)
+        self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
+        self.devices = LoadDevices(logging, device_manager)
+        self.load_automation = LoadRelayAutomation(logging, device_manager)
         self.invert_status = 1
         self.switch_to_solar_power()
 
@@ -224,7 +226,7 @@ class SolarPond():
 
     def load_checks(self):
         relay_status = int(GPIO.input(POND_RELAY))
-        self.devices.update_main_relay_status(relay_status)
+        self.load_automation.update_main_relay_status(relay_status)
         self.adjust_pump_speed()
         self.inverter_run()
         self.adjust_speed_non_stepped_val()
@@ -319,7 +321,6 @@ class SolarPond():
             pump_stats = 1800
             load_time_slot = 120
 
-
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
         reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats)
         reed.add_job(self.send_stats_api, 'interval', seconds=pump_stats + 60)
@@ -331,7 +332,7 @@ class SolarPond():
         self.pump_stats_to_server()
         time.sleep(3)
         self.send_data.send_load_stats(self.devices.get_uv_sw_state)
-        self.send_data.send_load_stats(self.devices.get_fnt_sw_state )
+        self.send_data.send_load_stats(self.devices.get_fnt_sw_state)
 
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
