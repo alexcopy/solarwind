@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 
 import json
-
+import logging
+import time
 import requests
+from urllib.parse import urljoin
+from dotenv import dotenv_values
 
 from malina.LIB.FiloFifo import FiloFifo
 from malina.LIB.PrintLogs import SolarLogging
-
+config = dotenv_values(".env")
+API_URL = config["API_URL"]
 
 class SendApiData():
-    def __init__(self, logger, api_url):
+    def __init__(self, logger):
         self.logger = logger
-        self.api_url = api_url
+        self.api_url = API_URL
         self.print_logs = SolarLogging(logger)
 
     def send_to_remote(self, url_path, payload):
@@ -24,7 +28,26 @@ class SendApiData():
             return response.json()
         except Exception as ex:
             self.logger.error(ex)
-            return "error"
+            return {'errors': True}
+
+    def send_pump_stats(self, is_working_mains: int, pump_status):
+        try:
+            pump_status.update({'from_main': is_working_mains})
+            payload = json.dumps(pump_status)
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            url = urljoin(self.api_url, 'pondpump/')
+            response = requests.request("POST", url, headers=headers, data=payload).json()
+            if response['errors']:
+                self.logger.error(response['payload'])
+                self.logger.error(response['errors_msg'])
+            return response
+        except Exception as ex:
+            print(ex)
+            self.logger.error(ex)
+            time.sleep(10)
+            return {'errors': True}
 
     def send_avg_data(self, filo_fifo: FiloFifo, inverter_status):
 
@@ -55,4 +78,27 @@ class SendApiData():
             "name": shunt_name
         })
         url_path = "%sfflash" % self.api_url
-        self.send_to_remote(url_path, payload)
+        resp = self.send_to_remote(url_path, payload)
+        erros_resp = resp['errors']
+
+        if erros_resp:
+            logging.error(resp)
+
+    def send_load_stats(self, status):
+        try:
+
+            payload = json.dumps(status)
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            url = urljoin(self.api_url, 'pondswitch/')
+            response = requests.request("POST", url, headers=headers, data=payload).json()
+            if response['errors']:
+                self.logger.error(response['payload'])
+                self.logger.error(response['errors_msg'])
+            return response
+        except Exception as ex:
+            print(ex)
+            self.logger.error(ex)
+            time.sleep(10)
+            return {'errors': True}

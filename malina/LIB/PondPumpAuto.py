@@ -6,29 +6,13 @@
 
 # encoding: utf-8
 
-import json
-import logging
 import time
-from urllib.parse import urljoin
 
-import requests
 from dotenv import dotenv_values
-from tuya_iot import (
-    TuyaOpenAPI,
-    AuthType,
-    TuyaOpenMQ,
-    TuyaDeviceManager,
-    TUYA_LOGGER
-)
 
 config = dotenv_values(".env")
-ENDPOINT = config['ENDPOINT']
-ACCESS_ID = config['ACCESS_ID']
-ACCESS_KEY = config['ACCESS_KEY']
 BASE_URL = config['API_URL']
-USERNAME = config['USERNAME']
-PASSWORD = config['PASSWORD']
-DEVICE_ID = config['DEVICE_ID']
+PUMP_ID = config['PUMP_ID']
 PUMP_NAME = config['PUMP_NAME']
 MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
 MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
@@ -36,37 +20,16 @@ POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 
 
 class PondPumpAuto():
-    def __init__(self, logger):
-        TUYA_LOGGER.setLevel(logging.DEBUG)
+    def __init__(self, logger, device_manager, remote_api):
         self.logger = logger
-        self.openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY, AuthType.CUSTOM)
-        self.openapi.connect(USERNAME, PASSWORD)
-        self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
+        self.deviceManager = device_manager
         self.pump_status = {'flow_speed': 0}
+        self.remote_api = remote_api
         self.refresh_pump_status()
-
-    def send_pump_stats(self, is_working_mains: int):
-        try:
-            self.pump_status.update({'from_main': is_working_mains})
-            payload = json.dumps(self.get_current_status)
-            headers = {
-                'Content-Type': 'application/json'
-            }
-            url = urljoin(BASE_URL, 'pondpump/')
-            response = requests.request("POST", url, headers=headers, data=payload).json()
-            if response['errors']:
-                self.logger.error(response['payload'])
-                self.logger.error(response['errors_msg'])
-            return response
-        except Exception as ex:
-            print(ex)
-            self.logger.error(ex)
-            time.sleep(10)
-            return {'errors': True}
 
     def refresh_pump_status(self):
         try:
-            device_status = self.deviceManager.get_device_status(DEVICE_ID)
+            device_status = self.deviceManager.get_device_status(PUMP_ID)
             if device_status['success'] is False:
                 self.logger.error(device_status)
                 raise Exception(device_status)
@@ -104,7 +67,7 @@ class PondPumpAuto():
                 "value": value
             }
         ]
-        res = self.deviceManager.send_commands(DEVICE_ID, command)
+        res = self.deviceManager.send_commands(PUMP_ID, command)
         if res['success'] is True:
             self.logger.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % value)
         else:
@@ -112,12 +75,12 @@ class PondPumpAuto():
             self.logger.error(res)
 
         self.refresh_pump_status()
-        resp = self.send_pump_stats(is_working_mains)
+        resp = self.remote_api.send_pump_stats(is_working_mains, self.get_current_status)
         erros_resp = resp['errors']
         if erros_resp:
             time.sleep(5)
             self.refresh_pump_status()
-            self.send_pump_stats(is_working_mains)
+            self.remote_api.send_pump_stats(is_working_mains, self.get_current_status)
 
     def is_minimum_speed(self, min_speed):
         return min_speed == self.get_current_status['flow_speed']
