@@ -27,7 +27,7 @@ class LoadRelayAutomation():
                 self.deviceManager.send_commands(device_id, command)
                 time.sleep(2)
                 self.update_status(device_id, name)
-                self.remote_api.send_load_stats(api_data)
+                # self.remote_api.send_load_stats(api_data)
         except Exception as ex:
             self.logger.error(ex)
 
@@ -43,7 +43,7 @@ class LoadRelayAutomation():
                 self.deviceManager.send_commands(device_id, command)
                 time.sleep(2)
                 self.update_status(device_id, name)
-                self.remote_api.send_load_stats(api_data)
+                # self.remote_api.send_load_stats(api_data)
         except Exception as ex:
             self.logger.error(ex)
 
