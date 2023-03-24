@@ -28,7 +28,7 @@ ACCESS_KEY = config['ACCESS_KEY']
 USERNAME = config['USERNAME']
 PASSWORD = config['PASSWORD']
 
-DEVICE_ID = config['DEVICE_ID']
+DEVICE_ID = config['PUMP_ID']
 
 # Init
 openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY, AuthType.CUSTOM)
@@ -51,7 +51,7 @@ deviceManager = TuyaDeviceManager(openapi, openmq)
 
 
 # # deviceManager.updateDeviceCaches(devIds)
-# device = deviceManager.deviceMap.get(DEVICE_ID)
+# device = deviceManager.deviceMap.get(PUMP_ID)
 
 
 # class tuyaDeviceListener(TuyaDeviceListener):
@@ -67,7 +67,7 @@ deviceManager = TuyaDeviceManager(openapi, openmq)
 #
 # # deviceManager.add_device_listener(tuyaDeviceListener())
 #
-# print('status: ', deviceManager.get_device_status(DEVICE_ID))
+# print('status: ', deviceManager.get_device_status(PUMP_ID))
 
 # Turn on the light
 # deviceManager.sendCommands(device.id, [{'code': 'switch_led', 'value': True}])
@@ -96,4 +96,4 @@ print(res)
 #     input()
 #     flag = not flag
 #     commands = {'commands': [{'code': 'switch_led', 'value': flag}]}
-#     openapi.post('/v1.0/iot-03/devices/{}/commands'.format(DEVICE_ID), commands)
+#     openapi.post('/v1.0/iot-03/devices/{}/commands'.format(PUMP_ID), commands)

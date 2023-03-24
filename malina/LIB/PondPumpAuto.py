@@ -6,17 +6,13 @@
 
 # encoding: utf-8
 
-import json
-import logging
 import time
-from urllib.parse import urljoin
 
-import requests
 from dotenv import dotenv_values
 
 config = dotenv_values(".env")
 BASE_URL = config['API_URL']
-DEVICE_ID = config['DEVICE_ID']
+PUMP_ID = config['PUMP_ID']
 PUMP_NAME = config['PUMP_NAME']
 MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
 MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
@@ -33,7 +29,7 @@ class PondPumpAuto():
 
     def refresh_pump_status(self):
         try:
-            device_status = self.deviceManager.get_device_status(DEVICE_ID)
+            device_status = self.deviceManager.get_device_status(PUMP_ID)
             if device_status['success'] is False:
                 self.logger.error(device_status)
                 raise Exception(device_status)
@@ -71,7 +67,7 @@ class PondPumpAuto():
                 "value": value
             }
         ]
-        res = self.deviceManager.send_commands(DEVICE_ID, command)
+        res = self.deviceManager.send_commands(PUMP_ID, command)
         if res['success'] is True:
             self.logger.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % value)
         else:

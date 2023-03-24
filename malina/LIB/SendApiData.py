@@ -3,18 +3,19 @@
 import json
 import logging
 import time
-from urllib.parse import urljoin
-
 import requests
+from urllib.parse import urljoin
+from dotenv import dotenv_values
 
 from malina.LIB.FiloFifo import FiloFifo
 from malina.LIB.PrintLogs import SolarLogging
-
+config = dotenv_values(".env")
+API_URL = config["API_URL"]
 
 class SendApiData():
-    def __init__(self, logger, api_url):
+    def __init__(self, logger):
         self.logger = logger
-        self.api_url = api_url
+        self.api_url = API_URL
         self.print_logs = SolarLogging(logger)
 
     def send_to_remote(self, url_path, payload):

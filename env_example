@@ -1,5 +1,35 @@
-LOG_DIR=logs_dir
-API_URL=https://httpbin.org/get
+LOG_DIR=logs
+API_URL=
+## values when inverter should switch to main/solar power sources
 MIN_VOLTAGE=21
 MAX_VOLTAGE=26
 INVERTER_CYCLE=Auto
+
+
+## TUYA Credentials taken from account ##
+ACCESS_ID=
+ACCESS_KEY=
+USERNAME=
+PASSWORD=
+
+DEVICE_ID=
+
+ENDPOINT=https://openapi-weaz.tuyaeu.com
+PUMP_NAME=
+POND_SPEED_STEP=10
+MAX_BAT_VOLT=26.3
+MIN_BAT_VOLT=25.3
+
+
+SWITCH_UV_ID=
+UV_START_VOLT=26.5
+UV_STOP_VOLT=26
+
+SWITCH_FNT_ID=
+FNT_START_VOLT=27.3
+FNT_STOP_VOLT=26.3
+
+SONOFF_USERNAME=
+SONOFF_PASSWORD=
+API_REGION=
+WEATHER_TOWN=London

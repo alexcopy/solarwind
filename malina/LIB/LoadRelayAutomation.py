@@ -4,15 +4,7 @@
 
 import time
 
-from dotenv import dotenv_values
-
-config = dotenv_values(".env")
-ENDPOINT = config['ENDPOINT']
-ACCESS_ID = config['ACCESS_ID']
-ACCESS_KEY = config['ACCESS_KEY']
-BASE_URL = config['API_URL']
-USERNAME = config['USERNAME']
-PASSWORD = config['PASSWORD']
+from malina.LIB.SendApiData import SendApiData
 
 
 class LoadRelayAutomation():
@@ -20,8 +12,9 @@ class LoadRelayAutomation():
         self.logger = logger
         self.deviceManager = device_manager
         self.deviceStatuses = {}
+        self.remote_api = SendApiData(logger)
 
-    def load_switch_on(self, device_id):
+    def load_switch_on(self, device_id, api_data):
         try:
             status = self.get_device_statuses_by_id(device_id)['switch_1']
             if not status:
@@ -33,10 +26,11 @@ class LoadRelayAutomation():
                 self.deviceManager.send_commands(device_id, command)
                 time.sleep(2)
                 self.update_status(device_id)
+                self.remote_api.send_load_stats(api_data)
         except Exception as ex:
             self.logger.error(ex)
 
-    def load_switch_off(self, device_id):
+    def load_switch_off(self, device_id, api_data):
         try:
             status = self.get_device_statuses_by_id(device_id)['switch_1']
             if status:
@@ -48,6 +42,7 @@ class LoadRelayAutomation():
                 self.deviceManager.send_commands(device_id, command)
                 time.sleep(2)
                 self.update_status(device_id)
+                self.remote_api.send_load_stats(api_data)
         except Exception as ex:
             self.logger.error(ex)
 

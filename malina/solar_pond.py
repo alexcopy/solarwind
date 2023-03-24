@@ -40,7 +40,6 @@ MIN_POND_SPEED = 10
 
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
-API_URL = config["API_URL"]
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 WEATHER_TOWN = config["WEATHER_TOWN"]
 
@@ -65,7 +64,7 @@ class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
         tuya_auth = TuyaAuthorisation(logging)
-        self.send_data = SendApiData.SendApiData(logging, API_URL)
+        self.send_data = SendApiData.SendApiData(logging)
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
@@ -224,6 +223,8 @@ class SolarPond():
         # GPIO.output(INVER_RELAY, False)
 
     def load_checks(self):
+        relay_status = int(GPIO.input(POND_RELAY))
+        self.devices.update_main_relay_status(relay_status)
         self.adjust_pump_speed()
         self.inverter_run()
         self.adjust_speed_non_stepped_val()
@@ -318,6 +319,7 @@ class SolarPond():
             pump_stats = 1800
             load_time_slot = 120
 
+
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
         reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats)
         reed.add_job(self.send_stats_api, 'interval', seconds=pump_stats + 60)
@@ -326,15 +328,10 @@ class SolarPond():
         # reed.shutdown()
 
     def send_stats_api(self):
-        relay_status = int(GPIO.input(POND_RELAY))
         self.pump_stats_to_server()
         time.sleep(3)
-        uv_data = self.devices.get_uv_sw_state
-        fnt_sw = self.devices.get_fnt_sw_state
-        uv_data.update({'name': "UV_Clarifier ", 'from_main': relay_status, 'status': int(uv_data['switch_1']) })
-        fnt_sw.update({'name': "Pond Fountain ", 'from_main': relay_status, 'status': int(fnt_sw['switch_1'])})
-        self.send_data.send_load_stats(uv_data)
-        self.send_data.send_load_stats(fnt_sw)
+        self.send_data.send_load_stats(self.devices.get_uv_sw_state)
+        self.send_data.send_load_stats(self.devices.get_fnt_sw_state )
 
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status
