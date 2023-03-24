@@ -288,7 +288,7 @@ class SolarPond():
         pump_params = self.automation.get_current_status
 
         # switch management only if pond pump in mode =6
-        if int(pump_params) == 6:
+        if int(pump_params['mode']) == 6:
             self.devices.uv_switch_on_off(avg_invert_volt, pump_params['flow_speed'])
             self.devices.fnt_switch_on_off(avg_invert_volt, pump_params['flow_speed'])
 
@@ -360,4 +360,7 @@ class SolarPond():
 # todo: improve pump speed adjustments (sometime it's very slow to speedup or slow down,
 #  add another level of logging (debug or warnings)
 #  add weather to table and advance in table pond self temp from future gauge
+#  add proper error handling for api calls
+#  refactor code in sendAPI Data for api calls
+
 
