@@ -96,13 +96,13 @@ class SolarLogging:
         if statuses['main_relay_status'] == 0:
             m_r = 'INVERT'
 
-        wtg = (solar_current['10m_solar_current'] * fifo_buffer['1s_inverter_bus_voltage'])/1000
+        wtg = (solar_current['10m_solar_current'] * fifo_buffer['1s_inverter_bus_voltage']) / 1000
         print(" Inverter Status is: %s  " % status)
         print(" Main Relay works from: %s  " % m_r)
         print("")
-        uv="OFF"
+        uv = "OFF"
         if load_devices.get_uv_sw_state['switch_1']:
-            uv="ON"
+            uv = "ON"
         print(" UV Sterilizer is: %s " % uv)
         print("")
 

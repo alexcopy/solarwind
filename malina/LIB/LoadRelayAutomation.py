@@ -29,6 +29,7 @@ class LoadRelayAutomation():
                 self.update_status(device_id, name)
                 # self.remote_api.send_load_stats(api_data)
         except Exception as ex:
+            self.logger.error("---------Problem in Load Switch ON---------")
             self.logger.error(ex)
 
     def load_switch_off(self, device_id, name):
@@ -45,6 +46,7 @@ class LoadRelayAutomation():
                 self.update_status(device_id, name)
                 # self.remote_api.send_load_stats(api_data)
         except Exception as ex:
+            self.logger.error("---------Problem in Load Switch OFF---------")
             self.logger.error(ex)
 
     def update_status(self, device_id, name):
@@ -55,8 +57,9 @@ class LoadRelayAutomation():
             sw_status.update({'name': name, 'from_main': self.get_main_relay_status,
                               'status': int(status['switch_1']), 't': int(status['t'] / 1000), 'device_id': device_id})
             self.deviceStatuses.update({device_id: sw_status})
-            return sw_status
         except Exception as ex:
+            self.logger.error("---------Problem in update_status---------")
+            self.logger.error(self.get_all_statuses)
             self.logger.error(ex)
 
     def update_main_relay_status(self, main_status: int):
