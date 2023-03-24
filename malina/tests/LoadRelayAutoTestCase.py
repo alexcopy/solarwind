@@ -22,8 +22,10 @@ class LoadRelayAutoTestCase(unittest.TestCase):
         # time.sleep(5)
         # self.load_automation.switch_off_load('')
         # time.sleep(5)
-        print(self.load_automation.get_all_statuses)
-        print(self.load_automation.get_device_statuses_by_id(''))
+
+
+        print(self.load_automation.get_device_statuses_by_id('sadas', "sadasda"))
+        # print(self.load_automation.get_all_statuses)
 
 
 if __name__ == '__main__':

@@ -54,9 +54,11 @@ class LoadRelayAutomation():
             status = self.deviceManager.get_device_list_status([device_id])
             device_status = status['result'][0]['status']
             sw_status = {v['code']: v['value'] for v in device_status}
-            sw_status.update({'name': name, 'from_main': self.get_main_relay_status,
-                              'status': int(status['switch_1']), 't': int(status['t'] / 1000), 'device_id': device_id})
+            extra_params = {'name': name, 'from_main': self.get_main_relay_status,
+                            'status': int(sw_status['switch_1']), 't': int(status['t'] / 1000), 'device_id': device_id}
+            sw_status.update(extra_params)
             self.deviceStatuses.update({device_id: sw_status})
+
         except Exception as ex:
             self.logger.error("---------Problem in update_status---------")
             self.logger.error(self.get_all_statuses)
