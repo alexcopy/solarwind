@@ -1,25 +1,10 @@
 #!/usr/bin/env python
-
-
 # V 1.0
-
-
 # encoding: utf-8
 
-import json
-import logging
 import time
-from urllib.parse import urljoin
 
-import requests
 from dotenv import dotenv_values
-from tuya_iot import (
-    TuyaOpenAPI,
-    AuthType,
-    TuyaOpenMQ,
-    TuyaDeviceManager,
-    TUYA_LOGGER
-)
 
 config = dotenv_values(".env")
 ENDPOINT = config['ENDPOINT']
@@ -35,24 +20,6 @@ class LoadRelayAutomation():
         self.logger = logger
         self.deviceManager = device_manager
         self.deviceStatuses = {}
-
-    # def send_load_stats(self, is_working_mains: int):
-    #     try:
-    #         self.pump_status.update({'from_main': is_working_mains})
-    #         payload = json.dumps(self.get_current_status)
-    #         headers = {
-    #             'Content-Type': 'application/json'
-    #         }
-    #         url = urljoin(BASE_URL, 'pondpump/')
-    #         response = requests.request("POST", url, headers=headers, data=payload).json()
-    #         if response['errors']:
-    #             self.logger.error(response['payload'])
-    #         return response
-    #     except Exception as ex:
-    #         print(ex)
-    #         self.logger.error(ex)
-    #         time.sleep(10)
-    #         return {'errors': True}
 
     def load_switch_on(self, device_id):
         try:
@@ -89,7 +56,7 @@ class LoadRelayAutomation():
             status = self.deviceManager.get_device_list_status([device_id])
             device_status = status['result'][0]['status']
             sw_status = {v['code']: v['value'] for v in device_status}
-            sw_status.update({'t': int(status['t'] / 1000)})
+            sw_status.update({'t': int(status['t'] / 1000), 'device_id': device_id})
             self.deviceStatuses.update({device_id: sw_status})
             return sw_status
         except Exception as ex:

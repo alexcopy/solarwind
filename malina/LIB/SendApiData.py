@@ -2,6 +2,8 @@
 
 import json
 import logging
+import time
+from urllib.parse import urljoin
 
 import requests
 
@@ -25,6 +27,25 @@ class SendApiData():
             return response.json()
         except Exception as ex:
             self.logger.error(ex)
+            return {'errors': True}
+
+    def send_pump_stats(self, is_working_mains: int, pump_status):
+        try:
+            pump_status.update({'from_main': is_working_mains})
+            payload = json.dumps(pump_status)
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            url = urljoin(self.api_url, 'pondpump/')
+            response = requests.request("POST", url, headers=headers, data=payload).json()
+            if response['errors']:
+                self.logger.error(response['payload'])
+                self.logger.error(response['errors_msg'])
+            return response
+        except Exception as ex:
+            print(ex)
+            self.logger.error(ex)
+            time.sleep(10)
             return {'errors': True}
 
     def send_avg_data(self, filo_fifo: FiloFifo, inverter_status):
@@ -61,3 +82,21 @@ class SendApiData():
 
         if erros_resp:
             logging.error(resp)
+
+    def send_load_stats(self, status):
+        try:
+
+            payload = json.dumps(status)
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            url = urljoin(self.api_url, 'pondswitch/')
+            response = requests.request("POST", url, headers=headers, data=payload).json()
+            if response['errors']:
+                self.logger.error(response['payload'])
+            return response
+        except Exception as ex:
+            print(ex)
+            self.logger.error(ex)
+            time.sleep(10)
+            return {'errors': True}

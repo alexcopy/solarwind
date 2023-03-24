@@ -34,29 +34,29 @@ class LoadDevices:
     def _is_uv_ready_to_start(self, inverter):
         return inverter >= UV_START_VOLT
 
-    def _is_uv_ready_to_stop(self, inverter):
-        return inverter <= UV_STOP_VOLT
+    def _is_uv_ready_to_stop(self, inverter, pump_flow_speed):
+        return inverter <= UV_STOP_VOLT and pump_flow_speed <= 30
 
     def _is_fnt_ready_to_start(self, inverter):
         return inverter >= FNT_START_VOLT
 
-    def _is_fnt_ready_to_stop(self, inverter):
-        return inverter <= FNT_STOP_VOLT
+    def _is_fnt_ready_to_stop(self, inverter, pump_flow_speed):
+        return inverter <= FNT_STOP_VOLT and pump_flow_speed <= 70
 
-    def check_uv_devices(self, inverter_volt):
+    def check_uv_devices(self, inverter_volt, pump_flow_speed):
         uv_id = self.uv_device_id
         if self._is_uv_ready_to_start(inverter_volt):
             self.load_auto.load_switch_on(uv_id)
 
-        if self._is_uv_ready_to_stop(inverter_volt):
+        if self._is_uv_ready_to_stop(inverter_volt, pump_flow_speed):
             self.load_auto.load_switch_off(uv_id)
 
-    def check_fnt_device(self, inverter_volt):
+    def check_fnt_device(self, inverter_volt, pump_flow_speed):
         fnt_id = self.fnt_device_id
         if self._is_fnt_ready_to_start(inverter_volt):
             self.load_auto.load_switch_on(fnt_id)
 
-        if self._is_fnt_ready_to_stop(inverter_volt):
+        if self._is_fnt_ready_to_stop(inverter_volt, pump_flow_speed):
             self.load_auto.load_switch_off(fnt_id)
 
     def update_uv_stats_info(self):

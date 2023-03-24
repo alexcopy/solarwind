@@ -70,7 +70,7 @@ class SolarPond():
         self.conf_logger()
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
-        self.automation = PondPumpAuto.PondPumpAuto(logging, tuya_auth.device_manager)
+        self.automation = PondPumpAuto.PondPumpAuto(logging, tuya_auth.device_manager, self.send_data)
         self.devices = LoadDevices(logging, tuya_auth.device_manager)
         self.invert_status = 1
         self.switch_to_solar_power()
@@ -282,25 +282,25 @@ class SolarPond():
 
     def check_load_devices(self):
         avg_invert_volt = self.avg(self.get_inverter_values())
-        self.devices.check_uv_devices(avg_invert_volt)
-        self.devices.check_fnt_device(avg_invert_volt)
+        flow_speed = self.automation.get_current_status['flow_speed']
+        self.devices.check_uv_devices(avg_invert_volt, flow_speed)
+        self.devices.check_fnt_device(avg_invert_volt, flow_speed)
 
     def update_devs_stats(self):
-        self.pond_pump_stats()
+        self.automation.refresh_pump_status()
         time.sleep(3)
         self.devices.update_uv_stats_info()
         time.sleep(3)
         self.devices.update_fnt_dev_stats()
 
-    def pond_pump_stats(self):
+    def pump_stats_to_server(self):
         relay_status = int(GPIO.input(POND_RELAY))
-        self.automation.refresh_pump_status()
-        resp = self.automation.send_pump_stats(relay_status)
+        resp = self.send_data.send_pump_stats(relay_status, self.automation.get_current_status)
         err_resp = resp['errors']
         if err_resp:
             time.sleep(5)
             self.automation.refresh_pump_status()
-            self.automation.send_pump_stats(relay_status)
+            self.send_data.send_pump_stats(relay_status, self.automation.get_current_status)
 
     def send_avg_data(self):
         self.send_data.send_avg_data(self.filo_fifo, self.inver_status_check())
@@ -320,9 +320,22 @@ class SolarPond():
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
         reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats)
+        reed.add_job(self.send_stats_api, 'interval', seconds=pump_stats + 60)
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
         # reed.shutdown()
+
+    def send_stats_api(self):
+        relay_status = int(GPIO.input(POND_RELAY))
+        self.pump_stats_to_server()
+        time.sleep(3)
+        uv_data = self.devices.get_uv_sw_state
+        fnt_sw = self.devices.get_fnt_sw_state
+        uv_data.update({'name': "UV_Clarifier ", 'from_main': relay_status})
+        fnt_sw.update({'name': "Pond Fountain ", 'from_main': relay_status})
+        self.send_data.send_load_stats(uv_data)
+        self.send_data.send_load_stats(fnt_sw)
+
 
     def integrity_check(self):
         avg_status = self.filo_fifo.get_avg_rel_status

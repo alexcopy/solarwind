@@ -24,30 +24,12 @@ POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 
 
 class PondPumpAuto():
-    def __init__(self, logger, device_manager):
+    def __init__(self, logger, device_manager, remote_api):
         self.logger = logger
         self.deviceManager = device_manager
         self.pump_status = {'flow_speed': 0}
+        self.remote_api = remote_api
         self.refresh_pump_status()
-
-    def send_pump_stats(self, is_working_mains: int):
-        try:
-            self.pump_status.update({'from_main': is_working_mains})
-            payload = json.dumps(self.get_current_status)
-            headers = {
-                'Content-Type': 'application/json'
-            }
-            url = urljoin(BASE_URL, 'pondpump/')
-            response = requests.request("POST", url, headers=headers, data=payload).json()
-            if response['errors']:
-                self.logger.error(response['payload'])
-                self.logger.error(response['errors_msg'])
-            return response
-        except Exception as ex:
-            print(ex)
-            self.logger.error(ex)
-            time.sleep(10)
-            return {'errors': True}
 
     def refresh_pump_status(self):
         try:
@@ -97,12 +79,12 @@ class PondPumpAuto():
             self.logger.error(res)
 
         self.refresh_pump_status()
-        resp = self.send_pump_stats(is_working_mains)
+        resp = self.remote_api.send_pump_stats(is_working_mains, self.get_current_status)
         erros_resp = resp['errors']
         if erros_resp:
             time.sleep(5)
             self.refresh_pump_status()
-            self.send_pump_stats(is_working_mains)
+            self.remote_api.send_pump_stats(is_working_mains, self.get_current_status)
 
     def is_minimum_speed(self, min_speed):
         return min_speed == self.get_current_status['flow_speed']
