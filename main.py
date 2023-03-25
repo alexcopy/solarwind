@@ -15,7 +15,7 @@ class SetupLogger():
         self.conf_logger()
 
     def conf_logger(self):
-        current_path = Path('log')
+        current_path = Path('logs')
         log_name = time.strftime("info")
         filename = current_path.joinpath(f'{log_name}.log')
         log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=5000000, backupCount=5)
