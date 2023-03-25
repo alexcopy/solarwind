@@ -67,7 +67,6 @@ class SolarPond():
         device_manager = tuya_auth.device_manager
         self.send_data = SendApiData.SendApiData(logging)
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
-        self.conf_logger()
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
@@ -128,25 +127,7 @@ class SolarPond():
             logging.error("SOMETHING IS WRONG !!!!!  the signal is: %s " % on_off)
         return GPIO.output(POND_RELAY, True)
 
-    def conf_logger(self):
-        current_path = Path(LOG_DIR)
-        log_name = time.strftime("info")
-        filename = current_path.joinpath(f'{log_name}.log')
-        log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=5000000, backupCount=5)
-        formatter = logging.Formatter(
-            '%(asctime)s program_name [%(process)d]: %(message)s',
-            '%b %d %H:%M:%S')
-        formatter.converter = time.gmtime  # if you want UTC time
-        log_handler.setFormatter(formatter)
-        logger = logging.getLogger()
-        logger.addHandler(log_handler)
-        logger.setLevel(logging.DEBUG)
 
-        # to log errors messages
-        error_log = logging.FileHandler(os.path.join(current_path, 'error.log'))
-        error_log.setFormatter(formatter)
-        error_log.setLevel(logging.ERROR)
-        logger.addHandler(error_log)
 
     def processing_reads(self):
         try:
@@ -362,5 +343,3 @@ class SolarPond():
 #  add weather to table and advance in table pond self temp from future gauge
 #  add proper error handling for api calls
 #  refactor code in sendAPI Data for api calls
-
-
