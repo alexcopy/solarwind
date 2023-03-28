@@ -16,7 +16,7 @@ class SetupLogger():
 
     def conf_logger(self):
         current_path = Path('logs')
-        log_name = time.strftime("info")
+        log_name = time.strftime("debug")
         filename = current_path.joinpath(f'{log_name}.log')
         log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=5000000, backupCount=5)
         formatter = logging.Formatter(
@@ -31,7 +31,7 @@ class SetupLogger():
         logger.addHandler(error_handler)
         warn_handler = self.setup_logger(current_path, formatter, 'warning.log', logging.WARNING)
         logger.addHandler(warn_handler)
-        info_handler = self.setup_logger(current_path, formatter, 'main_inf.log', logging.INFO)
+        info_handler = self.setup_logger(current_path, formatter, 'info.log', logging.INFO)
         logger.addHandler(info_handler)
 
     def setup_logger(self, current_path, formatter, log_file, level):
