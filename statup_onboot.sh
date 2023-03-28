@@ -7,5 +7,4 @@ then
 else
     echo "$SERVICE stopped"
     exec python  "$path_to_service"
-    # mail
 fi

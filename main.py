@@ -27,16 +27,18 @@ class SetupLogger():
         logger = logging.getLogger()
         logger.addHandler(log_handler)
         logger.setLevel(logging.DEBUG)
-        error_handler = self.setup_logger(current_path, formatter, 'error.log')
+        error_handler = self.setup_logger(current_path, formatter, 'error.log', logging.ERROR)
         logger.addHandler(error_handler)
-        warn_handler = self.setup_logger(current_path, formatter, 'warning.log')
+        warn_handler = self.setup_logger(current_path, formatter, 'warning.log', logging.WARNING)
         logger.addHandler(warn_handler)
+        info_handler = self.setup_logger(current_path, formatter, 'main_inf.log', logging.INFO)
+        logger.addHandler(info_handler)
 
-    def setup_logger(self, current_path, formatter, log_file):
+    def setup_logger(self, current_path, formatter, log_file, level):
         # to log errors messages
         log = logging.FileHandler(os.path.join(current_path, log_file))
         log.setFormatter(formatter)
-        log.setLevel(logging.ERROR)
+        log.setLevel(level)
         return log
 
 
