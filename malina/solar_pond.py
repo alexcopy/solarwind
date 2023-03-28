@@ -339,7 +339,6 @@ class SolarPond():
                 'humidity': weather.current.humidity, 'precipitation': weather.current.precipitation, }
 
 # todo: improve pump speed adjustments (sometime it's very slow to speedup or slow down,
-#  add another level of logging (debug or warnings)
 #  add weather to table and advance in table pond self temp from future gauge
 #  add proper error handling for api calls
 #  refactor code in sendAPI Data for api calls
