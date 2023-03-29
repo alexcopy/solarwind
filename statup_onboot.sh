@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /path/to/python/script/ || exit
-SESSION_NAMES=("info" "debug" "error", "warning")
+SESSION_NAMES=("info" "debug" "error" "warning")
 if pgrep -f "python main\.py" >/dev/null; then
   echo "Solar Pond App is running"
 else

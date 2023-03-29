@@ -18,7 +18,7 @@ class SetupLogger():
         current_path = Path('logs')
         log_name = time.strftime("debug")
         filename = current_path.joinpath(f'{log_name}.log')
-        log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=5000000, backupCount=5)
+        log_handler = logging.handlers.RotatingFileHandler(filename, maxBytes=3000000, backupCount=5)
         formatter = logging.Formatter(
             '%(asctime)s program_name [%(process)d]: %(message)s',
             '%b %d %H:%M:%S')
@@ -35,8 +35,7 @@ class SetupLogger():
         logger.addHandler(info_handler)
 
     def setup_logger(self, current_path, formatter, log_file, level):
-        # to log errors messages
-        log = logging.FileHandler(os.path.join(current_path, log_file))
+        log=logging.handlers.RotatingFileHandler(os.path.join(current_path, log_file), maxBytes=3000000, backupCount=5)
         log.setFormatter(formatter)
         log.setLevel(level)
         return log
