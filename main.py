@@ -35,7 +35,8 @@ class SetupLogger():
         logger.addHandler(info_handler)
 
     def setup_logger(self, current_path, formatter, log_file, level):
-        log=logging.handlers.RotatingFileHandler(os.path.join(current_path, log_file), maxBytes=3000000, backupCount=5)
+        log = logging.handlers.RotatingFileHandler(os.path.join(current_path, log_file), maxBytes=3000000,
+                                                   backupCount=5)
         log.setFormatter(formatter)
         log.setLevel(level)
         return log
