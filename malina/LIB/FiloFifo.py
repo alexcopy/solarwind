@@ -82,7 +82,7 @@ class FiloFifo:
                 self.FILO[h_field].append(self.avg(self.filo_buff[field]))
 
     def _read_vals(self, channel):
-        voltage = round(float(self.shunt_load.getBusVoltage_V(channel)), 2)
+        voltage = round(float(self.shunt_load.getBusVoltage_V(channel)), 2) + 1
         current = round(float(self.shunt_load.getCurrent_mA(channel, self.shunt_bat)), 2)
         if abs(current) < 250:
             current = 0
