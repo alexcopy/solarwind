@@ -88,20 +88,12 @@ class SolarLogging:
         self.logging.info("")
         self.logging.info("---")
 
-        status = "OFF"
-        if inverter_status == 1:
-            status = 'ON'
-
-        m_r = "MAIN"
-        if statuses['main_relay_status'] == 0:
-            m_r = 'INVERT'
-
         wtg = (solar_current['10m_solar_current'] * fifo_buffer['1s_inverter_bus_voltage']) / 1000
-        self.logging.info(" Inverter Status is: %s  " % status)
-        self.logging.info(" Main Relay works from: %s  " % m_r)
+        self.logging.info(" Inverter Status is: %s  " % 'ON' if (inverter_status == 1) else "OFF")
+        self.logging.info(" Main Relay works from: %s  " % "MAIN" if (statuses['main_relay_status'] == 0) else "OFF")
         self.logging.info("")
 
-        self.logging.info(" UV Sterilizer is: %s " % "ON" if (load_devices.get_uv_sw_state['switch_1']) else "OFF")
+        self.logging.info(" UV Sterilizer is: %s " % "ON" if (load_devices.get_uv_sw_state['switch_1']) else "INVERT")
         self.logging.info(" FNT Pump State is: %s " % "ON" if (load_devices.get_fnt_sw_state['switch_1']) else "OFF")
         self.logging.info("")
 
