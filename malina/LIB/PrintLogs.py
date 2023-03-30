@@ -100,10 +100,9 @@ class SolarLogging:
         self.logging.info(" Inverter Status is: %s  " % status)
         self.logging.info(" Main Relay works from: %s  " % m_r)
         self.logging.info("")
-        uv = "OFF"
-        if load_devices.get_uv_sw_state['switch_1']:
-            uv = "ON"
-        self.logging.info(" UV Sterilizer is: %s " % uv)
+
+        self.logging.info(" UV Sterilizer is: %s " % "ON" if (load_devices.get_uv_sw_state['switch_1']) else "OFF")
+        self.logging.info(" FNT Pump State is: %s " % "ON" if (load_devices.get_fnt_sw_state['switch_1']) else "OFF")
         self.logging.info("")
 
         self.logging.info(" 1S Solar Power: %3.2f W " % wtg)
