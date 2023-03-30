@@ -36,7 +36,7 @@ INVER_RELAY = 12
 INVER_CHECK = 10
 CUT_OFF_VOLT = 21
 SWITCH_ON_VOLT = 26
-MIN_POND_SPEED = 10
+MIN_POND_SPEED = 30
 
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
