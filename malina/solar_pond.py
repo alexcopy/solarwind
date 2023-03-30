@@ -127,8 +127,6 @@ class SolarPond():
             logging.error("SOMETHING IS WRONG !!!!!  the signal is: %s " % on_off)
         return GPIO.output(POND_RELAY, True)
 
-
-
     def processing_reads(self):
         try:
             inv_status = self.inver_status_check()
@@ -295,22 +293,26 @@ class SolarPond():
     def run_read_vals(self):
         reed = BackgroundScheduler()
         hour = int(time.strftime("%H"))
+        time_now = time.strftime("%H:%M")
+        when_reset = ['21:30', '01:00', '05:00', '07:00', '07:00', '12:00']
         send_time_slot = 1200
         load_time_slot = 10
         pump_stats = 300
 
         # Don't need to send stats overnight
-        if hour > 21 or hour < 5:
+        if hour >= 21 or hour <= 5:
             send_time_slot = 2400
             pump_stats = 1800
             load_time_slot = 120
+
+        if time_now in when_reset:
+            reed.shutdown()
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
         reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats)
         reed.add_job(self.send_stats_api, 'interval', seconds=pump_stats + 60)
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
-        # reed.shutdown()
 
     def send_stats_api(self):
         self.pump_stats_to_server()
