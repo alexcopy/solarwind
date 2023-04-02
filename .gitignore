@@ -10,3 +10,4 @@ tx*
 nohup.out
 .idea
 logs/*.*
+venv/*
