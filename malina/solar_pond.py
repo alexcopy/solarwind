@@ -309,7 +309,7 @@ class SolarPond():
             reed.shutdown()
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
-        reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats)
+        reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats/5)
         reed.add_job(self.send_stats_api, 'interval', seconds=pump_stats + 60)
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
