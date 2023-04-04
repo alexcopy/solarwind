@@ -253,8 +253,8 @@ class SolarPond():
         if abs(now_cc - avg_cc) > 5000 and cc_size > 10:
             self.FILTER_FLUSH.append(now_cc)
         else:
-            if len(self.FILTER_FLUSH) > 5:
-                self.send_data.send_ff_data('inverter_current', self.FILTER_FLUSH, avg_cc)
+            if len(self.FILTER_FLUSH) > 8:
+                self.send_data.send_ff_data('inverter_current', self.FILTER_FLUSH, now_cc - avg_cc)
             self.FILTER_FLUSH = []
         return timestamp
 
