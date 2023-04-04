@@ -254,7 +254,7 @@ class SolarPond():
             self.FILTER_FLUSH.append(now_cc)
         else:
             if len(self.FILTER_FLUSH) > 5:
-                self.send_data.send_ff_data('inverter_current', self.FILTER_FLUSH)
+                self.send_data.send_ff_data('inverter_current', self.FILTER_FLUSH, avg_cc)
             self.FILTER_FLUSH = []
         return timestamp
 
@@ -340,7 +340,7 @@ class SolarPond():
                 'visibility': weather.current.visibility, 'uv_index': weather.current.uv_index,
                 'humidity': weather.current.humidity, 'precipitation': weather.current.precipitation, }
 
-# todo: improve pump speed adjustments (sometime it's very slow to speedup or slow down,
+# todo:
 #  add weather to table and advance in table pond self temp from future gauge
 #  add proper error handling for api calls
 #  refactor code in sendAPI Data for api calls

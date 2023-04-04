@@ -71,9 +71,10 @@ class SendApiData():
             url_path = "%ssolarpower" % self.api_url
             self.send_to_remote(url_path, payload)
 
-    def send_ff_data(self, shunt_name: str, filter_flush, tik_time=1):
+    def send_ff_data(self, shunt_name: str, filter_flush, avg_cc,  tik_time=1):
         payload = json.dumps({
             "max_current": max(filter_flush),
+            "current_diff":  avg_cc,
             "duration": len(filter_flush) * tik_time,
             "name": shunt_name
         })
