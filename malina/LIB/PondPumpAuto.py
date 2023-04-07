@@ -27,7 +27,7 @@ class PondPumpAuto():
         self.pump_status = {'flow_speed': 0}
         self.remote_api = remote_api
         self.refresh_pump_status()
-        self._min_speed = self.min_pump_speed()
+        self._min_speed = self.min_pump_speed
         self.weather = {}
 
     def refresh_pump_status(self):
