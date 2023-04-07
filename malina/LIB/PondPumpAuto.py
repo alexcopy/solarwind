@@ -50,6 +50,7 @@ class PondPumpAuto():
 
     @property
     def local_weather(self):
+        self.weather.update({'town': WEATHER_TOWN})
         return self.weather
 
     def refresh_min_speed(self):
@@ -171,13 +172,21 @@ class PondPumpAuto():
             return weather
 
     def weather_data(self):
-        weather = asyncio.run(self._getweather())
-        return {'temperature': weather.current.temperature, 'wind_speed': weather.current.wind_speed,
-                'visibility': weather.current.visibility, 'uv_index': weather.current.uv_index,
-                'humidity': weather.current.humidity, 'precipitation': weather.current.precipitation,
-                'type': weather.current.type, 'wind_direction': weather.current.wind_direction,
-                'feels_like': weather.current.feels_like, 'description': weather.current.description,
-                'pressure': weather.current.pressure, 'timestamp': int(time.time())}
+        try:
+            weather = asyncio.run(self._getweather())
+            return {'temperature': weather.current.temperature, 'wind_speed': weather.current.wind_speed,
+                    'visibility': weather.current.visibility, 'uv_index': weather.current.uv_index,
+                    'humidity': weather.current.humidity, 'precipitation': weather.current.precipitation,
+                    'type': weather.current.type, 'wind_direction': weather.current.wind_direction,
+                    'feels_like': weather.current.feels_like, 'description': weather.current.description,
+                    'pressure': weather.current.pressure, 'timestamp': int(time.time())}
+
+        except Exception as e:
+            self.logger.error(e)
+            return {'temperature': 0, 'wind_speed': 0, 'visibility': 0, 'uv_index': 0, 'humidity': 0,
+                    'precipitation': 0, 'type': "", 'wind_direction': "", 'description': "", 'feels_like': 0,
+                    'pressure': 0, 'timestamp': int(time.time()),
+                    }
 
     def is_integer(self, n):
         try:
