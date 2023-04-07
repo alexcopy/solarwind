@@ -41,7 +41,6 @@ MIN_POND_SPEED = 30
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
-WEATHER_TOWN = config["WEATHER_TOWN"]
 
 INVERT_CHANNEL = 1
 LEISURE_BAT_CHANNEL = 2
@@ -177,14 +176,14 @@ class SolarPond():
             return 0
         # in case if we're working from mains switching to minimum allowed speed
         volt_avg = self.avg(inverter_voltage)
-        min_speed = MIN_POND_SPEED
+        min_speed = self.automation.min_pump_speed
         mains_relay_status = self.filo_fifo.get_main_rel_status
         if int(self.automation.get_current_status['mode']) == 6:
             self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
         else:
             logging.info("Pump working mode is not 6 so no adjustments could be done ")
 
-    def adjust_speed_non_stepped_val(self):
+    def check_pump_speed(self):
         if not self.automation.pump_status['flow_speed'] % POND_SPEED_STEP == 0:
             rounded = round(int(self.automation.pump_status['flow_speed']) / 10) * 10
             if rounded < POND_SPEED_STEP:
@@ -206,12 +205,20 @@ class SolarPond():
     def load_checks(self):
         relay_status = int(GPIO.input(POND_RELAY))
         self.load_automation.update_main_relay_status(relay_status)
-        self.adjust_pump_speed()
-        self.inverter_run()
-        self.adjust_speed_non_stepped_val()
-        self.check_load_devices()
+        pump_params = self.automation.get_current_status
 
-    def inverter_run(self):
+        # switch management only if pond pump in mode =6
+        if int(pump_params['mode']) == 6:
+            self.adjust_pump_speed()
+            self.check_pump_speed()
+
+        self.check_load_devices()
+        self.check_inverter_off_on()
+        weather_timer = self.automation.local_weather['timestamp']
+        if int(time.time()) - weather_timer > 1800:
+            self.automation.refresh_min_speed()
+
+    def check_inverter_off_on(self):
         try:
             if time.strftime("%H:%M") == '12:00':
                 self.switch_to_solar_power()
@@ -290,6 +297,7 @@ class SolarPond():
 
     def send_avg_data(self):
         self.send_data.send_avg_data(self.filo_fifo, self.inver_status_check())
+        self.send_data.send_weather(self.automation.local_weather)
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
@@ -310,7 +318,7 @@ class SolarPond():
             reed.shutdown()
 
         reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
-        reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats/5)
+        reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats / 5)
         reed.add_job(self.send_stats_api, 'interval', seconds=pump_stats + 60)
         reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
         reed.start()
@@ -327,21 +335,10 @@ class SolarPond():
             self.print_logs.integrity_error(avg_status, GPIO.input(POND_RELAY), self.inver_status_check())
             self.switch_to_main_power()
 
-    async def _getweather(self):
-        # declare the client. format defaults to the metric system (celcius, km/h, etc.)
-        async with python_weather.Client(format=python_weather.METRIC) as client:
-            # fetch a weather forecast from a city
-            weather = await client.get(WEATHER_TOWN)
-
-            return weather
-
-    def weather_data(self):
-        weather = asyncio.run(self._getweather())
-        return {'temperature': weather.current.temperature, 'wind_speed': weather.current.wind_speed,
-                'visibility': weather.current.visibility, 'uv_index': weather.current.uv_index,
-                'humidity': weather.current.humidity, 'precipitation': weather.current.precipitation, }
-
 # todo:
 #  add weather to table and advance in table pond self temp from future gauge
 #  add proper error handling for api calls
 #  refactor code in sendAPI Data for api calls
+#  настроить работу при режиме насоса  (6,5,4...)
+#  менять порог (-1.5 утром чтобы к вечеру экономить энергию
+#  добавить интервалы или время включения фонтана  и увл оампы чтобы они не счелкали постоянно например не чаще 30 сек

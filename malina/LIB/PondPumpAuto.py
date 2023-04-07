@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-
+import asyncio
 # V 1.0
 
 
@@ -8,6 +7,7 @@
 
 import time
 
+import python_weather
 from dotenv import dotenv_values
 
 config = dotenv_values(".env")
@@ -17,6 +17,7 @@ PUMP_NAME = config['PUMP_NAME']
 MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
 MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
+WEATHER_TOWN = config["WEATHER_TOWN"]
 
 
 class PondPumpAuto():
@@ -26,6 +27,8 @@ class PondPumpAuto():
         self.pump_status = {'flow_speed': 0}
         self.remote_api = remote_api
         self.refresh_pump_status()
+        self._min_speed = self.min_pump_speed()
+        self.weather = {}
 
     def refresh_pump_status(self):
         try:
@@ -39,6 +42,33 @@ class PondPumpAuto():
             print(ex)
             self.logger.error(ex)
             return {'flow_speed': 0, "Power": 0, 'error': True}
+
+    @property
+    def min_pump_speed(self):
+        self.refresh_min_speed()
+        return self._min_speed
+
+    @property
+    def local_weather(self):
+        return self.weather
+
+    def refresh_min_speed(self):
+        self.weather = self.weather_data()
+        self._setup_minimum_pump_speed()
+
+    def _setup_minimum_pump_speed(self):
+        temp = self.weather['temperature']
+        self._min_speed = 10
+        if temp < 8:
+            self._min_speed = 10
+        elif temp < 12:
+            self._min_speed = 20
+
+        elif temp < 14:
+            self._min_speed = 30
+
+        elif temp > 14:
+            self._min_speed = 40
 
     def _update_pump_status(self, tuya_responce):
         pump = {}
@@ -132,6 +162,22 @@ class PondPumpAuto():
             return True
         if volt_avg < min_bat_volt:
             return self._decrease_pump_speed(speed_step, min_speed, mains_relay_status)
+
+    async def _getweather(self):
+        # declare the client. format defaults to the metric system (celcius, km/h, etc.)
+        async with python_weather.Client(format=python_weather.METRIC) as client:
+            # fetch a weather forecast from a city
+            weather = await client.get(WEATHER_TOWN)
+            return weather
+
+    def weather_data(self):
+        weather = asyncio.run(self._getweather())
+        return {'temperature': weather.current.temperature, 'wind_speed': weather.current.wind_speed,
+                'visibility': weather.current.visibility, 'uv_index': weather.current.uv_index,
+                'humidity': weather.current.humidity, 'precipitation': weather.current.precipitation,
+                'type': weather.current.type, 'wind_direction': weather.current.wind_direction,
+                'feels_like': weather.current.feels_like, 'description': weather.current.description,
+                'pressure': weather.current.pressure, 'timestamp': int(time.time())}
 
     def is_integer(self, n):
         try:

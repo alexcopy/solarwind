@@ -9,8 +9,10 @@ from dotenv import dotenv_values
 
 from malina.LIB.FiloFifo import FiloFifo
 from malina.LIB.PrintLogs import SolarLogging
+
 config = dotenv_values(".env")
 API_URL = config["API_URL"]
+
 
 class SendApiData():
     def __init__(self, logger):
@@ -71,10 +73,10 @@ class SendApiData():
             url_path = "%ssolarpower" % self.api_url
             self.send_to_remote(url_path, payload)
 
-    def send_ff_data(self, shunt_name: str, filter_flush, avg_cc,  tik_time=1):
+    def send_ff_data(self, shunt_name: str, filter_flush, avg_cc, tik_time=1):
         payload = json.dumps({
             "max_current": max(filter_flush),
-            "current_diff":  avg_cc,
+            "current_diff": avg_cc,
             "duration": len(filter_flush) * tik_time,
             "name": shunt_name
         })
@@ -93,6 +95,24 @@ class SendApiData():
                 'Content-Type': 'application/json'
             }
             url = urljoin(self.api_url, 'pondswitch/')
+            response = requests.request("POST", url, headers=headers, data=payload).json()
+            if response['errors']:
+                self.logger.error(response['payload'])
+                self.logger.error(response['errors_msg'])
+            return response
+        except Exception as ex:
+            print(ex)
+            self.logger.error(ex)
+            time.sleep(10)
+            return {'errors': True}
+
+    def send_weather(self, local_weather):
+        try:
+            payload = json.dumps(local_weather)
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            url = urljoin(self.api_url, 'pondweather/')
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
                 self.logger.error(response['payload'])
