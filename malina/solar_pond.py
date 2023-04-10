@@ -227,7 +227,6 @@ class SolarPond():
             if self.avg(inverter_voltage) < CUT_OFF_VOLT and len(
                     inverter_voltage) > 15:
                 self.switch_to_main_power()
-                self.send_data.send_avg_data(self.filo_fifo, self.inver_status_check())
 
             # converter switch ON
             if self.avg(inverter_voltage) > SWITCH_ON_VOLT and len(
@@ -236,7 +235,6 @@ class SolarPond():
                     # all good relay is ON
                     return True
                 self.switch_to_solar_power()
-                self.send_data.send_avg_data(self.filo_fifo, self.inver_status_check())
             self.integrity_check()
 
         except Exception as ex:
