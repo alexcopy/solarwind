@@ -46,11 +46,6 @@ LEISURE_BAT_CHANNEL = 2
 TIGER_BAT_CHANNEL = 3
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(POND_RELAY, GPIO.OUT)
-GPIO.setup(INVER_RELAY, GPIO.OUT)
-GPIO.setup(INVER_CHECK, GPIO.IN)
-
 
 def handler(signum, frame):
     print('Ctrl+Z pressed, but ignored')
@@ -110,9 +105,7 @@ class SolarPond():
 
     def processing_reads(self):
         try:
-            inv_id, inv_name = self.devices.get_invert_credentials
-            inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
-
+            inv_status = self._invert_status()
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
@@ -161,8 +154,9 @@ class SolarPond():
             logging.error(
                 "The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
             logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
-            relay_status = int(GPIO.input(POND_RELAY))
-            self.automation.change_pump_speed(rounded, relay_status)
+            inv_id, inv_name = self.devices.get_invert_credentials
+            inv_status = not self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+            self.automation.change_pump_speed(rounded,  inv_status)
 
     def load_checks(self):
         self.update_invert_stats()
@@ -186,9 +180,13 @@ class SolarPond():
             self.automation.update_weather()
 
     def update_invert_stats(self):
+        inv_status = self._invert_status()
+        self.load_automation.update_main_relay_status(not inv_status)
+
+    def _invert_status(self):
         inv_id, inv_name = self.devices.get_invert_credentials
         inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
-        self.load_automation.update_main_relay_status(not inv_status)
+        return inv_status
 
     def get_inverter_values(self, slot='1s', value='voltage'):
         inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value)
@@ -233,18 +231,16 @@ class SolarPond():
         self.devices.update_invert_stats()
 
     def pump_stats_to_server(self):
-        relay_status = int(GPIO.input(POND_RELAY))
-        resp = self.send_data.send_pump_stats(relay_status, self.automation.get_current_status)
+        inv_status = self._invert_status()
+        resp = self.send_data.send_pump_stats(inv_status, self.automation.get_current_status)
         err_resp = resp['errors']
         if err_resp:
             time.sleep(5)
             self.automation.refresh_pump_status()
-            self.send_data.send_pump_stats(relay_status, self.automation.get_current_status)
+            self.send_data.send_pump_stats(inv_status, self.automation.get_current_status)
 
     def send_avg_data(self):
-        inv_id, inv_name = self.devices.get_invert_credentials
-        inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
-
+        inv_status = not self._invert_status()
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
         self.send_data.send_weather(self.automation.local_weather)
 
