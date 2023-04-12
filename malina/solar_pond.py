@@ -1,13 +1,10 @@
 #!/usr/bin/env python
-import asyncio
-import importlib.util
 import logging
 import logging.handlers
 import os
 import time
 from pathlib import Path
 
-import python_weather
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import dotenv_values
 
@@ -20,20 +17,7 @@ from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 
-try:
-    importlib.util.find_spec('RPi.GPIO')
-    import RPi.GPIO as GPIO
-except ImportError:
-
-    import FakeRPi.GPIO as GPIO
-    import FakeRPi.Utilities
-
-    FakeRPi.Utilities.mode = FakeRPi.Utilities.PIN_TYPE_BOARD
-
 TIME_TIK = 1
-POND_RELAY = 11
-INVER_RELAY = 12
-INVER_CHECK = 10
 CUT_OFF_VOLT = 19
 SWITCH_ON_VOLT = 24
 
@@ -45,12 +29,6 @@ INVERT_CHANNEL = 1
 LEISURE_BAT_CHANNEL = 2
 TIGER_BAT_CHANNEL = 3
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
-
-
-def handler(signum, frame):
-    print('Ctrl+Z pressed, but ignored')
-    GPIO.cleanup()
-    os.system('kill -STOP %d' % os.getpid())
 
 
 class SolarPond():
@@ -156,7 +134,7 @@ class SolarPond():
             logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
             inv_id, inv_name = self.devices.get_invert_credentials
             inv_status = not self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
-            self.automation.change_pump_speed(rounded,  inv_status)
+            self.automation.change_pump_speed(rounded, inv_status)
 
     def load_checks(self):
         self.update_invert_stats()
