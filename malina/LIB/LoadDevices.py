@@ -90,10 +90,10 @@ class LoadDevices:
     def invert_switch_on_off(self, inverter_volt):
         inv_id = self.inverter_id
         if self._is_invert_ready_to_start(inverter_volt):
-            self.load_auto.load_switch_on(inv_id, INVERTER)
+            self.load_auto.load_switch_on(inv_id, INVERTER, "switch")
 
         if self._is_invert_ready_to_stop(inverter_volt):
-            self.load_auto.load_switch_off(inv_id, INVERTER)
+            self.load_auto.load_switch_off(inv_id, INVERTER, "switch")
 
     def update_uv_stats_info(self):
         self.load_auto.update_status(self.uv_device_id, UV_CLARIFIER)

@@ -54,13 +54,13 @@ class SolarPond():
 
     def switch_to_solar_power(self):
         inv_id, inv_name = self.devices.get_invert_credentials
-        self.load_automation.load_switch_on(inv_id, inv_name)
+        self.load_automation.load_switch_on(inv_id, inv_name, "switch")
         status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
         return status
 
     def switch_to_main_power(self):
         inv_id, inv_name = self.devices.get_invert_credentials
-        self.load_automation.load_switch_off(inv_id, inv_name)
+        self.load_automation.load_switch_off(inv_id, inv_name, "switch")
         status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
         return status
 

@@ -12,13 +12,13 @@ class LoadRelayAutomation():
         self.remote_api = SendApiData(logger)
         self.main_status = 0
 
-    def load_switch_on(self, device_id, name):
+    def load_switch_on(self, device_id, name, switch__="switch_1"):
         try:
             status = self.get_device_statuses_by_id(device_id, name)['switch_1']
             if not status:
                 command = [
                     {
-                        "code": "switch_1",
+                        "code": switch__,
                         "value": True
                     }]
                 self.deviceManager.send_commands(device_id, command)
@@ -29,13 +29,13 @@ class LoadRelayAutomation():
             self.logger.error("---------Problem in Load Switch ON---------")
             self.logger.error(ex)
 
-    def load_switch_off(self, device_id, name):
+    def load_switch_off(self, device_id, name, switch__="switch_1"):
         try:
             status = self.get_device_statuses_by_id(device_id, name)['switch_1']
             if status:
                 command = [
                     {
-                        "code": "switch_1",
+                        "code": switch__,
                         "value": False
                     }]
                 self.deviceManager.send_commands(device_id, command)
