@@ -80,60 +80,45 @@ class SolarPond():
         return float(round(sum(l, 0.0) / len(l), 2))
 
     def switch_to_solar_power(self):
-        self.inverter_switch('ON')
-        time.sleep(4)
-        inverter_state = self.inverter_switch('ON')
-
-        if inverter_state == 1:
-            self.pond_relay_on_off('INV')
-        else:
-            self.switch_to_main_power()
-            logging.error("CANNOT SWITCH ON THE INVERTER PLS CHECK  !!!!!  the signal is: %d " % inverter_state)
-        return self.status_check
+        inv_id, inv_name = self.devices.get_invert_credentials
+        self.load_automation.load_switch_on(inv_id, inv_name)
+        status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+        return status
 
     def switch_to_main_power(self):
-        self.inverter_switch('OFF')
-        time.sleep(2)
-        inverter_state = self.inverter_switch('OFF')
-        if inverter_state == 0:
-            logging.info("All good Inverter has been switched off successfully: %d " % inverter_state)
-        else:
-            logging.error("CANNOT SWITCH OFF THE INVERTER PLS CHECK  !!!!!  the signal is: %d " % inverter_state)
+        inv_id, inv_name = self.devices.get_invert_credentials
+        self.load_automation.load_switch_off(inv_id, inv_name)
+        status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+        return status
 
-        logging.info("All good Switching to main power: %d " % inverter_state)
-        self.pond_relay_on_off('MAIN')
-        return self.status_check
+    def check_inverter_off_on(self):
+        try:
+            if time.strftime("%H:%M") == '12:00':
+                self.switch_to_solar_power()
+            inverter_voltage = self.get_inverter_values()
+            # converter switch OFF
+            if self.avg(inverter_voltage) < CUT_OFF_VOLT and len(
+                    inverter_voltage) > 15:
+                self.switch_to_main_power()
 
-    @property
-    def status_check(self):
-        return GPIO.input(POND_RELAY) ^ self.inver_status_check()
-
-    def inver_status_check(self):
-        return self.invert_status
-        # return GPIO.input(INVER_CHECK) todo in case of ENCOA inverter with switch off
-
-    def pond_relay_on_off(self, on_off: str):
-        on_off = on_off.upper()
-        if on_off not in ['INV', 'MAIN']:
-            logging.error("The  WRONG Signal to mains_relay_status SENT!!!!!  the signal is: %s " % on_off)
-            return GPIO.output(POND_RELAY, True)
-        if on_off == 'INV':
-            return GPIO.output(POND_RELAY, False)
-        elif on_off == 'MAIN':
-            return GPIO.output(POND_RELAY, True)
-        else:
-            logging.error("SOMETHING IS WRONG !!!!!  the signal is: %s " % on_off)
-        return GPIO.output(POND_RELAY, True)
+            # converter switch ON
+            if self.avg(inverter_voltage) > SWITCH_ON_VOLT and len(
+                    inverter_voltage) > 30:
+                self.switch_to_solar_power()
+        except Exception as ex:
+            logging.error(ex)
 
     def processing_reads(self):
         try:
-            inv_status = self.inver_status_check()
+            inv_id, inv_name = self.devices.get_invert_credentials
+            inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
-                'status_check': self.status_check,
+                'status_check': 1,
                 'inverter_relay': inv_status,
-                'main_relay_status': GPIO.input(POND_RELAY),
+                'main_relay_status': not inv_status,
             })
             solar_current = self.filo_fifo.solar_current
             cur_t = int(time.time())
@@ -152,20 +137,6 @@ class SolarPond():
 
         except Exception as ex:
             logging.error(ex)
-
-    def inverter_switch(self, on_off: str):
-        on_off = on_off.upper()
-        if not on_off in ['ON', 'OFF']:
-            logging.error("The  WRONG Signal to INVERTER SWITCH SENT!!!!!  the signal is: %s " % on_off)
-            return self.inver_status_check()
-
-        status = self.inver_status_check()
-        if on_off == 'ON' and status == 1:
-            return 1
-        if on_off == 'OFF' and status == 0:
-            return 0
-        self.inverter_on_off()
-        return self.inver_status_check()
 
     def adjust_pump_speed(self):
         inverter_voltage = self.get_inverter_values()
@@ -193,55 +164,31 @@ class SolarPond():
             relay_status = int(GPIO.input(POND_RELAY))
             self.automation.change_pump_speed(rounded, relay_status)
 
-    def inverter_on_off(self):
-        self.invert_status = int(not self.invert_status)
-        # todo in case ENCOA inverter
-        # time.sleep(.5)
-        # GPIO.output(INVER_RELAY, True)
-        # time.sleep(.5)
-        # GPIO.output(INVER_RELAY, False)
-
     def load_checks(self):
-        relay_status = int(GPIO.input(POND_RELAY))
-        self.load_automation.update_main_relay_status(relay_status)
-        pump_params = self.automation.get_current_status
+        self.update_invert_stats()
+        self.check_load_devices()
+        self.check_inverter_off_on()
+        self.weather_check_update()
+        self._pump_speed_adjust()
 
+    def _pump_speed_adjust(self):
         # switch management only if pond pump in mode =6
+        pump_params = self.automation.get_current_status
         if int(pump_params['mode']) == 6:
             self.adjust_pump_speed()
             self.check_pump_speed()
 
-        self.check_load_devices()
-        self.check_inverter_off_on()
-        weather_timer = self.automation.local_weather['timestamp']
+    def weather_check_update(self):
+        weather_timer = self.automation.local_weather.get('timestamp', 0)
         if int(time.time()) - weather_timer > 1800:
             self.automation.refresh_min_speed()
+        if weather_timer == 0:
+            self.automation.update_weather()
 
-    def check_inverter_off_on(self):
-        try:
-            if time.strftime("%H:%M") == '12:00':
-                self.switch_to_solar_power()
-            inverter_voltage = self.get_inverter_values()
-            # converter switch OFF
-            if self.avg(inverter_voltage) < CUT_OFF_VOLT and len(
-                    inverter_voltage) > 15:
-                self.switch_to_main_power()
-
-            # converter switch ON
-            if self.avg(inverter_voltage) > SWITCH_ON_VOLT and len(
-                    inverter_voltage) > 30:
-                if self.is_average_relays_on():
-                    # all good relay is ON
-                    return True
-                self.switch_to_solar_power()
-            self.integrity_check()
-
-        except Exception as ex:
-            logging.error(ex)
-
-    def is_average_relays_on(self):
-        invert_status = self.filo_fifo.get_avg_rel_stats
-        return invert_status['inverter_relay'] > 0.3 and invert_status['status_check'] > 0.3
+    def update_invert_stats(self):
+        inv_id, inv_name = self.devices.get_invert_credentials
+        inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+        self.load_automation.update_main_relay_status(not inv_status)
 
     def get_inverter_values(self, slot='1s', value='voltage'):
         inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value)
@@ -274,7 +221,7 @@ class SolarPond():
         # switch management only if pond pump in mode =6
         if int(pump_params['mode']) == 6:
             self.devices.uv_switch_on_off(avg_invert_volt, pump_params['flow_speed'])
-            self.devices.fnt_switch_on_off(avg_invert_volt, pump_params['flow_speed'])
+            self.devices.fnt_switch_on_off(avg_invert_volt)
 
     def update_devs_stats(self):
         self.automation.refresh_pump_status()
@@ -282,6 +229,8 @@ class SolarPond():
         self.devices.update_uv_stats_info()
         time.sleep(3)
         self.devices.update_fnt_dev_stats()
+        time.sleep(3)
+        self.devices.update_invert_stats()
 
     def pump_stats_to_server(self):
         relay_status = int(GPIO.input(POND_RELAY))
@@ -293,7 +242,10 @@ class SolarPond():
             self.send_data.send_pump_stats(relay_status, self.automation.get_current_status)
 
     def send_avg_data(self):
-        self.send_data.send_avg_data(self.filo_fifo, self.inver_status_check())
+        inv_id, inv_name = self.devices.get_invert_credentials
+        inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+
+        self.send_data.send_avg_data(self.filo_fifo, inv_status)
         self.send_data.send_weather(self.automation.local_weather)
 
     def run_read_vals(self):
@@ -325,12 +277,6 @@ class SolarPond():
         time.sleep(3)
         self.send_data.send_load_stats(self.devices.get_uv_sw_state)
         self.send_data.send_load_stats(self.devices.get_fnt_sw_state)
-
-    def integrity_check(self):
-        avg_status = self.filo_fifo.get_avg_rel_status
-        if avg_status < 0.3 and self.filo_fifo.len_sts_chk > 8:
-            self.print_logs.integrity_error(avg_status, GPIO.input(POND_RELAY), self.inver_status_check())
-            self.switch_to_main_power()
 
 # todo:
 #  add weather to table and advance in table pond self temp from future gauge

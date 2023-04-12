@@ -56,6 +56,9 @@ class PondPumpAuto():
         self.weather = self.weather_data()
         self._setup_minimum_pump_speed()
 
+    def update_weather(self):
+        self.weather = self.weather_data()
+
     def _setup_minimum_pump_speed(self):
         temp = self.weather['temperature']
         self._min_speed = 10
