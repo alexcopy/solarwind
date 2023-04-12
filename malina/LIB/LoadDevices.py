@@ -59,10 +59,10 @@ class LoadDevices:
             return False
         return inverter >= FNT_START_VOLT
 
-    def _is_fnt_ready_to_stop(self, inverter, pump_flow_speed):
+    def _is_fnt_ready_to_stop(self, inverter):
         if self.load_auto.get_main_relay_status == 1:
             return True
-        return inverter <= FNT_STOP_VOLT or pump_flow_speed <= 70
+        return inverter <= FNT_STOP_VOLT
 
     def _is_invert_ready_to_stop(self, inverter):
         return inverter <= INVERT_STOP
