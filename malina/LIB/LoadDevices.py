@@ -12,8 +12,8 @@ INVERTER = "INVERTER"
 config = dotenv_values(".env")
 
 INVERT_DEVICE = config["INVERT_ID"]
-INVERT_STOP = config["INVERT_STOP_VOLT"]
-INVERT_START = config["INVERT_START_VOLT"]
+INVERT_STOP = float(config["INVERT_STOP_VOLT"])
+INVERT_START = float(config["INVERT_START_VOLT"])
 
 UV_DEVICE = config['SWITCH_UV_ID']
 UV_START_VOLT = float(config['UV_START_VOLT'])
