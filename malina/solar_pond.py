@@ -18,16 +18,10 @@ from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 
 TIME_TIK = 1
-CUT_OFF_VOLT = 19
-SWITCH_ON_VOLT = 24
 
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
-
-INVERT_CHANNEL = 1
-LEISURE_BAT_CHANNEL = 2
-TIGER_BAT_CHANNEL = 3
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 
 
@@ -66,18 +60,8 @@ class SolarPond():
 
     def check_inverter_off_on(self):
         try:
-            if time.strftime("%H:%M") == '12:00':
-                self.switch_to_solar_power()
             inverter_voltage = self.get_inverter_values()
-            # converter switch OFF
-            if self.avg(inverter_voltage) < CUT_OFF_VOLT and len(
-                    inverter_voltage) > 15:
-                self.switch_to_main_power()
-
-            # converter switch ON
-            if self.avg(inverter_voltage) > SWITCH_ON_VOLT and len(
-                    inverter_voltage) > 30:
-                self.switch_to_solar_power()
+            self.devices.invert_switch_on_off(self.avg(inverter_voltage))
         except Exception as ex:
             logging.error(ex)
 

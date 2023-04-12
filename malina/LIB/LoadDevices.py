@@ -73,7 +73,6 @@ class LoadDevices:
 
     def uv_switch_on_off(self, inverter_volt, pump_flow_speed):
         uv_id = self.uv_device_id
-        api_data = self.get_uv_sw_state
 
         if self._is_uv_ready_to_start(inverter_volt):
             self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)
@@ -89,13 +88,13 @@ class LoadDevices:
         if self._is_fnt_ready_to_stop(inverter_volt):
             self.load_auto.load_switch_off(fnt_id, POND_FOUNTAIN)
 
-    def invert_switch_on_off(self, inverter_volt, pump_flow_speed):
-        fnt_id = self.fnt_device_id
-        if self._is_fnt_ready_to_start(inverter_volt):
-            self.load_auto.load_switch_on(fnt_id, POND_FOUNTAIN)
+    def invert_switch_on_off(self, inverter_volt):
+        inv_id = self.inverter_id
+        if self._is_invert_ready_to_start(inverter_volt):
+            self.load_auto.load_switch_on(inv_id, INVERTER)
 
-        if self._is_fnt_ready_to_stop(inverter_volt, pump_flow_speed):
-            self.load_auto.load_switch_off(fnt_id, POND_FOUNTAIN)
+        if self._is_invert_ready_to_stop(inverter_volt):
+            self.load_auto.load_switch_off(inv_id, INVERTER)
 
     def update_uv_stats_info(self):
         self.load_auto.update_status(self.uv_device_id, UV_CLARIFIER)
@@ -104,7 +103,7 @@ class LoadDevices:
         self.load_auto.update_status(self.fnt_device_id, POND_FOUNTAIN)
 
     def update_invert_stats(self):
-        self.load_auto.update_status(self.fnt_device_id, INVERT_DEVICE)
+        self.load_auto.update_status(self.inverter_id, INVERTER)
 
     @property
     def get_uv_sw_state(self):
