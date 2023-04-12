@@ -79,7 +79,7 @@ class SolarPond():
             self.filo_fifo.update_rel_status({
                 'status_check': 1,
                 'inverter_relay': inv_status,
-                'main_relay_status': not inv_status,
+                'main_relay_status': inv_status,
             })
             solar_current = self.filo_fifo.solar_current
             cur_t = int(time.time())
@@ -123,7 +123,7 @@ class SolarPond():
                 "The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
             logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
             inv_id, inv_name = self.devices.get_invert_credentials
-            inv_status = not self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+            inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
             self.automation.change_pump_speed(rounded, inv_status)
 
     def load_checks(self):
@@ -149,7 +149,7 @@ class SolarPond():
 
     def update_invert_stats(self):
         inv_status = self._invert_status()
-        self.load_automation.update_main_relay_status(not inv_status)
+        self.load_automation.update_main_relay_status(inv_status)
 
     def _invert_status(self):
         inv_id, inv_name = self.devices.get_invert_credentials

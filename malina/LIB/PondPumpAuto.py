@@ -119,12 +119,12 @@ class PondPumpAuto():
             self.logger.error(res)
 
         self.refresh_pump_status()
-        resp = self.remote_api.send_pump_stats(is_working_mains, self.get_current_status)
+        resp = self.remote_api.send_pump_stats(not is_working_mains, self.get_current_status)
         erros_resp = resp['errors']
         if erros_resp:
             time.sleep(5)
             self.refresh_pump_status()
-            self.remote_api.send_pump_stats(is_working_mains, self.get_current_status)
+            self.remote_api.send_pump_stats(not is_working_mains, self.get_current_status)
 
     def is_minimum_speed(self, min_speed):
         return min_speed == self.get_current_status['flow_speed']
@@ -161,7 +161,7 @@ class PondPumpAuto():
         max_bat_volt = MAX_BAT_VOLT
         speed_step = POND_SPEED_STEP
         mains_relay_status = int(round(mains_relay_status, 0))
-        if mains_relay_status == 1:
+        if mains_relay_status == 0:
             if not self.is_minimum_speed(min_speed):
                 return self._decrease_pump_speed(100, min_speed, mains_relay_status)
 

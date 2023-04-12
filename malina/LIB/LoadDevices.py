@@ -45,22 +45,22 @@ class LoadDevices:
         return self.inverter_id
 
     def _is_uv_ready_to_start(self, inverter):
-        if self.load_auto.get_main_relay_status == 1:
+        if self.load_auto.get_main_relay_status == 0:
             return False
         return inverter >= UV_START_VOLT
 
     def _is_uv_ready_to_stop(self, inverter, pump_flow_speed):
-        if self.load_auto.get_main_relay_status == 1:
+        if self.load_auto.get_main_relay_status == 0:
             return True
         return inverter <= UV_STOP_VOLT or pump_flow_speed <= 50
 
     def _is_fnt_ready_to_start(self, inverter):
-        if self.load_auto.get_main_relay_status == 1:
+        if self.load_auto.get_main_relay_status == 0:
             return False
         return inverter >= FNT_START_VOLT
 
     def _is_fnt_ready_to_stop(self, inverter):
-        if self.load_auto.get_main_relay_status == 1:
+        if self.load_auto.get_main_relay_status == 0:
             return True
         return inverter <= FNT_STOP_VOLT
 
