@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-
-# V 1.0
-
-
-# encoding: utf-8
-
 class SolarLogging:
     def __init__(self, logging):
         self.logging = logging
@@ -89,7 +83,8 @@ class SolarLogging:
         self.logging.info("---")
 
         self.logging.info(" Inverter Status is: %s  " % ('ON' if (inverter_status == 1) else "OFF"))
-        self.logging.info(" Main Relay works from: %s  " % ("INVERT" if (statuses['main_relay_status'] == 0) else "MAIN"))
+        self.logging.info(
+            " Main Relay works from: %s  " % ("INVERT" if (statuses['main_relay_status'] == 0) else "MAIN"))
         self.logging.info("")
 
         self.logging.info(" UV Sterilizer is: %s " % ("ON" if (load_devices.get_uv_sw_state['switch_1']) else "OFF"))

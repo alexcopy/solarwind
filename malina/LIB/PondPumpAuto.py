@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 import asyncio
-# V 1.0
-
-
-# encoding: utf-8
-
 import time
-
 import python_weather
 from dotenv import dotenv_values
 

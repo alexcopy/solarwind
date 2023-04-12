@@ -1,5 +1,3 @@
-import time
-
 from dotenv import dotenv_values
 
 from malina.LIB.LoadRelayAutomation import LoadRelayAutomation

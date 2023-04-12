@@ -1,9 +1,6 @@
 #!/usr/bin/env python
-# V 1.0
-# encoding: utf-8
 
 import time
-
 from malina.LIB.SendApiData import SendApiData
 
 
