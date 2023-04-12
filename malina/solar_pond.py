@@ -38,6 +38,12 @@ class SolarPond():
         self.devices = LoadDevices(logging, device_manager)
         self.load_automation = LoadRelayAutomation(logging, device_manager)
         self.invert_status = 1
+        self.devices.update_invert_stats()
+        time.sleep(2)
+        self.devices.update_uv_stats_info()
+        time.sleep(2)
+        self.devices.update_fnt_dev_stats()
+
         self.switch_to_solar_power()
 
     @staticmethod
