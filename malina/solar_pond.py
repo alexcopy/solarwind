@@ -185,11 +185,11 @@ class SolarPond():
 
     def update_devs_stats(self):
         self.automation.refresh_pump_status()
-        time.sleep(3)
+        time.sleep(2)
         self.devices.update_uv_stats_info()
-        time.sleep(3)
+        time.sleep(2)
         self.devices.update_fnt_dev_stats()
-        time.sleep(3)
+        time.sleep(2)
         self.devices.update_invert_stats()
 
     def pump_stats_to_server(self):
