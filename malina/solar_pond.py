@@ -153,7 +153,7 @@ class SolarPond():
 
     def _invert_status(self):
         inv_id, inv_name = self.devices.get_invert_credentials
-        inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+        inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch')
         return inv_status
 
     def get_inverter_values(self, slot='1s', value='voltage'):
@@ -186,7 +186,7 @@ class SolarPond():
 
         # switch management only if pond pump in mode =6
         if int(pump_params['mode']) == 6:
-            self.devices.uv_switch_on_off(avg_invert_volt, pump_params['flow_speed'])
+            self.devices.uv_switch_on_off(avg_invert_volt)
             self.devices.fnt_switch_on_off(avg_invert_volt)
 
     def update_devs_stats(self):
@@ -208,7 +208,7 @@ class SolarPond():
             self.send_data.send_pump_stats(inv_status, self.automation.get_current_status)
 
     def send_avg_data(self):
-        inv_status = not self._invert_status()
+        inv_status = int(not self._invert_status())
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
         self.send_data.send_weather(self.automation.local_weather)
 

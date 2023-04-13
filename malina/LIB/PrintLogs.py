@@ -74,9 +74,6 @@ class SolarLogging:
             self.logging.info("%s: %3.2f %s " % (name, fifo_buffer[i], units))
 
         self.logging.info("")
-        self.logging.info(" Inverter Relay Status: %3.1f " % statuses['inverter_relay'])
-        self.logging.info(" Main Relay Status: %3.1f " % statuses['main_relay_status'])
-        self.logging.info(" Statuses Check: %3.1f " % statuses['status_check'])
         self.logging.info(" 1S Solar Current: %3.2f " % solar_current['1s_solar_current'])
         self.logging.info(" 10m Solar Current: %3.2f " % solar_current['10m_solar_current'])
         self.logging.info("")
@@ -84,7 +81,7 @@ class SolarLogging:
 
         self.logging.info(" Inverter Status is: %s  " % ('ON' if (inverter_status == 1) else "OFF"))
         self.logging.info(
-            " Main Relay works from: %s  " % ("INVERT" if (statuses['main_relay_status'] == 1) else "MAIN"))
+            " Main Relay works from: %s  " % ("INVERT" if (inverter_status == 1) else "MAIN"))
         self.logging.info("")
 
         self.logging.info(" UV Sterilizer is: %s " % ("ON" if (load_devices.get_uv_sw_state['switch_1']) else "OFF"))

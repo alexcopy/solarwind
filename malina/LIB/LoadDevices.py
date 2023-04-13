@@ -49,10 +49,10 @@ class LoadDevices:
             return False
         return inverter >= UV_START_VOLT
 
-    def _is_uv_ready_to_stop(self, inverter, pump_flow_speed):
+    def _is_uv_ready_to_stop(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
             return True
-        return inverter <= UV_STOP_VOLT or pump_flow_speed <= 50
+        return inverter <= UV_STOP_VOLT
 
     def _is_fnt_ready_to_start(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
@@ -70,13 +70,12 @@ class LoadDevices:
     def _is_invert_ready_to_start(self, inverter):
         return inverter >= INVERT_START
 
-    def uv_switch_on_off(self, inverter_volt, pump_flow_speed):
+    def uv_switch_on_off(self, inverter_volt ):
         uv_id = self.uv_device_id
-
         if self._is_uv_ready_to_start(inverter_volt):
             self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)
 
-        if self._is_uv_ready_to_stop(inverter_volt, pump_flow_speed):
+        if self._is_uv_ready_to_stop(inverter_volt):
             self.load_auto.load_switch_off(uv_id, UV_CLARIFIER)
 
     def fnt_switch_on_off(self, inverter_volt):

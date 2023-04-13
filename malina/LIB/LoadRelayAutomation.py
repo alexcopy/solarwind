@@ -14,7 +14,7 @@ class LoadRelayAutomation():
 
     def load_switch_on(self, device_id, name, switch__="switch_1"):
         try:
-            status = self.get_device_statuses_by_id(device_id, name)['switch_1']
+            status = self.get_device_statuses_by_id(device_id, name)[switch__]
             if not status:
                 command = [
                     {
@@ -31,7 +31,7 @@ class LoadRelayAutomation():
 
     def load_switch_off(self, device_id, name, switch__="switch_1"):
         try:
-            status = self.get_device_statuses_by_id(device_id, name)['switch_1']
+            status = self.get_device_statuses_by_id(device_id, name)[switch__]
             if status:
                 command = [
                     {
