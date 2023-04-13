@@ -11,7 +11,7 @@ INVERTER = "INVERTER"
 
 config = dotenv_values(".env")
 
-INVERT_DEVICE = config["INVERT_ID"]
+INVERT_ID = config["INVERT_ID"]
 INVERT_STOP = float(config["INVERT_STOP_VOLT"])
 INVERT_START = float(config["INVERT_START_VOLT"])
 
@@ -29,7 +29,7 @@ class LoadDevices:
         self.load_auto = LoadRelayAutomation(logger, device_manager)
         self.uv_device_id = UV_DEVICE
         self.fnt_device_id = FNT_DEVICE
-        self.inverter_id = INVERT_DEVICE
+        self.inverter_id = INVERT_ID
         self.logging = logger
 
     @property

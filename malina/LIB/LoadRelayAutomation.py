@@ -52,7 +52,7 @@ class LoadRelayAutomation():
             device_status = status['result'][0]['status']
             sw_status = {v['code']: v['value'] for v in device_status}
             if "switch_1" not in sw_status and "switch" in sw_status:
-                sw_status.update({"switch_1": int(sw_status.get("switch"))})
+                sw_status.update({"switch_1": int(sw_status.get("switch")), "switch": int(sw_status.get("switch"))})
             extra_params = {'name': name, 'from_main': self.get_main_relay_status,
                             'status': int(sw_status['switch_1']), 't': int(status['t'] / 1000), 'device_id': device_id}
             sw_status.update(extra_params)
@@ -63,9 +63,8 @@ class LoadRelayAutomation():
             self.logger.error(self.get_all_statuses)
             self.logger.error(ex)
 
-    def update_main_relay_status(self, main_status: int):
+    def set_main_sw_status(self, main_status: int):
         self.main_status = main_status
-
     @property
     def get_main_relay_status(self):
         return self.main_status

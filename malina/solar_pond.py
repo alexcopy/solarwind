@@ -149,11 +149,11 @@ class SolarPond():
 
     def update_invert_stats(self):
         inv_status = self._invert_status()
-        self.load_automation.update_main_relay_status(inv_status)
+        self.load_automation.set_main_sw_status(inv_status)
 
     def _invert_status(self):
         inv_id, inv_name = self.devices.get_invert_credentials
-        inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch')
+        inv_status = int(self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch'))
         return inv_status
 
     def get_inverter_values(self, slot='1s', value='voltage'):
