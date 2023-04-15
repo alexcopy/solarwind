@@ -159,7 +159,14 @@ class PondPumpAuto():
     def pond_pump_adj(self, min_speed, volt_avg, mains_relay_status):
         min_bat_volt = MIN_BAT_VOLT
         max_bat_volt = MAX_BAT_VOLT
+        hour = int(time.strftime("%H"))
         speed_step = POND_SPEED_STEP
+        if hour > 17:
+            min_bat_volt = min_bat_volt + 1
+
+        if 9 < hour < 15:
+            max_bat_volt = max_bat_volt - 1
+
         mains_relay_status = int(round(mains_relay_status, 0))
         if mains_relay_status == 0:
             if not self.is_minimum_speed(min_speed):

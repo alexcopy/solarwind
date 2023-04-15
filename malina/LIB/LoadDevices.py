@@ -47,22 +47,40 @@ class LoadDevices:
     def _is_uv_ready_to_start(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
             return False
-        return inverter >= UV_START_VOLT
+        start_volt = self.day_saving_start_adjustment(UV_START_VOLT)
+        return inverter >= start_volt
 
     def _is_uv_ready_to_stop(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
             return True
-        return inverter <= UV_STOP_VOLT
+        stop_volt = self.day_saving_stop_adjustment(UV_STOP_VOLT)
+        return inverter <= stop_volt
 
     def _is_fnt_ready_to_start(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
             return False
-        return inverter >= FNT_START_VOLT
+        start_volt = self.day_saving_start_adjustment(FNT_START_VOLT)
+        return inverter >= start_volt
 
     def _is_fnt_ready_to_stop(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
             return True
-        return inverter <= FNT_STOP_VOLT
+        stop_volt = self.day_saving_stop_adjustment(FNT_STOP_VOLT)
+        return inverter <= stop_volt
+
+    @staticmethod
+    def day_saving_stop_adjustment(stop_volt):
+        hour = int(time.strftime("%H"))
+        if hour > 17:
+            stop_volt = stop_volt + 1
+        return stop_volt
+
+    @staticmethod
+    def day_saving_start_adjustment(start_volt):
+        hour = int(time.strftime("%H"))
+        if 9 < hour < 15:
+            start_volt = start_volt - 1
+        return start_volt
 
     def _is_invert_ready_to_stop(self, inverter):
         return inverter <= INVERT_STOP
@@ -70,7 +88,7 @@ class LoadDevices:
     def _is_invert_ready_to_start(self, inverter):
         return inverter >= INVERT_START
 
-    def uv_switch_on_off(self, inverter_volt ):
+    def uv_switch_on_off(self, inverter_volt):
         uv_id = self.uv_device_id
         if self._is_uv_ready_to_start(inverter_volt):
             self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)

@@ -10,7 +10,7 @@ class LoadRelayAutomation():
         self.deviceManager = device_manager
         self.deviceStatuses = {}
         self.remote_api = SendApiData(logger)
-        self.main_status = 0
+        self.main_status=1
 
     def load_switch_on(self, device_id, name, switch__="switch_1"):
         try:
