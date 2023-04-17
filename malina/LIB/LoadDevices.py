@@ -22,7 +22,7 @@ UV_STOP_VOLT = float(config['UV_STOP_VOLT'])
 FNT_DEVICE = config['SWITCH_FNT_ID']
 FNT_START_VOLT = float(config['FNT_START_VOLT'])
 FNT_STOP_VOLT = float(config['FNT_STOP_VOLT'])
-DAY_TIME_COMPENSATE = 2.5
+DAY_TIME_COMPENSATE = 1.5
 
 
 class LoadDevices:
@@ -93,7 +93,7 @@ class LoadDevices:
     def uv_switch_on_off(self, inverter_volt):
         uv_id = self.uv_device_id
         if self._is_uv_ready_to_start(inverter_volt):
-            self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)
+            return self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)
 
         if self._is_uv_ready_to_stop(inverter_volt):
             self.load_auto.load_switch_off(uv_id, UV_CLARIFIER)
@@ -104,7 +104,7 @@ class LoadDevices:
             self.load_auto.load_switch_on(fnt_id, POND_FOUNTAIN)
 
         if self._is_fnt_ready_to_stop(inverter_volt):
-            self.load_auto.load_switch_off(fnt_id, POND_FOUNTAIN)
+            return self.load_auto.load_switch_off(fnt_id, POND_FOUNTAIN)
 
     def invert_switch_on_off(self, inverter_volt):
         inv_id = self.inverter_id
