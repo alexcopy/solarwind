@@ -22,7 +22,7 @@ UV_STOP_VOLT = float(config['UV_STOP_VOLT'])
 FNT_DEVICE = config['SWITCH_FNT_ID']
 FNT_START_VOLT = float(config['FNT_START_VOLT'])
 FNT_STOP_VOLT = float(config['FNT_STOP_VOLT'])
-DAY_TIME_COMPENSATE = 1.5
+DAY_TIME_COMPENSATE = 2.5
 
 
 class LoadDevices:
