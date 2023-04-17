@@ -22,6 +22,7 @@ UV_STOP_VOLT = float(config['UV_STOP_VOLT'])
 FNT_DEVICE = config['SWITCH_FNT_ID']
 FNT_START_VOLT = float(config['FNT_START_VOLT'])
 FNT_STOP_VOLT = float(config['FNT_STOP_VOLT'])
+DAY_TIME_COMPENSATE=1.5
 
 
 class LoadDevices:
@@ -30,6 +31,7 @@ class LoadDevices:
         self.uv_device_id = UV_DEVICE
         self.fnt_device_id = FNT_DEVICE
         self.inverter_id = INVERT_ID
+        self.compensation = DAY_TIME_COMPENSATE
         self.logging = logger
 
     @property
@@ -71,15 +73,15 @@ class LoadDevices:
     @staticmethod
     def day_saving_stop_adjustment(stop_volt):
         hour = int(time.strftime("%H"))
-        if hour > 17:
-            stop_volt = stop_volt + 1
+        if hour >= 17:
+            stop_volt = stop_volt + DAY_TIME_COMPENSATE
         return stop_volt
 
     @staticmethod
     def day_saving_start_adjustment(start_volt):
         hour = int(time.strftime("%H"))
         if 9 < hour < 15:
-            start_volt = start_volt - 1
+            start_volt = start_volt - DAY_TIME_COMPENSATE
         return start_volt
 
     def _is_invert_ready_to_stop(self, inverter):
