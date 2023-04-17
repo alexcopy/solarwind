@@ -3,6 +3,7 @@ import asyncio
 import time
 import python_weather
 from dotenv import dotenv_values
+from malina.LIB.LoadDevices import LoadDevices
 
 config = dotenv_values(".env")
 BASE_URL = config['API_URL']
@@ -12,6 +13,7 @@ MAX_BAT_VOLT = float(config['MAX_BAT_VOLT'])
 MIN_BAT_VOLT = float(config['MIN_BAT_VOLT'])
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 WEATHER_TOWN = config["WEATHER_TOWN"]
+DAY_TIME_COMPENSATE = 1.5
 
 
 class PondPumpAuto():
@@ -162,10 +164,12 @@ class PondPumpAuto():
         hour = int(time.strftime("%H"))
         speed_step = POND_SPEED_STEP
         if hour > 17:
-            min_bat_volt = min_bat_volt + 1
+            min_bat_volt = min_bat_volt + 1.5
+            max_bat_volt = max_bat_volt + 1.5
 
-        if 9 < hour < 15:
-            max_bat_volt = max_bat_volt - 1
+        if 8 < hour < 15:
+            min_bat_volt = min_bat_volt - 1.5
+            max_bat_volt = max_bat_volt - 1.5
 
         mains_relay_status = int(round(mains_relay_status, 0))
         if mains_relay_status == 0:
