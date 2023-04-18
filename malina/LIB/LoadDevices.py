@@ -54,7 +54,8 @@ class LoadDevices:
         if self.load_auto.get_main_relay_status == 0:
             return False
         start_volt = self.day_saving_start_adjustment(UV_START_VOLT)
-        return inverter >= start_volt
+        timer_ok = (int(time.time()) - self.switch_on_timer[FNT_DEVICE]) >= 300
+        return (inverter >= start_volt) and timer_ok
 
     def _is_uv_ready_to_stop(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
@@ -67,7 +68,8 @@ class LoadDevices:
         if self.load_auto.get_main_relay_status == 0:
             return False
         start_volt = self.day_saving_start_adjustment(FNT_START_VOLT)
-        return inverter >= start_volt
+        timer_ok = (int(time.time()) - self.switch_on_timer[FNT_DEVICE]) >= 300
+        return (inverter >= start_volt) and timer_ok
 
     def _is_fnt_ready_to_stop(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
@@ -103,6 +105,7 @@ class LoadDevices:
             return self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)
 
         if self._is_uv_ready_to_stop(inverter_volt):
+            self.switch_on_timer[UV_DEVICE] = int(time.time())
             self.load_auto.load_switch_off(uv_id, UV_CLARIFIER)
 
     def fnt_switch_on_off(self, inverter_volt):
@@ -113,6 +116,7 @@ class LoadDevices:
             return
 
         if self._is_fnt_ready_to_stop(inverter_volt):
+            self.switch_on_timer[FNT_DEVICE] = int(time.time())
             return self.load_auto.load_switch_off(fnt_id, POND_FOUNTAIN)
 
     def invert_switch_on_off(self, inverter_volt):
