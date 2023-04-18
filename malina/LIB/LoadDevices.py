@@ -60,7 +60,7 @@ class LoadDevices:
         if self.load_auto.get_main_relay_status == 0:
             return True
         stop_volt = self.day_saving_stop_adjustment(UV_STOP_VOLT)
-        timer_ok = int(time.time()) - self.switch_on_timer[UV_DEVICE] >= 300
+        timer_ok = (int(time.time()) - self.switch_on_timer[UV_DEVICE]) >= 300
         return (inverter <= stop_volt) and timer_ok
 
     def _is_fnt_ready_to_start(self, inverter):
@@ -73,7 +73,7 @@ class LoadDevices:
         if self.load_auto.get_main_relay_status == 0:
             return True
         stop_volt = self.day_saving_stop_adjustment(FNT_STOP_VOLT)
-        timer_ok = int(time.time()) - self.switch_on_timer[FNT_DEVICE] >= 300
+        timer_ok = (int(time.time()) - self.switch_on_timer[FNT_DEVICE]) >= 300
         return (inverter <= stop_volt) and timer_ok
 
     @staticmethod
