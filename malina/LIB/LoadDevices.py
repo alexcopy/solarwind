@@ -32,6 +32,10 @@ class LoadDevices:
         self.fnt_device_id = FNT_DEVICE
         self.inverter_id = INVERT_ID
         self.compensation = DAY_TIME_COMPENSATE
+        self.switch_on_timer = {
+            UV_DEVICE: int(time.time()),
+            FNT_DEVICE: int(time.time()),
+        }
         self.logging = logger
 
     @property
@@ -56,7 +60,8 @@ class LoadDevices:
         if self.load_auto.get_main_relay_status == 0:
             return True
         stop_volt = self.day_saving_stop_adjustment(UV_STOP_VOLT)
-        return inverter <= stop_volt
+        timer_ok = int(time.time()) - self.switch_on_timer[UV_DEVICE] >= 300
+        return (inverter <= stop_volt) and timer_ok
 
     def _is_fnt_ready_to_start(self, inverter):
         if self.load_auto.get_main_relay_status == 0:
@@ -68,7 +73,8 @@ class LoadDevices:
         if self.load_auto.get_main_relay_status == 0:
             return True
         stop_volt = self.day_saving_stop_adjustment(FNT_STOP_VOLT)
-        return inverter <= stop_volt
+        timer_ok = int(time.time()) - self.switch_on_timer[FNT_DEVICE] >= 300
+        return (inverter <= stop_volt) and timer_ok
 
     @staticmethod
     def day_saving_stop_adjustment(stop_volt):
@@ -93,6 +99,7 @@ class LoadDevices:
     def uv_switch_on_off(self, inverter_volt):
         uv_id = self.uv_device_id
         if self._is_uv_ready_to_start(inverter_volt):
+            self.switch_on_timer[UV_DEVICE] = int(time.time())
             return self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)
 
         if self._is_uv_ready_to_stop(inverter_volt):
@@ -102,6 +109,8 @@ class LoadDevices:
         fnt_id = self.fnt_device_id
         if self._is_fnt_ready_to_start(inverter_volt):
             self.load_auto.load_switch_on(fnt_id, POND_FOUNTAIN)
+            self.switch_on_timer[FNT_DEVICE] = int(time.time())
+            return
 
         if self._is_fnt_ready_to_stop(inverter_volt):
             return self.load_auto.load_switch_off(fnt_id, POND_FOUNTAIN)
