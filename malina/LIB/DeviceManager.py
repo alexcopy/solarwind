@@ -1,3 +1,7 @@
+import os
+
+import yaml
+
 from malina.LIB.Device import Device
 
 
@@ -52,3 +56,24 @@ class DeviceManager:
     def get_available_power(self):
         used_power = sum(int(device.power_consumption) for device in self._devices.values())
         return self._power_limit - used_power
+
+    def read_device_configs(self, path):
+        for file in os.scandir(path):
+            if file.is_file() and file.name.endswith('configs.yaml'):
+                with open(file.path) as f:
+                    try:
+                        config = yaml.safe_load(f)
+                        for device_config in config:
+                            device = Device(
+                                id=device_config['id'],
+                                name=device_config['name'],
+                                status=device_config['status'],
+                                min_volt=device_config['min_volt'],
+                                max_volt=device_config['max_volt'],
+                                priority=device_config['priority'],
+                                device_type=device_config['device_type'],
+                                coefficient=device_config['coefficient']
+                            )
+                            self.add_device(device)
+                    except yaml.YAMLError as e:
+                        print(f"Failed to read config file {file.path}: {e}")

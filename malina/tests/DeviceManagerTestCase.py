@@ -7,7 +7,7 @@ from malina.LIB.DeviceManager import DeviceManager
 from malina.LIB.Device import Device
 
 
-class DeviceManagerTest(unittest.TestCase):
+class DeviceManagerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.device_1 = Device(id="1", device_type="light", status={"on": False}, min_volt=220, max_volt=240,

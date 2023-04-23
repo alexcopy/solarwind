@@ -13,6 +13,7 @@ from malina.LIB.PondPumpAuto import PondPumpAuto
 
 
 class TestPondPumpAuto(PondPumpAuto):
+
     def __init__(self, *args, **kwargs):
         pass
 
@@ -56,9 +57,7 @@ class PumpValidatorTestCase(unittest.TestCase):
                     self.assertRaises(jsonschema.exceptions.ValidationError,
                                       validate(instance=v, schema=execute_api_schema))
         except jsonschema.exceptions.ValidationError as err:
-            return False, err
-        message = "Given JSON data is Valid"
-        return True, message
+             message = "Given JSON data is Valid"
 
     def test_valid_structure_with_valid_values(self):
         execute_api_schema = self.origin_schema
@@ -75,7 +74,6 @@ class PumpValidatorTestCase(unittest.TestCase):
                     validate(instance=pump_status, schema=origin_schema)
         except jsonschema.exceptions.ValidationError as err:
             pytest.fail("Invalid JSON structure  ..")
-            return False, err
 
     def test_valid_structure_with_invalid_values(self):
         execute_api_schema = self.origin_schema
@@ -94,7 +92,6 @@ class PumpValidatorTestCase(unittest.TestCase):
         except jsonschema.exceptions.ValidationError as err:
             print(err)
             pytest.fail("Invalid JSON structure  ..")
-            return False, err
 
 
 if __name__ == '__main__':
