@@ -1,13 +1,17 @@
+from datetime import datetime, timedelta
+
 class Device:
-    def __init__(self, id, device_type, status, name, coefficient, min_volt, max_volt, priority):
+    def __init__(self, id, device_type, status, name, coefficient, min_volt, max_volt, priority, voltage):
         self.id = id
         self.device_type = device_type
         self.status = status
         self.name = name
         self.coefficient = coefficient
-        self.min_volt = min_volt
-        self.max_volt = max_volt
+        self.min_voltage = min_volt
+        self.max_voltage = max_volt
         self.priority = priority
+        self.voltage=voltage
+        self.time_last_switched = datetime.now() - timedelta(seconds=300)
 
     def get_id(self):
         return self.id
@@ -22,10 +26,10 @@ class Device:
         return self.coefficient
 
     def get_min_volt(self):
-        return self.min_volt
+        return self.min_voltage
 
     def get_max_volt(self):
-        return self.max_volt
+        return self.max_voltage
 
     def get_priority(self):
         return self.priority
@@ -41,9 +45,28 @@ class Device:
             return self.status
         return self.status.get(key)
 
+    def is_device_ready_to_switch_on(self):
+        if self.time_last_switched is not None and (datetime.now() - self.time_last_switched).total_seconds() < 300:
+            return False
+        if self.voltage < self.min_voltage:
+            return False
+        if self.voltage > self.max_voltage:
+            return False
+
+        return True
+
+    def is_device_ready_to_switch_off(self):
+        if self.time_last_switched is not None and (datetime.now() - self.time_last_switched).total_seconds() < 300:
+            return False
+        if self.voltage < self.min_voltage:
+            return True
+        if self.voltage > self.max_voltage:
+            return True
+        return False
+
     @property
     def power_consumption(self):
-        return self.coefficient * (self.max_volt - self.min_volt)
+        return self.coefficient * (self.max_voltage - self.min_voltage)
 
     def __eq__(self, other):
         return isinstance(other, Device) and self.id == other.id

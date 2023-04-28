@@ -30,14 +30,14 @@ class InitiateDevicesTestCase(unittest.TestCase):
         # Create a YAML file with device configurations
         dir_path = os.path.dirname(os.path.realpath(__file__))  # get current working directory
         device_configs = [
-            {"id": "1",  "status": {"on": False}, "min_volt": 110, "max_volt": 220,
+            {"id": "1",  "status": {"on": False}, "min_voltage": 110, "max_voltage": 220,
              "priority": 1,
              "name": "Light bulb", "device_type": "light", "coefficient": 0.8},
 
-            {"id": "2", "type": "fan", "status": {"on": True}, "min_volt": 110, "max_volt": 220, "priority": 2,
+            {"id": "2", "type": "fan", "status": {"on": True}, "min_voltage": 110, "max_voltage": 220, "priority": 2,
              "name": "Ceiling fan", "device_type": "fan", "coefficient": 1.2},
 
-            {"id": "3", "type": "oven", "status": {"on": True}, "min_volt": 220, "max_volt": 240, "priority": 3,
+            {"id": "3", "type": "oven", "status": {"on": True}, "min_voltage": 220, "max_voltage": 240, "priority": 3,
              "name": "Electric oven", "device_type": "oven", "coefficient": 2.5}
         ]
         config_file_path = os.path.join(dir_path, 'test_device_configs.yaml')
@@ -54,8 +54,8 @@ class InitiateDevicesTestCase(unittest.TestCase):
         device_1 = self.device_manager.get_device_by_id("1")
         self.assertEqual(device_1.device_type, "light")
         self.assertEqual(device_1.status, {"on": False})
-        self.assertEqual(device_1.min_volt, 110)
-        self.assertEqual(device_1.max_volt, 220)
+        self.assertEqual(device_1.min_voltage, 110)
+        self.assertEqual(device_1.max_voltage, 220)
         self.assertEqual(device_1.priority, 1)
         self.assertEqual(device_1.name, "Light bulb")
         self.assertEqual(device_1.coefficient, 0.8)
@@ -63,8 +63,8 @@ class InitiateDevicesTestCase(unittest.TestCase):
         device_2 = self.device_manager.get_device_by_id("2")
         self.assertEqual(device_2.device_type, "fan")
         self.assertEqual(device_2.status, {"on": True})
-        self.assertEqual(device_2.min_volt, 110)
-        self.assertEqual(device_2.max_volt, 220)
+        self.assertEqual(device_2.min_voltage, 110)
+        self.assertEqual(device_2.max_voltage, 220)
         self.assertEqual(device_2.priority, 2)
         self.assertEqual(device_2.name, "Ceiling fan")
         self.assertEqual(device_2.coefficient, 1.2)
@@ -72,8 +72,8 @@ class InitiateDevicesTestCase(unittest.TestCase):
         device_3 = self.device_manager.get_device_by_id("3")
         self.assertEqual(device_3.device_type, "oven")
         self.assertEqual(device_3.status, {"on": True})
-        self.assertEqual(device_3.min_volt, 220)
-        self.assertEqual(device_3.max_volt, 240)
+        self.assertEqual(device_3.min_voltage, 220)
+        self.assertEqual(device_3.max_voltage, 240)
         self.assertEqual(device_3.priority, 3)
         self.assertEqual(device_3.name, "Electric oven")
         self.assertEqual(device_3.coefficient, 2.5)

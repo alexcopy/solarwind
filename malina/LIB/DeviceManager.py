@@ -3,6 +3,7 @@ import os
 import yaml
 
 from malina.LIB.Device import Device
+CONFIGS_YAML = 'configs.yaml'
 
 
 class DeviceManager:
@@ -59,7 +60,7 @@ class DeviceManager:
 
     def read_device_configs(self, path):
         for file in os.scandir(path):
-            if file.is_file() and file.name.endswith('configs.yaml'):
+            if file.is_file() and file.name.endswith(CONFIGS_YAML):
                 with open(file.path) as f:
                     try:
                         config = yaml.safe_load(f)
@@ -68,8 +69,8 @@ class DeviceManager:
                                 id=device_config['id'],
                                 name=device_config['name'],
                                 status=device_config['status'],
-                                min_volt=device_config['min_volt'],
-                                max_volt=device_config['max_volt'],
+                                min_volt=device_config['min_voltage'],
+                                max_volt=device_config['max_voltage'],
                                 priority=device_config['priority'],
                                 device_type=device_config['device_type'],
                                 coefficient=device_config['coefficient']
