@@ -8,6 +8,7 @@ POND_FOUNTAIN = "Pond Fountain"
 
 UV_CLARIFIER = "UV_Clarifier"
 INVERTER = "INVERTER"
+AIRFLOW = "AIRFLOW"
 
 config = dotenv_values(".env")
 
@@ -22,7 +23,9 @@ UV_STOP_VOLT = float(config['UV_STOP_VOLT'])
 FNT_DEVICE = config['SWITCH_FNT_ID']
 FNT_START_VOLT = float(config['FNT_START_VOLT'])
 FNT_STOP_VOLT = float(config['FNT_STOP_VOLT'])
-DAY_TIME_COMPENSATE = 1.5
+
+AIR_COMPRESS = config['AIR_COMPRESS']
+DAY_TIME_COMPENSATE = 1
 
 
 class LoadDevices:
@@ -106,10 +109,12 @@ class LoadDevices:
         uv_id = self.uv_device_id
         if self._is_uv_ready_to_start(inverter_volt):
             self.switch_on_timer[UV_DEVICE] = int(time.time())
+            self.load_auto.load_switch_on(AIR_COMPRESS, AIRFLOW)
             return self.load_auto.load_switch_on(uv_id, UV_CLARIFIER)
 
         if self._is_uv_ready_to_stop(inverter_volt):
             self.switch_on_timer[UV_DEVICE] = int(time.time())
+            self.load_auto.load_switch_off(AIR_COMPRESS, AIRFLOW)
             self.load_auto.load_switch_off(uv_id, UV_CLARIFIER)
 
     def fnt_switch_on_off(self, inverter_volt):
