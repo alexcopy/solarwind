@@ -3,7 +3,6 @@ import asyncio
 import time
 import python_weather
 from dotenv import dotenv_values
-from malina.LIB.LoadDevices import LoadDevices
 
 config = dotenv_values(".env")
 BASE_URL = config['API_URL']

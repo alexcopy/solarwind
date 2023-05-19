@@ -7,7 +7,6 @@ from unittest.mock import Mock
 sys.path.append('../')
 
 
-from malina.LIB.LoadDevices import LoadDevices
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 

@@ -12,13 +12,14 @@ from malina.INA3221 import SDL_Pi_INA3221
 from malina.LIB import FiloFifo
 from malina.LIB import PondPumpAuto
 from malina.LIB import SendApiData
+from malina.LIB.DeviceManager import DeviceManager
 from malina.LIB.LoadDevices import LoadDevices
 from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 
 TIME_TIK = 1
-
+CONFIGS_YAML = 'devices.yaml'
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
@@ -36,6 +37,9 @@ class SolarPond():
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
         self.devices = LoadDevices(logging, device_manager)
+
+        self.dev_manager = DeviceManager
+
         self.load_automation = LoadRelayAutomation(logging, device_manager)
         self.invert_status = 1
         self.devices.update_invert_stats()
@@ -246,6 +250,3 @@ class SolarPond():
 #  add weather to table and advance in table pond self temp from future gauge
 #  add proper error handling for api calls
 #  refactor code in sendAPI Data for api calls
-#  настроить работу при режиме насоса  (6,5,4...)
-#  менять порог (-1.5 утром чтобы к вечеру экономить энергию
-#  добавить интервалы или время включения фонтана  и увл оампы чтобы они не счелкали постоянно например не чаще 30 сек

@@ -1,9 +1,7 @@
 import os
-
 import yaml
 
 from malina.LIB.Device import Device
-CONFIGS_YAML = 'configs.yaml'
 
 
 class DeviceManager:
@@ -60,7 +58,7 @@ class DeviceManager:
 
     def read_device_configs(self, path):
         for file in os.scandir(path):
-            if file.is_file() and file.name.endswith(CONFIGS_YAML):
+            if file.is_file() and file.name.endswith('.yaml'):
                 with open(file.path) as f:
                     try:
                         config = yaml.safe_load(f)
