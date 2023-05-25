@@ -16,7 +16,16 @@ USERNAME = config['USERNAME']
 PASSWORD = config['PASSWORD']
 
 
-class TuyaAuthorisation():
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class TuyaAuthorisation(metaclass=SingletonMeta):
     def __init__(self, logger):
         TUYA_LOGGER.setLevel(logging.DEBUG)
         self.logger = logger
@@ -29,3 +38,4 @@ class TuyaAuthorisation():
     @property
     def device_manager(self):
         return self.deviceManager
+

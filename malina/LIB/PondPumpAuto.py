@@ -166,7 +166,7 @@ class PondPumpAuto():
             min_bat_volt = min_bat_volt + 1.5
             max_bat_volt = max_bat_volt + 1.5
 
-        if 8 < hour < 15:
+        if 6 < hour < 16:
             min_bat_volt = min_bat_volt - 1.5
             max_bat_volt = max_bat_volt - 1.5
 
