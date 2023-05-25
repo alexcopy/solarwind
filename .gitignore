@@ -11,4 +11,4 @@ nohup.out
 .idea
 logs/*.*
 venv/*
-*.yaml
+devices.yaml
