@@ -4,7 +4,7 @@ import time
 from malina.LIB.SendApiData import SendApiData
 
 
-class LoadRelayAutomation():
+class LoadRel   ayAutomation():
     def __init__(self, logger, device_manager):
         self.logger = logger
         self.deviceManager = device_manager

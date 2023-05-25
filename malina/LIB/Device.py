@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 
+
 class Device:
-    def __init__(self, id, device_type, status, name, coefficient, min_volt, max_volt, priority, voltage):
+    def __init__(self, id, device_type, status, name, coefficient, min_volt, max_volt, priority, bus_voltage=18):
         self.id = id
         self.device_type = device_type
         self.status = status
@@ -10,7 +11,7 @@ class Device:
         self.min_voltage = min_volt
         self.max_voltage = max_volt
         self.priority = priority
-        self.voltage=voltage
+        self.voltage = bus_voltage
         self.time_last_switched = datetime.now() - timedelta(seconds=300)
 
     def get_id(self):

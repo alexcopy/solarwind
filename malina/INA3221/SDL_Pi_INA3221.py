@@ -115,7 +115,7 @@ class SDL_Pi_INA3221():
         # print "Write  16 bit Word addr =0x%x register = 0x%x data = 0x%x " % (self._addr, register, data)
 
     def _getBusVoltage_raw(self, channel):
-        # Gets the raw bus voltage (16-bit signed integer, so +-32767)
+        # Gets the raw bus bus_voltage (16-bit signed integer, so +-32767)
 
         value = self._read_register_little_endian(INA3221_REG_BUSVOLTAGE_1 + (channel - 1) * 2)
         if value > 32767:
@@ -123,7 +123,7 @@ class SDL_Pi_INA3221():
         return value
 
     def _getShuntVoltage_raw(self, channel):
-        # Gets the raw shunt voltage (16-bit signed integer, so +-32767)
+        # Gets the raw shunt bus_voltage (16-bit signed integer, so +-32767)
 
         value = self._read_register_little_endian(INA3221_REG_SHUNTVOLTAGE_1 + (channel - 1) * 2)
         if value > 32767:
@@ -133,13 +133,13 @@ class SDL_Pi_INA3221():
     # public functions
 
     def getBusVoltage_V(self, channel):
-        # Gets the Bus voltage in volts
+        # Gets the Bus bus_voltage in volts
 
         value = self._getBusVoltage_raw(channel)
         return value * 0.001
 
     def getShuntVoltage_mV(self, channel):
-        # Gets the shunt voltage in mV (so +-168.3mV)
+        # Gets the shunt bus_voltage in mV (so +-168.3mV)
 
         value = self._getShuntVoltage_raw(channel)
         return value * 0.005

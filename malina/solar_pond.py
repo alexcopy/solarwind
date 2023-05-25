@@ -14,6 +14,7 @@ from malina.LIB import PondPumpAuto
 from malina.LIB import SendApiData
 from malina.LIB.DeviceManager import DeviceManager
 from malina.LIB.LoadDevices import LoadDevices
+from malina.LIB.InitiateDevices import  InitiateDevices
 from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
@@ -37,6 +38,8 @@ class SolarPond():
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
         self.devices = LoadDevices(logging, device_manager)
+
+        self.new_devices=InitiateDevices.devices
 
         self.dev_manager = DeviceManager
 
@@ -160,7 +163,7 @@ class SolarPond():
         inv_status = int(self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch'))
         return inv_status
 
-    def get_inverter_values(self, slot='1s', value='voltage'):
+    def get_inverter_values(self, slot='1s', value='bus_voltage'):
         inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value)
         if len(inverter_voltage) == 0:
             return []
