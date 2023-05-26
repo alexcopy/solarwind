@@ -13,7 +13,7 @@ from malina.LIB import PondPumpAuto
 from malina.LIB import SendApiData
 from malina.LIB.DeviceManager import DeviceManager
 from malina.LIB.LoadDevices import LoadDevices
-from malina.LIB.InitiateDevices import  InitiateDevices
+from malina.LIB.InitiateDevices import InitiateDevices
 from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
@@ -36,11 +36,8 @@ class SolarPond():
         self.filo_fifo = FiloFifo.FiloFifo()
         self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
         self.devices = LoadDevices(logging, device_manager)
-
-        self.new_devices=InitiateDevices.devices
-
+        self.new_devices = InitiateDevices(logging, device_manager).devices
         self.dev_manager = DeviceManager
-
         self.load_automation = LoadRelayAutomation(logging, device_manager)
         self.invert_status = 1
         self.devices.update_invert_stats()

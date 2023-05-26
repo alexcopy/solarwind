@@ -1,0 +1,32 @@
+- id: "1"
+  name: "light"
+  status:
+    on: false
+  min_volt: 110
+  max_volt: 220
+  priority: 3
+  device_type: "Light bulb"
+  coefficient: 0.8
+
+- id: "2"
+  name: "fan"
+  status:
+    on: true
+  min_volt: 110
+  max_volt: 220
+  priority: 2
+  device_type: "Ceiling fan"
+  coefficient: 1.2
+
+- id: "3"
+  name: "oven"
+  status:
+    on: true
+  min_volt: 220
+  max_volt: 240
+  priority: 1
+  device_type: "Some oven"
+  coefficient: 2.5
+
+
+
