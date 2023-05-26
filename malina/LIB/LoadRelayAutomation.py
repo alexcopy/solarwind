@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 import time
+
+from malina.LIB.Device import Device
 from malina.LIB.SendApiData import SendApiData
 
 
-class LoadRel   ayAutomation():
+class LoadRelayAutomation():
     def __init__(self, logger, device_manager):
         self.logger = logger
         self.deviceManager = device_manager
@@ -65,6 +67,14 @@ class LoadRel   ayAutomation():
 
     def set_main_sw_status(self, main_status: int):
         self.main_status = main_status
+
+
+    def get_updated_status(self, device: Device):
+        device_id = device.get_id()
+        name = device.get_name()
+        self.update_status(device_id, name)
+        return self.get_device_statuses_by_id(device_id, name)
+
     @property
     def get_main_relay_status(self):
         return self.main_status

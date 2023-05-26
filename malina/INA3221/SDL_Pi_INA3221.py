@@ -8,7 +8,9 @@
 # encoding: utf-8
 
 from datetime import datetime
-
+import sys
+import fake_rpi
+sys.modules['smbus'] = fake_rpi.smbus
 import smbus
 
 # constants

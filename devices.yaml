@@ -25,7 +25,8 @@
   min_volt: 220
   max_volt: 240
   priority: 1
-  device_type: "Electric oven"
+  device_type: "Some oven"
   coefficient: 2.5
+
 
 
