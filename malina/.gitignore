@@ -1,0 +1,14 @@
+.*DS_Store
+*.pyc
+tx*
+.*.swp
+*.xml
+*.temp
+*.test
+*.log
+.env
+nohup.out
+.idea
+logs/*.*
+venv/*
+*.yaml

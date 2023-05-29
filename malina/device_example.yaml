@@ -1,5 +1,7 @@
 - id: "1"
   name: "light"
+  desc: "light"
+  api_sw: "switch_1"
   status:
     on: false
   min_volt: 110
@@ -10,6 +12,8 @@
 
 - id: "2"
   name: "fan"
+  desc: "fan"
+  api_sw: "switch_1"
   status:
     on: true
   min_volt: 110
@@ -20,6 +24,8 @@
 
 - id: "3"
   name: "oven"
+  desc: "oven"
+  api_sw: "switch_1"
   status:
     on: true
   min_volt: 220

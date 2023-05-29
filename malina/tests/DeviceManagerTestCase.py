@@ -11,9 +11,11 @@ class DeviceManagerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.device_1 = Device(id="1", device_type="light", status={"on": False}, min_volt=220, max_volt=240,
-                               priority=2, name="Light bulb", coefficient=0.8, bus_voltage=200)
+                               priority=2, name="Light bulb", desc="Light bulb", api_sw="switch_1", coefficient=0.8,
+                               bus_voltage=200)
         self.device_2 = Device(id="2", device_type="fan", status={"on": True}, min_volt=110, max_volt=220, priority=1,
-                               name="Ceiling fan", coefficient=1.2, bus_voltage=200)
+                               name="Ceiling fan", desc="Ceiling fan", api_sw="switch_1", coefficient=1.2,
+                               bus_voltage=200)
 
         self.device_manager = DeviceManager()
 
@@ -94,7 +96,7 @@ class DeviceManagerTestCase(unittest.TestCase):
         self.assertEqual(self.device_manager.get_available_power(), 9984.0)
         # Add a high power device and check if available power is updated
         device_3 = Device(id="3", device_type="oven", status={"on": True}, min_volt=220, max_volt=240, priority=1,
-                          name="Electric oven", coefficient=2.5, bus_voltage=200)
+                          name="Electric oven", desc="Electric oven", api_sw="switch_1", coefficient=2.5, bus_voltage=200)
         self.device_manager.add_device(device_3)
         self.assertEqual(self.device_manager.get_available_power(), 9934)
         # Remove a device and check if available power is updated

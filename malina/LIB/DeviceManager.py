@@ -66,7 +66,9 @@ class DeviceManager:
                             device = Device(
                                 id=device_config['id'],
                                 name=device_config['name'],
+                                desc=device_config['desc'],
                                 status=device_config['status'],
+                                api_sw=device_config['api_sw'],
                                 min_volt=device_config['min_voltage'],
                                 max_volt=device_config['max_voltage'],
                                 priority=device_config['priority'],

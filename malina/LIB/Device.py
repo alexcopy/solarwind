@@ -2,15 +2,18 @@ from datetime import datetime, timedelta
 
 
 class Device:
-    def __init__(self, id, device_type, status, name, coefficient, min_volt, max_volt, priority, bus_voltage=18):
+    def __init__(self, id, device_type, status, name, desc, api_sw, coefficient, min_volt, max_volt, priority,
+                 bus_voltage=18):
         self.id = id
         self.device_type = device_type
         self.status = status
         self.name = name
+        self.desc = desc
         self.coefficient = coefficient
         self.min_voltage = min_volt
         self.max_voltage = max_volt
         self.priority = priority
+        self.api_sw = api_sw
         self.voltage = bus_voltage
         self.time_last_switched = datetime.now() - timedelta(seconds=300)
 
@@ -20,8 +23,14 @@ class Device:
     def get_device_type(self):
         return self.device_type
 
+    def get_device_desc(self):
+        return self.desc
+
     def get_name(self):
         return self.name
+
+    def get_api_sw(self):
+        return self.api_sw
 
     def get_coefficient(self):
         return self.coefficient
