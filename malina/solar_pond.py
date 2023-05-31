@@ -8,7 +8,6 @@ from pathlib import Path
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import dotenv_values
 
-from malina.INA3221 import SDL_Pi_INA3221
 from malina.LIB import FiloFifo
 from malina.LIB import PondPumpAuto
 from malina.LIB import SendApiData
@@ -31,9 +30,8 @@ class SolarPond():
         tuya_auth = TuyaAuthorisation(logging)
         device_manager = tuya_auth.device_manager
         self.send_data = SendApiData.SendApiData(logging)
-        self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.print_logs = SolarLogging(logging)
-        self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
+        self.filo_fifo = FiloFifo.FiloFifo()
         self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
         self.devices = LoadDevices(logging, device_manager)
         self.load_automation = LoadRelayAutomation(logging, device_manager)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-
+import logging
 import time
+from malina.INA3221 import SDL_Pi_INA3221
 
 INVERT_CHANNEL = 1
 LEISURE_BAT_CHANNEL = 2
@@ -16,7 +17,7 @@ class FiloFifo:
             cls.__instance = super(FiloFifo, cls).__new__(cls)
         return cls.__instance
 
-    def __init__(self, logging, shunt_load, bus_voltage='bus_voltage', wattage='wattage',
+    def __init__(self, bus_voltage='bus_voltage', wattage='wattage',
                  bat_current='bat_current'):
 
         self.shunt_bat = SHUNT_IMP
@@ -30,7 +31,7 @@ class FiloFifo:
         self.FILO = {}
         self.FIFO = {}
         self.REL_STATUS = {'inverter_relay': [], 'main_relay_status': [], 'status_check': []}
-        self.shunt_load = shunt_load
+        self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.load_names = {'tiger': TIGER_BAT_CHANNEL, 'leisure': LEISURE_BAT_CHANNEL, 'inverter': INVERT_CHANNEL}
         self._setup_buffers()
 
