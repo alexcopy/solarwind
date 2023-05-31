@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+from malina.LIB import FiloFifo
+
 
 class SolarLogging:
     def __init__(self, logging):
         self.logging = logging
+        self.fifo = FiloFifo.FiloFifo().fifo_buff
 
     def avg(self, l):
         if len(l) == 0:
@@ -93,3 +96,17 @@ class SolarLogging:
         self.logging.info(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
         self.logging.info("---")
         self.logging.info("--------------------------------------------")
+        self.logging.info("--------------------------------------------")
+
+        for i in self.fifo:
+            if 'voltage' in i:
+                units = "V"
+            elif 'current' in i:
+                units = "mA"
+            elif 'wattage' in i:
+                units = "Watt"
+            else:
+                units = "UN"
+            name = i
+            self.logging.info("%s: %3.2f %s " % (name, fifo_buffer[i], units))
+
