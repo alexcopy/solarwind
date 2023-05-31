@@ -5,7 +5,6 @@ from malina.LIB import FiloFifo
 class SolarLogging:
     def __init__(self, logging):
         self.logging = logging
-        self.fifo = FiloFifo.FiloFifo().fifo_buff
 
     def avg(self, l):
         if len(l) == 0:
@@ -26,18 +25,6 @@ class SolarLogging:
         self.logging.error("---------------------------------------------------------------------")
 
     def log_run(self, filo_buffer: dict, invert_status, pump_status, solar_current):
-
-        # sec_voltage = {k: v for k, v in filo_buffer.values() if k.startswith('1s') and k.endswith('voltage')}
-        # sec_current = {k: v for k, v in filo_buffer.values() if k.startswith('1s') and k.endswith('current')}
-        # sec_wattage = {k: v for k, v in filo_buffer.values() if k.startswith('1s') and k.endswith('wattage')}
-        #
-        # ten_voltage = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('voltage')}
-        # ten_current = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('current')}
-        # ten_wattage = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('wattage')}
-        #
-        # ten_voltage = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('voltage')}
-        # ten_current = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('current')}
-        # ten_wattage = {k: v for k, v in filo_buffer.values() if k.startswith('10m') and k.endswith('wattage')}
         self.logging.debug("--------------------------------------------")
         for i in filo_buffer:
             if 'voltage' in i:
@@ -97,16 +84,3 @@ class SolarLogging:
         self.logging.info("---")
         self.logging.info("--------------------------------------------")
         self.logging.info("--------------------------------------------")
-
-        for i in self.fifo:
-            if 'voltage' in i:
-                units = "V"
-            elif 'current' in i:
-                units = "mA"
-            elif 'wattage' in i:
-                units = "Watt"
-            else:
-                units = "UN"
-            name = i
-            self.logging.info("%s: %3.2f %s " % (name, fifo_buffer[i], units))
-
