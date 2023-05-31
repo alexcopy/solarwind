@@ -1,57 +1,57 @@
+import logging
 import time
+
+from malina.LIB.Device import Device
 
 
 class TuyaController():
     def __init__(self, authorisation):
         self.authorisation = authorisation
 
-    def is_device_ready(self, device_id):
-        device = self.authorisation.device_manager.get_device_by_id(device_id)
-        if device is None:
-            return False
-        if device.status.get('online') != 'True':
-            return False
-        if device.status.get('switch') is None:
-            return False
-        if device.status.get('switch') == 'false' and time.time() - device.last_control_time < 300:
-            return False
-        if device.status.get('switch') == 'true' and time.time() - device.last_control_time < 300:
-            return False
-        return True
-
-    def switch_device(self, device_id, state):
-        if not self.is_device_ready(device_id):
-            return False
-        device = self.authorisation.device_manager.get_device_by_id(device_id)
-        if device is None:
-            return False
-        device.status.update({'switch': str(state)})
-        success = self.authorisation.device_manager.send_commands([device])
+    def switch_device(self, device: Device, state):
+        api_sw = device.get_api_sw
+        commands = {"devId": device.get_id(), "commands": [{"code": api_sw, "value": state}]}
+        success = self.authorisation.device_manager.send_commands(commands["devId"], commands['commands'])
         if success:
             return True
         else:
             return False
 
-    def switch_on_device(self, device_id):
-        return self.switch_device(device_id, True)
+    def _status(self, device_id):
+        try:
+            status = self.authorisation.device_manager.get_device_list_status([device_id])
+            device_status = status['result'][0]['status']
+            sw_status = {v['code']: v['value'] for v in device_status}
+            if "switch_1" not in sw_status and "switch" in sw_status:
+                sw_status.update({"switch_1": int(sw_status.get("switch")), "switch": int(sw_status.get("switch"))})
+            extra_params = {
+                'status': int(sw_status['switch_1']), 't': int(status['t'] / 1000), 'device_id': device_id}
+            sw_status.update(extra_params)
+            return sw_status
 
-    def switch_off_device(self, device_id):
-        return self.switch_device(device_id, False)
+        except Exception as ex:
+            logging.error("---------Problem in update_status---------")
+            logging.error(ex)
+
+    def switch_on_device(self, device):
+        device_id = device.get_id()
+        self.switch_device(device, True)
+        status = self._status(device_id)
+        return status
+
+    def switch_off_device(self, device):
+        device_id = device.get_id()
+        self.switch_device(device, False)
+        return self._status(device_id)
 
     def switch_all_on(self):
         devices = self.authorisation.device_manager.get_all_devices()
         for device in devices:
-            if self.is_device_ready(device.id):
+            if device.is_device_ready():
                 self.switch_on_device(device.id)
 
     def switch_all_off(self):
         devices = self.authorisation.device_manager.get_all_devices()
         for device in devices:
-            if self.is_device_ready(device.id):
+            if device.is_device_ready():
                 self.switch_off_device(device.id)
-
-
-
-
-
-

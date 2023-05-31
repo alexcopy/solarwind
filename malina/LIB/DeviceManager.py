@@ -1,14 +1,21 @@
+import logging
 import os
+import time
+
 import yaml
 
 from malina.LIB.Device import Device
+from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
+from malina.LIB.TuyaController import TuyaController
 
 
 class DeviceManager:
     def __init__(self):
         self._devices = {}
+        self.logger = logging
         self._device_order = []
         self._power_limit = 10000
+        self.tuya_controller = TuyaController(TuyaAuthorisation(self.logger).device_manager)
 
     def add_device(self, device):
         if device.get_id() in self._devices:
@@ -36,11 +43,19 @@ class DeviceManager:
 
     def device_switch_on(self, device_id):
         device = self.get_device_by_id(device_id)
-        device.set_status({"on": True})
+        if device.is_device_ready_to_switch_on():
+            dev_status = self.tuya_controller.switch_on_device(device)
+            device.set_status(dev_status)
+        else:
+            logging.debug("Device with name %s isn't ready to switch on " % device.name)
 
     def device_switch_off(self, device_id):
         device = self.get_device_by_id(device_id)
-        device.set_status({"on": False})
+        if device.is_device_ready_to_switch_off():
+            dev_status = self.tuya_controller.switch_off_device(device)
+            device.set_status(dev_status)
+        else:
+            logging.debug("Device with name %s isn't ready to switch off " % device.name)
 
     def get_devices_by_name(self, name):
         matching_devices = []
@@ -56,6 +71,22 @@ class DeviceManager:
         used_power = sum(int(device.power_consumption) for device in self._devices.values())
         return self._power_limit - used_power
 
+    def new_load_switch_off(self, device: Device):
+        try:
+            tuya_device_manager = TuyaAuthorisation(logging).device_manager
+            command = [
+                {
+                    "code": device.get_api_sw,
+                    "value": False
+                }]
+            tuya_device_manager.send_commands(device.get_id(), command)
+            time.sleep(2)
+            # self.update_device_status(device_id, name)
+            # self.remote_api.send_load_stats(self.get_device_statuses_by_id(device_id, name))
+        except Exception as ex:
+            self.logger.error("---------Problem in Load Switch OFF---------")
+            self.logger.error(ex)
+
     def read_device_configs(self, path):
         for file in os.scandir(path):
             if file.is_file() and file.name.endswith('.yaml'):
@@ -66,7 +97,10 @@ class DeviceManager:
                             device = Device(
                                 id=device_config['id'],
                                 name=device_config['name'],
+                                desc=device_config['desc'],
+                                extra=device_config['extra'],
                                 status=device_config['status'],
+                                api_sw=device_config['api_sw'],
                                 min_volt=device_config['min_voltage'],
                                 max_volt=device_config['max_voltage'],
                                 priority=device_config['priority'],
