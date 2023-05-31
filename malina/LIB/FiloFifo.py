@@ -9,6 +9,13 @@ SHUNT_IMP = 0.00155
 
 
 class FiloFifo:
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls.__instance:
+            cls.__instance = super(FiloFifo, cls).__new__(cls)
+        return cls.__instance
+
     def __init__(self, logging, shunt_load, bus_voltage='bus_voltage', wattage='wattage',
                  bat_current='bat_current'):
 
