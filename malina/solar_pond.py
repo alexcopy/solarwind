@@ -37,17 +37,9 @@ class SolarPond():
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo(logging, self.shunt_load)
         self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
-        self.devices = LoadDevices(logging, device_manager)
         self.new_devices = InitiateDevices(logging, device_manager).devices
         self.dev_manager = DeviceManager
         self.load_automation = LoadRelayAutomation(logging, device_manager)
-        self.invert_status = 1
-        self.devices.update_invert_stats()
-        time.sleep(2)
-        self.devices.update_uv_stats_info()
-        time.sleep(2)
-        self.devices.update_fnt_dev_stats()
-
         self.switch_to_solar_power()
 
     @staticmethod

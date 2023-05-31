@@ -89,14 +89,14 @@ class LoadDevices:
     def day_saving_stop_adjustment(stop_volt):
         hour = int(time.strftime("%H"))
         if hour >= 17:
-            stop_volt = stop_volt + DAY_TIME_COMPENSATE
+            stop_volt = stop_volt + 1.5
         return stop_volt
 
     @staticmethod
     def day_saving_start_adjustment(start_volt):
         hour = int(time.strftime("%H"))
         if 8 < hour < 15:
-            start_volt = start_volt - DAY_TIME_COMPENSATE
+            start_volt = start_volt - 1.5
         return start_volt
 
     def _is_invert_ready_to_stop(self, inverter):
@@ -152,10 +152,6 @@ class LoadDevices:
     @property
     def get_fnt_sw_state(self):
         return self.load_auto.get_device_statuses_by_id(self.fnt_device_id, POND_FOUNTAIN)
-
-    @property
-    def get_invert_state(self):
-        return self.load_auto.get_device_statuses_by_id(self.inverter_id, INVERTER)
 
     @property
     def get_invert_credentials(self):

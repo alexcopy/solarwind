@@ -12,7 +12,7 @@ class LoadRelayAutomation():
         self.deviceManager = device_manager
         self.deviceStatuses = {}
         self.remote_api = SendApiData(logger)
-        self.main_status=1
+        self.main_status = 1
 
     def load_switch_on(self, device_id, name, switch__="switch_1"):
         try:
@@ -48,6 +48,39 @@ class LoadRelayAutomation():
             self.logger.error("---------Problem in Load Switch OFF---------")
             self.logger.error(ex)
 
+    def new_load_switch_on(self, device_id, name, switch__="switch_1"):
+        try:
+            status = self.get_device_statuses_by_id(device_id, name)[switch__]
+            if not status:
+                command = [
+                    {
+                        "code": dec,
+                        "value": True
+                    }]
+                self.deviceManager.send_commands(device_id, command)
+                time.sleep(2)
+                self.update_status(device_id, name)
+                self.remote_api.send_load_stats(self.get_device_statuses_by_id(device_id, name))
+        except Exception as ex:
+            self.logger.error("---------Problem in Load Switch ON---------")
+            self.logger.error(ex)
+
+    def new_load_switch_off(self, device: Device):
+        try:
+
+            command = [
+                {
+                    "code": device.get_api_sw,
+                    "value": False
+                }]
+            self.deviceManager.send_commands(device.get_id(), command)
+            time.sleep(2)
+            self.update_status(device_id, name)
+            self.remote_api.send_load_stats(self.get_device_statuses_by_id(device_id, name))
+        except Exception as ex:
+            self.logger.error("---------Problem in Load Switch OFF---------")
+            self.logger.error(ex)
+
     def update_status(self, device_id, name):
         try:
             status = self.deviceManager.get_device_list_status([device_id])
@@ -67,7 +100,6 @@ class LoadRelayAutomation():
 
     def set_main_sw_status(self, main_status: int):
         self.main_status = main_status
-
 
     def get_updated_status(self, device: Device):
         device_id = device.get_id()

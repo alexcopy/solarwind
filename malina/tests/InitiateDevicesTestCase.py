@@ -31,15 +31,15 @@ class InitiateDevicesTestCase(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))  # get current working directory
         device_configs = [
             {"id": "1", "status": {"on": False}, "min_voltage": 110, "max_voltage": 220,
-             "priority": 1, 'api_sw': "switch_1",
+             "priority": 1, 'api_sw': "switch_1",  'extra': {},
              "name": "Light bulb", "desc": "Light bulb", "device_type": "light", "coefficient": 0.8},
 
             {"id": "2", "type": "fan", "status": {"on": True}, "min_voltage": 110, "max_voltage": 220, "priority": 2,
-             "name": "Ceiling fan", 'api_sw': "switch_1", "desc": "Ceiling fan", "device_type": "fan",
+             "name": "Ceiling fan", 'api_sw': "switch_1",  'extra': {}, "desc": "Ceiling fan", "device_type": "fan",
              "coefficient": 1.2},
 
             {"id": "3", "type": "oven", "status": {"on": True}, "min_voltage": 220, "max_voltage": 240, "priority": 3,
-             "name": "Electric oven", "desc": "Electric oven", 'api_sw': "switch_1", "device_type": "oven",
+             "name": "Electric oven", "desc": "Electric oven", 'api_sw': "switch_1",  'extra': {}, "device_type": "oven",
              "coefficient": 2.5}
         ]
         config_file_path = os.path.join(dir_path, 'test_device_configs.yaml')
