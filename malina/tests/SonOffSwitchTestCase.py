@@ -31,22 +31,27 @@ class SonOffSwitchTestCase(unittest.TestCase):
     def test_valid_structure_without_values(self):
         tuya_auth = TuyaAuthorisation(Mock())
         tuya_controller = TuyaController(tuya_auth)
-        devices = InitiateDevices(Mock(), tuya_auth.device_manager).devices
+        devices = InitiateDevices(Mock()).devices
 
-        fontan = devices.get_devices_by_name("fountain") # fontan
+        fontan = devices.get_devices_by_name("fountain")[0] # fontan
         print("-------------------------STATUS_______________")
         print(fontan.get_status())
-        print("-------------------------STATUS_______________")
         tuya_controller.switch_on_device(fontan)
-        print("-------------------------STATUS_______________")
+        time.sleep(2)
+        tuya_controller.update_status(fontan)
+        print("-------------------------STATUS____ON___________")
         print(fontan.get_status())
         print("-------------------------STATUS_______________")
-
         time.sleep(5)
         tuya_controller.switch_off_device(fontan)
+        print("-------------------------STATUS OFF_______________")
+        time.sleep(5)
+        tuya_controller.update_status(fontan)
+
         print("-------------------------STATUS_______________")
         print(fontan.get_status())
-
+        print("-----------------Single Status--------STATUS_______________")
+        print(fontan.get_status('status'))
 
 if __name__ == '__main__':
     unittest.main()
