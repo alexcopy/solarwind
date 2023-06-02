@@ -8,7 +8,7 @@ from pathlib import Path
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import dotenv_values
 
-from LIB.TuyaController import TuyaController
+from malina.LIB.TuyaController import TuyaController
 from malina.LIB import FiloFifo
 from malina.LIB import PondPumpAuto
 from malina.LIB import SendApiData
