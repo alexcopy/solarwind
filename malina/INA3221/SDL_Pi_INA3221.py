@@ -9,9 +9,12 @@
 
 from datetime import datetime
 import sys
-import fake_rpi
-sys.modules['smbus'] = fake_rpi.smbus
-import smbus
+try:
+    import smbus
+
+except ImportError:
+    import fake_rpi
+    sys.modules['smbus'] = fake_rpi.smbus
 
 # constants
 
