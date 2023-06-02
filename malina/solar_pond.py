@@ -8,6 +8,7 @@ from pathlib import Path
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import dotenv_values
 
+from LIB.TuyaController import TuyaController
 from malina.LIB import FiloFifo
 from malina.LIB import PondPumpAuto
 from malina.LIB import SendApiData
@@ -18,8 +19,6 @@ from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 
-TIME_TIK = 1
-CONFIGS_YAML = 'devices.yaml'
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
@@ -29,15 +28,15 @@ Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
-        tuya_auth = TuyaAuthorisation(logging)
-        device_manager = tuya_auth.device_manager
+        self.tuya_auth = TuyaAuthorisation(logging)
+        self.tuya_controller = TuyaController(self.tuya_auth)
+        self.dev_manager = DeviceManager
         self.send_data = SendApiData.SendApiData(logging)
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo()
+
         self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
         self.new_devices = InitiateDevices(logging).devices
-        self.dev_manager = DeviceManager
-        self.load_automation = LoadRelayAutomation(logging, device_manager)
         self.switch_to_solar_power()
 
     @staticmethod
@@ -47,27 +46,16 @@ class SolarPond():
         return float(round(sum(l, 0.0) / len(l), 2))
 
     def switch_to_solar_power(self):
-        inv_id, inv_name = self.devices.get_invert_credentials
-        self.load_automation.load_switch_on(inv_id, inv_name, "switch")
-        status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
-        return status
+        inver = self.new_devices.get_devices_by_name("inverter")[0]
+        self.tuya_controller.switch_on_device(inver)
 
     def switch_to_main_power(self):
-        inv_id, inv_name = self.devices.get_invert_credentials
-        self.load_automation.load_switch_off(inv_id, inv_name, "switch")
-        status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
-        return status
-
-    def check_inverter_off_on(self):
-        try:
-            inverter_voltage = self.get_inverter_values()
-            self.devices.invert_switch_on_off(self.avg(inverter_voltage))
-        except Exception as ex:
-            logging.error(ex)
+        inver = self.new_devices.get_devices_by_name("inverter")[0]
+        self.tuya_controller.switch_off_device(inver)
 
     def processing_reads(self):
         try:
-            inv_status = self._invert_status()
+            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('status')
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
@@ -84,7 +72,7 @@ class SolarPond():
 
             if cur_t % diviser == 0:
                 self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                              self.automation.get_current_status, solar_current, self.devices)
+                                              self.automation.get_current_status, solar_current, self.new_devices)
                 self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
                                         solar_current)
         except IOError as io_err:
@@ -116,14 +104,11 @@ class SolarPond():
             logging.error(
                 "The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
             logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
-            inv_id, inv_name = self.devices.get_invert_credentials
-            inv_status = self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch_1')
+            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('status')
             self.automation.change_pump_speed(rounded, inv_status)
 
     def load_checks(self):
-        self.update_invert_stats()
-        self.check_load_devices()
-        self.check_inverter_off_on()
+        self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
         self.weather_check_update()
         self._pump_speed_adjust()
 
@@ -140,15 +125,6 @@ class SolarPond():
             self.automation.refresh_min_speed()
         if weather_timer == 0:
             self.automation.update_weather()
-
-    def update_invert_stats(self):
-        inv_status = self._invert_status()
-        self.load_automation.set_main_sw_status(inv_status)
-
-    def _invert_status(self):
-        inv_id, inv_name = self.devices.get_invert_credentials
-        inv_status = int(self.load_automation.get_device_statuses_by_id(inv_id, inv_name).get('switch'))
-        return inv_status
 
     def get_inverter_values(self, slot='1s', value='bus_voltage'):
         inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value)
@@ -174,26 +150,12 @@ class SolarPond():
         if len(self.FILTER_FLUSH) < 5:
             self.FILTER_FLUSH = []
 
-    def check_load_devices(self):
-        avg_invert_volt = self.avg(self.get_inverter_values())
-        pump_params = self.automation.get_current_status
-
-        # switch management only if pond pump in mode =6
-        if int(pump_params['mode']) == 6:
-            self.devices.uv_switch_on_off(avg_invert_volt)
-            self.devices.fnt_switch_on_off(avg_invert_volt)
-
     def update_devs_stats(self):
-        self.automation.refresh_pump_status()
-        time.sleep(2)
-        self.devices.update_uv_stats_info()
-        time.sleep(2)
-        self.devices.update_fnt_dev_stats()
-        time.sleep(2)
-        self.devices.update_invert_stats()
+        devices = self.new_devices.get_devices()
+        self.tuya_controller.update_devices_status(devices)
 
     def pump_stats_to_server(self):
-        inv_status = self._invert_status()
+        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('status')
         resp = self.send_data.send_pump_stats(inv_status, self.automation.get_current_status)
         err_resp = resp['errors']
         if err_resp:
@@ -202,7 +164,7 @@ class SolarPond():
             self.send_data.send_pump_stats(inv_status, self.automation.get_current_status)
 
     def send_avg_data(self):
-        inv_status = int(not self._invert_status())
+        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('status')
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
         self.send_data.send_weather(self.automation.local_weather)
 
@@ -212,7 +174,7 @@ class SolarPond():
         time_now = time.strftime("%H:%M")
         when_reset = ['21:30', '01:00', '05:00', '07:00', '07:00', '12:00']
         send_time_slot = 1200
-        load_time_slot = 10
+        load_time_slot = 30
         pump_stats = 300
 
         # Don't need to send stats overnight
@@ -233,8 +195,9 @@ class SolarPond():
     def send_stats_api(self):
         self.pump_stats_to_server()
         time.sleep(3)
-        self.send_data.send_load_stats(self.devices.get_uv_sw_state)
-        self.send_data.send_load_stats(self.devices.get_fnt_sw_state)
+        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("uv")[0].get_status())
+        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("air")[0].get_status())
+        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("fountain")[0].get_status())
 
 # todo:
 #  add weather to table and advance in table pond self temp from future gauge

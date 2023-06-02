@@ -27,6 +27,7 @@ class Device:
     def get_id(self):
         return self.id
 
+    @property
     def get_device_type(self):
         return self.device_type
 

@@ -87,8 +87,9 @@ class SolarLogging:
             " Main Relay works from: %s  " % ("INVERT" if (inverter_status == 1) else "MAIN"))
         self.logging.info("")
 
-        self.logging.info(" UV Sterilizer is: %s " % ("ON" if (load_devices.get_uv_sw_state['switch_1']) else "OFF"))
-        self.logging.info(" FNT Pump State is: %s " % ("ON" if (load_devices.get_fnt_sw_state['switch_1']) else "OFF"))
+        self.logging.info(" UV Sterilizer is: %s " % (
+            "ON" if (load_devices.get_devices_by_name("uv")[0].get_status("status")) else "OFF"))
+        self.logging.info(" FNT State is: %s " % ("ON" if (load_devices.get_devices_by_name("fountain")[0].get_status("status")) else "OFF"))
         self.logging.info("")
 
         wtg = (solar_current['10m_solar_current'] * fifo_buffer['1s_inverter_bus_voltage']) / 1000
@@ -109,4 +110,3 @@ class SolarLogging:
                 units = "UN"
             name = i
             self.logging.info("%s: %3.2f %s " % (name, fifo_buffer[i], units))
-

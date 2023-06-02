@@ -20,6 +20,9 @@ class DeviceManager:
     def add_device(self, device):
         if device.get_id() in self._devices:
             raise ValueError(f"Device with ID '{device.get_id()}' already exists.")
+
+        if device.get_name() in self._devices:
+            raise ValueError(f"Device with ID '{device.get_id()}' and '{device.get_name()}' already exists.")
         self._devices[device.get_id()] = device
         self._device_order.append(device)
 
@@ -47,7 +50,7 @@ class DeviceManager:
             dev_status = self.tuya_controller.switch_on_device(device)
             device.set_status(dev_status)
         else:
-            logging.debug("Device with name %s isn't ready to switch on " % device.name)
+            logging.debug("-----Device with name %s isn't ready to switch on " % device.name)
 
     def device_switch_off(self, device_id):
         device = self.get_device_by_id(device_id)
@@ -55,12 +58,22 @@ class DeviceManager:
             dev_status = self.tuya_controller.switch_off_device(device)
             device.set_status(dev_status)
         else:
-            logging.debug("Device with name %s isn't ready to switch off " % device.name)
+            logging.debug("-----Device with name %s isn't ready to switch off " % device.name)
 
     def get_devices_by_name(self, name):
         matching_devices = []
         for device in self._devices.values():
             if device.name == name:
+                matching_devices.append(device)
+        return matching_devices
+
+    def update_all_statuses(self):
+        self.tuya_controller.update_devices_status(self._device_order)
+
+    def get_devices_by_device_type(self, dev_type: str):
+        matching_devices = []
+        for device in self._devices.values():
+            if device.get_device_type.upper() == dev_type.upper():
                 matching_devices.append(device)
         return matching_devices
 
@@ -70,22 +83,6 @@ class DeviceManager:
     def get_available_power(self):
         used_power = sum(int(device.power_consumption) for device in self._devices.values())
         return self._power_limit - used_power
-
-    def new_load_switch_off(self, device: Device):
-        try:
-            tuya_device_manager = TuyaAuthorisation(logging).device_manager
-            command = [
-                {
-                    "code": device.get_api_sw,
-                    "value": False
-                }]
-            tuya_device_manager.send_commands(device.get_id(), command)
-            time.sleep(2)
-            # self.update_device_status(device_id, name)
-            # self.remote_api.send_load_stats(self.get_device_statuses_by_id(device_id, name))
-        except Exception as ex:
-            self.logger.error("---------Problem in Load Switch OFF---------")
-            self.logger.error(ex)
 
     def read_device_configs(self, path):
         for file in os.scandir(path):

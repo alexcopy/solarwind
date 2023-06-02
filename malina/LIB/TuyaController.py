@@ -45,7 +45,7 @@ class TuyaController():
     def switch_on_device(self, device):
         switched = self.switch_device(device, True)
         if switched:
-            device.update_status({})
+            device.update_status({'switch_1': 1, "switch": 1})
         return switched
 
     def switch_off_device(self, device):
@@ -55,23 +55,36 @@ class TuyaController():
         device_id = device.get_id()
         status = self._status(device_id)
         if status['success']:
-            device.set_status(status)
+            device.update_status({'switch_1': 0, "switch": 0})
         return status
 
-    def switch_all_on(self):
-        devices = self.authorisation.device_manager.get_all_devices()
+    def switch_all_on_soft(self, devices):
+        for device in devices:
+            if device.is_device_ready_to_switch_on():
+                self.switch_on_device(device.id)
+                time.sleep(5)
+
+    def switch_all_off_soft(self, devices):
         for device in devices:
             if device.is_device_ready():
-                self.switch_on_device(device.id)
+                self.switch_off_device(device.id)
+                time.sleep(5)
 
-    def update_all_statuses(self):
-        devices = self.authorisation.device_manager.get_all_devices()
+    def switch_all_on_hard(self, devices):
+        for device in devices:
+            self.switch_on_device(device.id)
+            time.sleep(5)
+
+    def switch_all_off_hard(self, devices):
+        for device in devices:
+            self.switch_off_device(device.id)
+            time.sleep(5)
+
+    def update_devices_status(self, devices):
         for device in devices:
             self.update_status(device)
             time.sleep(5)
 
-    def switch_all_off(self):
-        devices = self.authorisation.device_manager.get_all_devices()
-        for device in devices:
-            if device.is_device_ready():
-                self.switch_off_device(device.id)
+    def switch_on_off_all_devices(self, devices):
+        self.switch_all_on_soft(devices)
+        self.switch_all_off_soft(devices)

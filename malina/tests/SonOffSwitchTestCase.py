@@ -33,17 +33,18 @@ class SonOffSwitchTestCase(unittest.TestCase):
         tuya_controller = TuyaController(tuya_auth)
         devices = InitiateDevices(Mock()).devices
 
-        fontan = devices.get_devices_by_name("fountain")[0] # fontan
+
+        fontan = devices.get_devices_by_name("inverter")[0] # fontan
         print("-------------------------STATUS_______________")
         print(fontan.get_status())
-        tuya_controller.switch_on_device(fontan)
+        tuya_controller.switch_off_device(fontan)
         time.sleep(2)
         tuya_controller.update_status(fontan)
         print("-------------------------STATUS____ON___________")
         print(fontan.get_status())
         print("-------------------------STATUS_______________")
         time.sleep(5)
-        tuya_controller.switch_off_device(fontan)
+        tuya_controller.switch_on_device(fontan)
         print("-------------------------STATUS OFF_______________")
         time.sleep(5)
         tuya_controller.update_status(fontan)
