@@ -27,7 +27,7 @@ class PondPumpAuto():
 
     def refresh_pump_status(self):
         try:
-            device_status = self.deviceManager.get_device_status(PUMP_ID)
+            device_status = self.deviceManager.device_manager.get_device_status(PUMP_ID)
             if device_status['success'] is False:
                 self.logger.error(device_status)
                 raise Exception(device_status)

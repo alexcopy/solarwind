@@ -35,7 +35,7 @@ class SolarPond():
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo()
 
-        self.automation = PondPumpAuto.PondPumpAuto(logging, device_manager, self.send_data)
+        self.automation = PondPumpAuto.PondPumpAuto(logging, self.tuya_auth, self.send_data)
         self.new_devices = InitiateDevices(logging).devices
         self.switch_to_solar_power()
 
