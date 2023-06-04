@@ -43,16 +43,16 @@ class TuyaController():
             logging.error(ex)
             return {'success': False}
 
-    def switch_on_device(self, device):
+    def switch_on_device(self, device: Device):
         switched = self.switch_device(device, True)
         if switched:
             device.update_status({'switch_1': 1, "switch": 1})
         return switched
 
-    def switch_off_device(self, device):
+    def switch_off_device(self, device: Device):
         return self.switch_device(device, False)
 
-    def update_status(self, device):
+    def update_status(self, device: Device):
         device_id = device.get_id()
         status = self._status(device_id)
         if status['success']:
@@ -67,7 +67,7 @@ class TuyaController():
 
     def switch_all_off_soft(self, devices):
         for device in devices:
-            if device.is_device_ready():
+            if device.is_device_ready_to_switch_off():
                 self.switch_off_device(device.id)
                 time.sleep(5)
 
