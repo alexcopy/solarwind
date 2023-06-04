@@ -55,7 +55,7 @@ class SolarPond():
 
     def processing_reads(self):
         try:
-            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('status')
+            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
@@ -76,11 +76,11 @@ class SolarPond():
                 self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
                                         solar_current)
         except IOError as io_err:
-            logging.error(f"problem in processing_reads please have a look in IOError {inv_status}")
+            logging.error(f"problem in processing_reads please have a look in IOError {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
             logging.info(io_err)
 
         except Exception as ex:
-            logging.error(f"problem in processing_reads please have a look in Exception {inv_status}")
+            logging.error(f"problem in processing_reads please have a look in Exception {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
             logging.error(ex)
 
     def adjust_pump_speed(self):

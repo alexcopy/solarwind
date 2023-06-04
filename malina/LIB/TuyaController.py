@@ -16,6 +16,7 @@ class TuyaController():
             return bool(resp['success'])
         except  Exception as ex:
             logging.error("---------Problem in switch_device method and class TuyaController ---------")
+            logging.error(device)
             logging.error(ex)
             return False
 
