@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime, timedelta
 
@@ -15,8 +16,8 @@ class Device:
         self.name = name
         self.desc = desc
         self.coefficient = float(coefficient)
-        self.min_voltage = min_volt
-        self.max_voltage = max_volt
+        self.min_voltage = float(min_volt)
+        self.max_voltage = float(max_volt)
         self.priority = priority
         self.extra = extra
         self.api_sw = api_sw
@@ -74,6 +75,7 @@ class Device:
         if self.time_last_switched is not None and (datetime.now() - self.time_last_switched).total_seconds() < 300:
             return False
         voltage = self.get_inverter_values()
+        logging.error(f"----------Debugging is_device_ready_to_switch_on voltage: {voltage} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
         if voltage < self.summer_saving_adjustment(self.min_voltage):
             return False
         if voltage > self.summer_saving_adjustment(self.max_voltage):
@@ -84,6 +86,7 @@ class Device:
         if self.time_last_switched is not None and (datetime.now() - self.time_last_switched).total_seconds() < 300:
             return False
         voltage = self.get_inverter_values()
+        logging.error( f"----------Debugging is_device_ready_to_switch_off voltage: {voltage} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
         if voltage < self.summer_saving_adjustment(self.min_voltage):
             return True
         if voltage > self.summer_saving_adjustment(self.max_voltage):
@@ -104,9 +107,9 @@ class Device:
     def summer_saving_adjustment(self, volt):
         hour = int(time.strftime("%H"))
         if hour >= 18:
-            volt += self.coefficient
+            volt = volt + self.coefficient
         elif 8 < hour < 15:
-            volt -= self.coefficient
+            volt = volt - self.coefficient
         return volt
 
     def __eq__(self, other):
