@@ -201,11 +201,9 @@ class PondPumpAuto():
         try:
             return int(n)
         except ValueError:
-            logging.error(" The value is very WRONG for pump or weather")
             flag = False
         if not flag:
             try:
                 return float(n)
             except ValueError:
-                logging.error(f" The value {n}is not float so trying string  for pump or weather")
                 return str(n)
