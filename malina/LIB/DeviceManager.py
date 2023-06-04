@@ -91,6 +91,7 @@ class DeviceManager:
                     try:
                         config = yaml.safe_load(f)
                         for device_config in config:
+                            logging.debug("Adding device config %s to list" % device_config.name)
                             device = Device(
                                 id=device_config['id'],
                                 name=device_config['name'],
@@ -98,11 +99,11 @@ class DeviceManager:
                                 extra=device_config['extra'],
                                 status=device_config['status'],
                                 api_sw=device_config['api_sw'],
-                                min_volt=device_config['min_voltage'],
-                                max_volt=device_config['max_voltage'],
-                                priority=device_config['priority'],
+                                min_volt=float(device_config['min_voltage']),
+                                max_volt=float(device_config['max_voltage']),
+                                priority=int(device_config['priority']),
                                 device_type=device_config['device_type'],
-                                coefficient=device_config['coefficient']
+                                coefficient=float(device_config['coefficient'])
                             )
                             self.add_device(device)
                     except yaml.YAMLError as e:

@@ -13,8 +13,8 @@ try:
     import smbus
 
 except ImportError:
-    import fake_rpi
-    sys.modules['smbus'] = fake_rpi.smbus
+    import fake_rpi.smbus as smbus
+    # sys.modules['smbus'] = fake_rpi.smbus
 
 # constants
 

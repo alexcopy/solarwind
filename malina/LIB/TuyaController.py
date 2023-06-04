@@ -22,6 +22,7 @@ class TuyaController():
     def _status(self, device_id):
         try:
             status = self.authorisation.device_manager.get_device_list_status([device_id])
+            logging.debug(" ---------Getting device status for %s  ---------" % device_id)
             if status["success"]:
                 device_status = status['result'][0]['status']
                 sw_status = {v['code']: v['value'] for v in device_status}
