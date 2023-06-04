@@ -2,7 +2,6 @@
 
 import time
 
-from malina.LIB.Device import Device
 from malina.LIB.SendApiData import SendApiData
 
 
@@ -65,22 +64,6 @@ class LoadRelayAutomation():
             self.logger.error("---------Problem in Load Switch ON---------")
             self.logger.error(ex)
 
-    def new_load_switch_off(self, device: Device):
-        try:
-
-            command = [
-                {
-                    "code": device.get_api_sw,
-                    "value": False
-                }]
-            self.deviceManager.send_commands(device.get_id(), command)
-            time.sleep(2)
-            self.update_status(device_id, name)
-            self.remote_api.send_load_stats(self.get_device_statuses_by_id(device_id, name))
-        except Exception as ex:
-            self.logger.error("---------Problem in Load Switch OFF---------")
-            self.logger.error(ex)
-
     def update_status(self, device_id, name):
         try:
             status = self.deviceManager.get_device_list_status([device_id])
@@ -100,12 +83,6 @@ class LoadRelayAutomation():
 
     def set_main_sw_status(self, main_status: int):
         self.main_status = main_status
-
-    def get_updated_status(self, device: Device):
-        device_id = device.get_id()
-        name = device.get_name()
-        self.update_status(device_id, name)
-        return self.get_device_statuses_by_id(device_id, name)
 
     @property
     def get_main_relay_status(self):

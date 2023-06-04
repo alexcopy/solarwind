@@ -99,8 +99,8 @@ class DeviceManager:
                                 extra=device_config['extra'],
                                 status=device_config['status'],
                                 api_sw=device_config['api_sw'],
-                                min_volt=float(device_config['min_voltage']),
-                                max_volt=float(device_config['max_voltage']),
+                                min_volt=float(device_config['min_volt']),
+                                max_volt=float(device_config['max_volt']),
                                 priority=int(device_config['priority']),
                                 device_type=device_config['device_type'],
                                 coefficient=float(device_config['coefficient'])

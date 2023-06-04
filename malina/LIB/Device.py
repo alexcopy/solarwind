@@ -14,7 +14,7 @@ class Device:
         self.status = status
         self.name = name
         self.desc = desc
-        self.coefficient = coefficient
+        self.coefficient = float(coefficient)
         self.min_voltage = min_volt
         self.max_voltage = max_volt
         self.priority = priority
