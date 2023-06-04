@@ -28,12 +28,12 @@ Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
+        self.print_logs = SolarLogging(logging)
+        self.filo_fifo = FiloFifo.FiloFifo()
         self.tuya_auth = TuyaAuthorisation(logging)
         self.tuya_controller = TuyaController(self.tuya_auth)
         self.dev_manager = DeviceManager
         self.send_data = SendApiData.SendApiData(logging)
-        self.print_logs = SolarLogging(logging)
-        self.filo_fifo = FiloFifo.FiloFifo()
 
         self.automation = PondPumpAuto.PondPumpAuto(logging, self.tuya_auth, self.send_data)
         self.new_devices = InitiateDevices(logging).devices
