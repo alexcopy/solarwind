@@ -29,6 +29,7 @@ class SendApiData():
             response = requests.request("POST", url_path, headers=headers, data=payload)
             return response.json()
         except Exception as ex:
+            logging.error("Getting error in sending to remote API data ")
             self.logger.error(ex)
             return {'errors': True}
 
@@ -46,6 +47,7 @@ class SendApiData():
                 self.logger.error(response['errors_msg'])
             return response
         except Exception as ex:
+            logging.error("Getting error in send_pump_stats to remote API data ")
             print(ex)
             self.logger.error(ex)
             time.sleep(10)
@@ -101,6 +103,7 @@ class SendApiData():
                 self.logger.error(response['errors_msg'])
             return response
         except Exception as ex:
+            logging.error("Getting error in send_load_stats to remote API data ")
             print(ex)
             self.logger.error(ex)
             time.sleep(10)
@@ -119,6 +122,7 @@ class SendApiData():
                 self.logger.error(response['errors_msg'])
             return response
         except Exception as ex:
+            logging.error("Getting error in send_weather to remote API data ")
             print(ex)
             self.logger.error(ex)
             time.sleep(10)

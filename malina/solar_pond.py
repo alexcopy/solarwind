@@ -76,9 +76,11 @@ class SolarPond():
                 self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
                                         solar_current)
         except IOError as io_err:
+            logging.error(f"problem in processing_reads please have a look in IOError {inv_status}")
             logging.info(io_err)
 
         except Exception as ex:
+            logging.error(f"problem in processing_reads please have a look in Exception {inv_status}")
             logging.error(ex)
 
     def adjust_pump_speed(self):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import asyncio
+import logging
 import time
 import python_weather
 from dotenv import dotenv_values
@@ -34,6 +35,7 @@ class PondPumpAuto():
             self._update_pump_status(device_status)
 
         except Exception as ex:
+            logging.error("Problem in getting pump status ------")
             print(ex)
             self.logger.error(ex)
             return {'flow_speed': 0, "Power": 0, 'error': True}
@@ -96,6 +98,7 @@ class PondPumpAuto():
                     'pressure': float(weather.current.pressure), 'timestamp': int(time.time()), 'town': WEATHER_TOWN}
 
         except Exception as e:
+            self.logger.error("Problem in weather data getter")
             self.logger.error(e)
             return {'temperature': 0, 'wind_speed': 0, 'visibility': 0, 'uv_index': 0, 'humidity': 0,
                     'precipitation': 0, 'type': "", 'wind_direction': "", 'description': "", 'feels_like': 0,
@@ -198,9 +201,11 @@ class PondPumpAuto():
         try:
             return int(n)
         except ValueError:
+            logging.error(" The value is very WRONG for pump or weather")
             flag = False
         if not flag:
             try:
                 return float(n)
             except ValueError:
+                logging.error(f" The value {n}is not float so trying string  for pump or weather")
                 return str(n)
