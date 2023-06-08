@@ -89,14 +89,14 @@ class SendApiData():
         if erros_resp:
             logging.error(resp)
 
-    def send_load_stats(self, status):
+    def send_load_stats(self, device, api_path='pondswitch/'):
         try:
-
+            status=device.get_status()
             payload = json.dumps(status)
             headers = {
                 'Content-Type': 'application/json'
             }
-            url = urljoin(self.api_url, 'pondswitch/')
+            url = urljoin(self.api_url, api_path)
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
                 self.logger.error(response['payload'])

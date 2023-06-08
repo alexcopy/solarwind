@@ -1,17 +1,19 @@
 import logging
 import time
 
+from LIB.PondPumpAuto import PondPumpAuto
 from malina.LIB.Device import Device
 
 
 class TuyaController():
     def __init__(self, authorisation):
         self.authorisation = authorisation
+        self.pump_auto = PondPumpAuto()
 
-    def switch_device(self, device: Device, state):
+    def switch_device(self, device: Device, value):
         try:
             api_sw = device.get_api_sw
-            commands = {"devId": device.get_id(), "commands": [{"code": api_sw, "value": state}]}
+            commands = {"devId": device.get_id(), "commands": [{"code": api_sw, "value": value}]}
             resp = self.authorisation.device_manager.send_commands(commands["devId"], commands['commands'])
             return bool(resp['success'])
         except  Exception as ex:
@@ -90,3 +92,23 @@ class TuyaController():
     def switch_on_off_all_devices(self, devices):
         self.switch_all_on_soft(devices)
         self.switch_all_off_soft(devices)
+
+    def adjust_devices_speed(self, devices):
+        for device in devices:
+            is_device_ready = device.is_device_ready_to_switch_on() or device.is_device_ready_to_switch_off()
+            if is_device_ready:
+
+                self.adjust_pump_power(device)
+            else:
+                logging.debug(f"device {device.name} is not ready yet")
+
+    def adjust_pump_power(self, device):
+        if device.get_device_type() == 'PUMP':
+
+            speed = self.pump_auto.pond_pump_adj(device)
+            self.switch_device(device, speed)
+            if res['success'] is True:
+                self.logger.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % value)
+            else:
+                self.logger.error("!!!!   Pump's Speed has failed to adjust in speed to: %d !!!!" % value)
+                self.logger.error(res)

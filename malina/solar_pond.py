@@ -106,13 +106,8 @@ class SolarPond():
             logging.error(
                 "The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
             logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
-            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('status')
+            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
             self.automation.change_pump_speed(rounded, inv_status)
-
-    def load_checks(self):
-        self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
-        self.weather_check_update()
-        self._pump_speed_adjust()
 
     def _pump_speed_adjust(self):
         # switch management only if pond pump in mode =6
@@ -120,6 +115,13 @@ class SolarPond():
         if int(pump_params['mode']) == 6:
             self.adjust_pump_speed()
             self.check_pump_speed()
+
+
+    def load_checks(self):
+        self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
+        self.weather_check_update()
+        self._pump_speed_adjust()
+
 
     def weather_check_update(self):
         weather_timer = self.automation.local_weather.get('timestamp', 0)
@@ -156,17 +158,10 @@ class SolarPond():
         devices = self.new_devices.get_devices()
         self.tuya_controller.update_devices_status(devices)
 
-    def pump_stats_to_server(self):
-        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('status')
-        resp = self.send_data.send_pump_stats(inv_status, self.automation.get_current_status)
-        err_resp = resp['errors']
-        if err_resp:
-            time.sleep(5)
-            self.automation.refresh_pump_status()
-            self.send_data.send_pump_stats(inv_status, self.automation.get_current_status)
+
 
     def send_avg_data(self):
-        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('status')
+        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
         self.send_data.send_weather(self.automation.local_weather)
 
@@ -195,11 +190,10 @@ class SolarPond():
         reed.start()
 
     def send_stats_api(self):
-        self.pump_stats_to_server()
-        time.sleep(3)
-        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("uv")[0].get_status())
-        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("air")[0].get_status())
-        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("fountain")[0].get_status())
+        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("uv")[0])
+        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("air")[0])
+        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("fountain")[0])
+        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("pump")[0])
 
 # todo:
 #  add weather to table and advance in table pond self temp from future gauge

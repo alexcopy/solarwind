@@ -35,6 +35,12 @@ class Device:
     def get_device_desc(self):
         return self.desc
 
+    def get_extra(self, key):
+        if key in self.extra:
+            return self.extra[key]
+        else:
+            return None
+
     def get_name(self):
         return self.name
 
@@ -75,7 +81,8 @@ class Device:
         if self.time_last_switched is not None and (datetime.now() - self.time_last_switched).total_seconds() < 300:
             return False
         voltage = self.get_inverter_values()
-        logging.error(f"----------Debugging is_device_ready_to_switch_on voltage: {voltage} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
+        logging.error(
+            f"----------Debugging is_device_ready_to_switch_on voltage: {voltage} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
         if voltage < self.summer_saving_adjustment(self.min_voltage):
             return False
         if voltage > self.summer_saving_adjustment(self.max_voltage):
@@ -86,7 +93,8 @@ class Device:
         if self.time_last_switched is not None and (datetime.now() - self.time_last_switched).total_seconds() < 300:
             return False
         voltage = self.get_inverter_values()
-        logging.error( f"----------Debugging is_device_ready_to_switch_off voltage: {voltage} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
+        logging.error(
+            f"----------Debugging is_device_ready_to_switch_off voltage: {voltage} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
         if voltage < self.summer_saving_adjustment(self.min_voltage):
             return True
         if voltage > self.summer_saving_adjustment(self.max_voltage):
