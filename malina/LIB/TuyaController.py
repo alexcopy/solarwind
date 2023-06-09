@@ -1,7 +1,7 @@
 import logging
 import time
 
-from LIB.PondPumpAuto import PondPumpAuto
+from malina.LIB.PondPumpAuto import PondPumpAuto
 from malina.LIB.Device import Device
 
 
