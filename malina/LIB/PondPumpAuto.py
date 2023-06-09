@@ -81,17 +81,30 @@ class PondPumpAuto():
         self.refresh_min_speed()
         flow_speed = device.get_status('P')
         min_pump_speed = self._min_speed['min_speed']
-        new_speed = flow_speed - device.get_extra('speed_step')
+        new_speed = flow_speed - int(device.get_extra('speed_step'))
         if flow_speed == min_pump_speed or new_speed < min_pump_speed:
             new_speed = min_pump_speed
         return new_speed
 
     def _increase_pump_speed(self, device: Device):
         flow_speed = device.get_status('P')
-        new_speed = flow_speed + device.get_extra('speed_step')
+        new_speed = flow_speed + int(device.get_extra('speed_step'))
         if flow_speed > 95 or new_speed > 95:
             new_speed = 100
         return new_speed
+
+    def check_pump_speed(self, device: Device):
+        flow_speed = device.get_status('P')
+        speed_step = device.get_extra('speed_step')
+        if not flow_speed % speed_step == 0:
+            rounded = round(int(flow_speed) / speed_step) * speed_step
+            if rounded < speed_step:
+                rounded = speed_step
+            logging.error(
+                "The device status is not divisible by POND_SPEED_STEP %d" % flow_speed)
+            logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
+            return rounded
+        return flow_speed
 
     def pond_pump_adj(self, device: Device):
         voltage = device.get_inverter_values()
@@ -99,7 +112,12 @@ class PondPumpAuto():
         max_bat_volt = device.get_max_volt()
         mains_relay_status = self.devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         hour = int(time.strftime("%H"))
-        speed_step = device.get_extra('speed_step')
+        speed_step = int(device.get_extra('speed_step'))
+
+        mains_relay_status = int(mains_relay_status)
+        if mains_relay_status == 0:
+            self.refresh_min_speed()
+            return self._min_speed['min_speed']
 
         if not speed_step:
             logging.error(" Check Configuration, cannot get Speed step from Config")
@@ -112,19 +130,12 @@ class PondPumpAuto():
             min_bat_volt = min_bat_volt - 1.5
             max_bat_volt = max_bat_volt - 1.5
 
-        mains_relay_status = int(round(mains_relay_status, 0))
-        if mains_relay_status == 0:
-            self.refresh_min_speed()
-
-            if not self.is_minimum_speed(device):
-                return self._decrease_pump_speed(device)
-
         if min_bat_volt < voltage < max_bat_volt:
             return device.get_status("P")
 
         if voltage > max_bat_volt:
             if not self.is_max_speed(device):
-                return self._increase_pump_speed(speed_step)
+                return self._increase_pump_speed(device)
         self.refresh_min_speed()
         if self.is_minimum_speed(device):
             return device.get_status("P")

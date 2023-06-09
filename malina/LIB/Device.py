@@ -22,7 +22,7 @@ class Device:
         self.extra = extra
         self.api_sw = api_sw
         self.voltage = bus_voltage
-        self.time_last_switched = datetime.now() - timedelta(seconds=300)
+        self.time_last_switched = datetime.now() - timedelta(seconds=240)
         self.filo = FiloFifo()
 
     def get_id(self):
@@ -30,7 +30,7 @@ class Device:
 
     @property
     def get_device_type(self):
-        return self.device_type
+        return self.device_type.upper()
 
     def get_device_desc(self):
         return self.desc

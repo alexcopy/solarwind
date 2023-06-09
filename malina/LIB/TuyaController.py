@@ -10,7 +10,7 @@ class TuyaController():
         self.authorisation = authorisation
         self.pump_auto = PondPumpAuto()
 
-    def switch_device(self, device: Device, value):
+    def switch_device(self, device: Device, value) -> bool:
         try:
             api_sw = device.get_api_sw
             commands = {"devId": device.get_id(), "commands": [{"code": api_sw, "value": value}]}
@@ -95,20 +95,31 @@ class TuyaController():
 
     def adjust_devices_speed(self, devices):
         for device in devices:
+            if not device.get_device_type() == 'PUMP':
+                continue
             is_device_ready = device.is_device_ready_to_switch_on() or device.is_device_ready_to_switch_off()
-            if is_device_ready:
-
-                self.adjust_pump_power(device)
+            if is_device_ready and device.get_status("mode") == 6:
+                self._adjust_pump_power(device)
             else:
+                logging.info("Pump working mode= %d so no adjustments could be done " % device.get_status("mode"))
                 logging.debug(f"device {device.name} is not ready yet")
 
-    def adjust_pump_power(self, device):
-        if device.get_device_type() == 'PUMP':
 
+
+
+    def _adjust_pump_power(self, device):
+        if device.get_device_type() == 'PUMP':
             speed = self.pump_auto.pond_pump_adj(device)
-            self.switch_device(device, speed)
-            if res['success'] is True:
-                self.logger.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % value)
+            switch_device = self.switch_device(device, speed)
+            if switch_device:
+                logging.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % speed)
+                self._status(device.get_id())
             else:
-                self.logger.error("!!!!   Pump's Speed has failed to adjust in speed to: %d !!!!" % value)
-                self.logger.error(res)
+                time.sleep(10)
+                switch_device = self.switch_device(device, speed)
+                if not switch_device:
+                    logging.error(
+                        "!!!!   Pump's Speed has failed after SLEEP 10 SEC to adjust in speed to: %d !!!!" % speed)
+                else:
+                    logging.info(
+                        "!!!!!   Pump's Speed successfully adjusted AFTER SLEEP 10 SEC to: %d !!!!!!!!!" % speed)

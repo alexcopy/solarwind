@@ -56,7 +56,7 @@ class SolarLogging:
         self.logging.debug(" 10m Solar Current: %3.2f " % solar_current['10m_solar_current'])
         self.logging.debug(" 10m Solar Current: %3.2f " % solar_current['1h_solar_current'])
         self.logging.debug("--------------------------------------------")
-        self.logging.debug(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
+        self.logging.debug(" Pond Pump Speed: %d  " % pump_status)
         self.logging.debug(" Inverter Status is: %d  " % invert_status)
         self.logging.debug("############################################")
         self.logging.debug("--------------------------------------------")
@@ -94,7 +94,7 @@ class SolarLogging:
 
         wtg = (solar_current['10m_solar_current'] * fifo_buffer['1s_inverter_bus_voltage']) / 1000
         self.logging.info(" 1S Solar Power: %3.2f W " % wtg)
-        self.logging.info(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
+        self.logging.info(" Pond Pump Speed: %d  " % pump_status)
         self.logging.info("---")
         self.logging.info("--------------------------------------------")
         self.logging.info("--------------------------------------------")

@@ -34,8 +34,6 @@ class SolarPond():
         self.tuya_controller = TuyaController(self.tuya_auth)
         self.dev_manager = DeviceManager
         self.send_data = SendApiData.SendApiData(logging)
-
-        self.automation = PondPumpAuto.PondPumpAuto(logging, self.tuya_auth, self.send_data)
         self.new_devices = InitiateDevices(logging).devices
         self.switch_to_solar_power()
 
@@ -56,6 +54,7 @@ class SolarPond():
     def processing_reads(self):
         try:
             inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+            pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
@@ -72,8 +71,8 @@ class SolarPond():
 
             if cur_t % diviser == 0:
                 self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                              self.automation.get_current_status, solar_current, self.new_devices)
-                self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, self.automation.get_current_status,
+                                             pump_status, solar_current, self.new_devices)
+                self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status,pump_status,
                                         solar_current)
         except IOError as io_err:
             logging.error(f"problem in processing_reads please have a look in IOError {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
@@ -83,44 +82,12 @@ class SolarPond():
             logging.error(f"problem in processing_reads please have a look in Exception {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
             logging.error(ex)
 
-    def adjust_pump_speed(self):
-        inverter_voltage = self.get_inverter_values()
-        if len(inverter_voltage) < 15:
-            logging.error(
-                " ----It's too early to adjust %d pump_speed please wait until length over 15" % len(inverter_voltage))
-            return 0
-        # in case if we're working from mains switching to minimum allowed speed
-        volt_avg = self.avg(inverter_voltage)
-        min_speed = self.automation.min_pump_speed
-        mains_relay_status = self.filo_fifo.get_main_rel_status
-        if int(self.automation.get_current_status['mode']) == 6:
-            self.automation.pond_pump_adj(min_speed, volt_avg, mains_relay_status)
-        else:
-            logging.info("Pump working mode is not 6 so no adjustments could be done ")
-
-    def check_pump_speed(self):
-        if not self.automation.pump_status['flow_speed'] % POND_SPEED_STEP == 0:
-            rounded = round(int(self.automation.pump_status['flow_speed']) / 10) * 10
-            if rounded < POND_SPEED_STEP:
-                rounded = POND_SPEED_STEP
-            logging.error(
-                "The device status is not divisible by POND_SPEED_STEP %d" % self.automation.pump_status['flow_speed'])
-            logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
-            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
-            self.automation.change_pump_speed(rounded, inv_status)
-
-    def _pump_speed_adjust(self):
-        # switch management only if pond pump in mode =6
-        pump_params = self.automation.get_current_status
-        if int(pump_params['mode']) == 6:
-            self.adjust_pump_speed()
-            self.check_pump_speed()
-
 
     def load_checks(self):
         self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
-        self.weather_check_update()
-        self._pump_speed_adjust()
+        # self.weather_check_update()
+        self.new_devices.get_devices_by_name("pump")
+        self.tuya_controller.adjust_devices_speed()
 
 
     def weather_check_update(self):
