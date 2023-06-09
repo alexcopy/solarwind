@@ -32,6 +32,7 @@ class SolarPond():
         self.dev_manager = DeviceManager
         self.send_data = SendApiData.SendApiData(logging)
         self.switch_to_solar_power()
+        self.new_devices.update_all_statuses()
 
     @staticmethod
     def avg(l):
@@ -82,8 +83,8 @@ class SolarPond():
     def load_checks(self):
         self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
         # self.weather_check_update()
-        self.new_devices.get_devices_by_name("pump")
-        self.tuya_controller.adjust_devices_speed()
+        pumps = self.new_devices.get_devices_by_name("pump")
+        self.tuya_controller.adjust_devices_speed(pumps)
 
 
     def weather_check_update(self):
@@ -118,7 +119,7 @@ class SolarPond():
             self.FILTER_FLUSH = []
 
     def update_devs_stats(self):
-        devices = self.new_devices.get_devices()
+        devices = self.new_devices.update_all_statuses()
         self.tuya_controller.update_devices_status(devices)
 
 
@@ -126,7 +127,7 @@ class SolarPond():
     def send_avg_data(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
-        self.send_data.send_weather(self.automation.local_weather)
+        # self.send_data.send_weather(self.automation.local_weather)
 
     def run_read_vals(self):
         reed = BackgroundScheduler()
