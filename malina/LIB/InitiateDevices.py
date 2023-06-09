@@ -1,15 +1,22 @@
-import time
-
 import yaml
-from malina.LIB.DeviceManager import DeviceManager
+
 from malina.LIB.Device import Device
-from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
+from malina.LIB.DeviceManager import DeviceManager
 
 DEVICE_CONFIG = ".devices.yaml"
 
 
 class InitiateDevices:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, logger):
+        if hasattr(self, "initialized"):
+            return
         self.device_controller = DeviceManager()
         self.logger = logger
 
@@ -18,6 +25,8 @@ class InitiateDevices:
         for device_config in devices:
             device = Device(**device_config)
             self.device_controller.add_device(device)
+
+        self.initialized = True
 
     @property
     def devices(self):

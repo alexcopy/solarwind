@@ -1,14 +1,15 @@
 import logging
 import time
 
+from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.PondPumpAuto import PondPumpAuto
 from malina.LIB.Device import Device
 
 
 class TuyaController():
-    def __init__(self, authorisation):
+    def __init__(self, authorisation: TuyaAuthorisation):
         self.authorisation = authorisation
-        self.pump_auto = PondPumpAuto()
+        self.pump_auto = PondPumpAuto(authorisation.device_manager)
 
     def switch_device(self, device: Device, value) -> bool:
         try:
@@ -103,9 +104,6 @@ class TuyaController():
             else:
                 logging.info("Pump working mode= %d so no adjustments could be done " % device.get_status("mode"))
                 logging.debug(f"device {device.name} is not ready yet")
-
-
-
 
     def _adjust_pump_power(self, device):
         if device.get_device_type() == 'PUMP':

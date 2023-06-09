@@ -1,23 +1,19 @@
 #!/usr/bin/env python
 import logging
 import logging.handlers
-import os
 import time
 from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import dotenv_values
 
-from malina.LIB.TuyaController import TuyaController
-from malina.LIB import FiloFifo
-from malina.LIB import PondPumpAuto
+from malina.LIB.InitiateDevices import InitiateDevices
 from malina.LIB import SendApiData
 from malina.LIB.DeviceManager import DeviceManager
-from malina.LIB.LoadDevices import LoadDevices
-from malina.LIB.InitiateDevices import InitiateDevices
-from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
+from malina.LIB import FiloFifo
+from malina.LIB.TuyaController import TuyaController
 
 config = dotenv_values(".env")
 LOG_DIR = config['LOG_DIR']
@@ -32,9 +28,9 @@ class SolarPond():
         self.filo_fifo = FiloFifo.FiloFifo()
         self.tuya_auth = TuyaAuthorisation(logging)
         self.tuya_controller = TuyaController(self.tuya_auth)
+        self.new_devices = InitiateDevices(logging).devices
         self.dev_manager = DeviceManager
         self.send_data = SendApiData.SendApiData(logging)
-        self.new_devices = InitiateDevices(logging).devices
         self.switch_to_solar_power()
 
     @staticmethod

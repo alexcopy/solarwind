@@ -1,6 +1,5 @@
 import logging
 import os
-import time
 
 import yaml
 
@@ -15,7 +14,7 @@ class DeviceManager:
         self.logger = logging
         self._device_order = []
         self._power_limit = 10000
-        self.tuya_controller = TuyaController(TuyaAuthorisation(self.logger).device_manager)
+        self.tuya_controller = TuyaController(TuyaAuthorisation(self.logger))
 
     def add_device(self, device):
         if device.get_id() in self._devices:

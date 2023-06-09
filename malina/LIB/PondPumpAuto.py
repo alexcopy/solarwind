@@ -2,11 +2,11 @@
 import asyncio
 import logging
 import time
+
 import python_weather
 from dotenv import dotenv_values
 
 from malina.LIB.Device import Device
-from malina.LIB.InitiateDevices import InitiateDevices
 
 config = dotenv_values(".env")
 BASE_URL = config['API_URL']
@@ -20,10 +20,10 @@ DAY_TIME_COMPENSATE = 1.5
 
 
 class PondPumpAuto():
-    def __init__(self):
+    def __init__(self, devices):
         self._min_speed = {'min_speed': 10, 'timestamp': int(time.time())}
         self.weather = {}
-        self.devices = InitiateDevices(logging).devices
+        self.devices = devices
 
     @property
     def local_weather(self):

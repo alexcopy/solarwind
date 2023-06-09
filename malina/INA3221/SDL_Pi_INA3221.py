@@ -7,14 +7,12 @@
 
 # encoding: utf-8
 
-from datetime import datetime
-import sys
-# try:
-import smbus
+try:
+    import smbus
 
-# except ImportError:
-#     import fake_rpi.smbus as smbus
-#     # sys.modules['smbus'] = fake_rpi.smbus
+except ImportError:
+    import fake_rpi.smbus as smbus
+    # sys.modules['smbus'] = fake_rpi.smbus
 
 # constants
 
