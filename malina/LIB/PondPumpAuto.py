@@ -5,8 +5,8 @@ import time
 import python_weather
 from dotenv import dotenv_values
 
-from LIB.Device import Device
-from LIB.InitiateDevices import InitiateDevices
+from malina.LIB.Device import Device
+from malina.LIB.InitiateDevices import InitiateDevices
 
 config = dotenv_values(".env")
 BASE_URL = config['API_URL']
