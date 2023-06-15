@@ -51,6 +51,7 @@ class SolarPond():
     def processing_reads(self):
         try:
             inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+            logging.info(self.new_devices.get_devices_by_name("inverter")[0].get_status())
             pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
@@ -68,24 +69,24 @@ class SolarPond():
 
             if cur_t % diviser == 0:
                 self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                             pump_status, solar_current, self.new_devices)
-                self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status,pump_status,
+                                              pump_status, solar_current, self.new_devices)
+                self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, pump_status,
                                         solar_current)
         except IOError as io_err:
-            logging.error(f"problem in processing_reads please have a look in IOError {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
+            logging.error(
+                f"problem in processing_reads please have a look in IOError {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
             logging.info(io_err)
 
         except Exception as ex:
-            logging.error(f"problem in processing_reads please have a look in Exception {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
+            logging.error(
+                f"problem in processing_reads please have a look in Exception {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
             logging.error(ex)
-
 
     def load_checks(self):
         self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
         # self.weather_check_update()
         pumps = self.new_devices.get_devices_by_name("pump")
         self.tuya_controller.adjust_devices_speed(pumps)
-
 
     def weather_check_update(self):
         weather_timer = self.automation.local_weather.get('timestamp', 0)
@@ -122,36 +123,21 @@ class SolarPond():
         devices = self.new_devices.update_all_statuses()
         self.tuya_controller.update_devices_status(devices)
 
-
-
     def send_avg_data(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
         # self.send_data.send_weather(self.automation.local_weather)
 
     def run_read_vals(self):
-        reed = BackgroundScheduler()
-        hour = int(time.strftime("%H"))
-        time_now = time.strftime("%H:%M")
-        when_reset = ['21:30', '01:00', '05:00', '07:00', '07:00', '12:00']
-        send_time_slot = 1200
-        load_time_slot = 30
-        pump_stats = 300
-
-        # Don't need to send stats overnight
-        if hour >= 21 or hour <= 5:
-            send_time_slot = 2400
-            pump_stats = 1800
-            load_time_slot = 120
-
-        if time_now in when_reset:
-            reed.shutdown()
-
-        reed.add_job(self.send_avg_data, 'interval', seconds=send_time_slot)
-        reed.add_job(self.update_devs_stats, 'interval', seconds=pump_stats / 5)
-        reed.add_job(self.send_stats_api, 'interval', seconds=pump_stats + 60)
-        reed.add_job(self.load_checks, 'interval', seconds=load_time_slot)
-        reed.start()
+        curr = int(time.time())
+        if curr % 30 == 0:
+            self.send_avg_data()  # run every seconds=1200
+        if curr % 45 == 0:
+            self.update_devs_stats()  # run every seconds=300 / 5
+        if curr % 50 == 0:
+            self.send_stats_api()  # run every seconds=300 + 60
+        if curr % 20 == 0:
+            self.load_checks()  # run every seconds=30
 
     def send_stats_api(self):
         self.send_data.send_load_stats(self.new_devices.get_devices_by_name("uv")[0])
