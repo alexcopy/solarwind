@@ -53,6 +53,7 @@ class SolarPond():
             inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
             logging.info(self.new_devices.get_devices_by_name("inverter")[0].get_status())
             pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
+            logging.info(pump_status)
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
@@ -120,7 +121,7 @@ class SolarPond():
             self.FILTER_FLUSH = []
 
     def update_devs_stats(self):
-        devices = self.new_devices.update_all_statuses()
+        devices = self.new_devices.get_devices()
         self.tuya_controller.update_devices_status(devices)
 
     def send_avg_data(self):
@@ -130,14 +131,14 @@ class SolarPond():
 
     def run_read_vals(self):
         curr = int(time.time())
-        if curr % 30 == 0:
-            self.send_avg_data()  # run every seconds=1200
+        # if curr % 30 == 0:
+        #     self.send_avg_data()  # run every seconds=1200
         if curr % 45 == 0:
             self.update_devs_stats()  # run every seconds=300 / 5
-        if curr % 50 == 0:
-            self.send_stats_api()  # run every seconds=300 + 60
-        if curr % 20 == 0:
-            self.load_checks()  # run every seconds=30
+        # if curr % 50 == 0:
+        #     self.send_stats_api()  # run every seconds=300 + 60
+        # if curr % 20 == 0:
+        #     self.load_checks()  # run every seconds=30
 
     def send_stats_api(self):
         self.send_data.send_load_stats(self.new_devices.get_devices_by_name("uv")[0])
