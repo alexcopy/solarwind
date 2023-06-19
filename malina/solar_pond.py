@@ -4,15 +4,13 @@ import logging.handlers
 import time
 from pathlib import Path
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import dotenv_values
 
-from malina.LIB.InitiateDevices import InitiateDevices
+from malina.LIB import FiloFifo
 from malina.LIB import SendApiData
-from malina.LIB.DeviceManager import DeviceManager
+from malina.LIB.InitiateDevices import InitiateDevices
 from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
-from malina.LIB import FiloFifo
 from malina.LIB.TuyaController import TuyaController
 
 config = dotenv_values(".env")
@@ -28,10 +26,10 @@ class SolarPond():
         self.filo_fifo = FiloFifo.FiloFifo()
         self.tuya_auth = TuyaAuthorisation(logging)
         self.tuya_controller = TuyaController(self.tuya_auth)
-        self.new_devices = InitiateDevices(logging).devices
-        self.dev_manager = DeviceManager
+        self.new_devices = InitiateDevices().devices
+
         self.send_data = SendApiData.SendApiData(logging)
-        self.switch_to_solar_power()
+        # self.switch_to_solar_power()
         self.new_devices.update_all_statuses()
 
     @staticmethod
@@ -87,6 +85,7 @@ class SolarPond():
         self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
         # self.weather_check_update()
         pumps = self.new_devices.get_devices_by_name("pump")
+        print("Printing out pumps for", pumps)
         self.tuya_controller.adjust_devices_speed(pumps)
 
     def weather_check_update(self):
@@ -133,18 +132,23 @@ class SolarPond():
         curr = int(time.time())
         # if curr % 30 == 0:
         #     self.send_avg_data()  # run every seconds=1200
-        if curr % 45 == 0:
+        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+
+
+
+        if curr % 20 == 0:
+            print("UPDATING READ_VALS")
             self.update_devs_stats()  # run every seconds=300 / 5
-        # if curr % 50 == 0:
-        #     self.send_stats_api()  # run every seconds=300 + 60
-        # if curr % 20 == 0:
-        #     self.load_checks()  # run every seconds=30
+        if curr % 50 == 0:
+            self.send_stats_api()  # run every seconds=300 + 60
+        if curr % 20 == 0:
+            self.load_checks()  # run every seconds=30
 
     def send_stats_api(self):
-        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("uv")[0])
-        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("air")[0])
-        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("fountain")[0])
-        self.send_data.send_load_stats(self.new_devices.get_devices_by_name("pump")[0])
+        devices = self.new_devices.get_devices()
+        for device in devices:
+            self.send_data.send_load_stats(device)
+
 
 # todo:
 #  add weather to table and advance in table pond self temp from future gauge

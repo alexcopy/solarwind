@@ -9,7 +9,8 @@ class Device:
     def __init__(self, id, device_type, status: dict, name: str, desc: str, api_sw: str, coefficient, min_volt,
                  max_volt, priority, bus_voltage=0, extra=None):
         if extra is None:
-            extra = {}
+            extra = {'switch_time': 10}
+        switch_time = int(extra['switch_time'])
         self.id = id
         self.device_type = device_type
         self.status = status
@@ -22,7 +23,7 @@ class Device:
         self.extra = extra
         self.api_sw = api_sw
         self.voltage = bus_voltage
-        self.time_last_switched = datetime.now() - timedelta(seconds=240)
+        self.time_last_switched = datetime.now() - timedelta(switch_time)
         self.filo = FiloFifo()
 
     def get_id(self):
@@ -71,6 +72,10 @@ class Device:
 
     def set_last_switched(self, time_switch):
         self.last_switch = time_switch
+
+    @property
+    def last_switched(self ):
+        return self.last_switch
 
     def get_status(self, key=None):
         if key is None:

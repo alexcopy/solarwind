@@ -25,8 +25,9 @@ class TuyaController():
 
     def _status(self, device_id):
         try:
-            status = self.authorisation.device_manager.get_device_list_status([device_id])
             logging.debug(" ---------Getting device status for %s  ---------" % device_id)
+            status = self.authorisation.device_manager.get_device_list_status([device_id])
+            logging.debug(f" --------- device status is: {status}  ---------")
             if status["success"]:
                 device_status = status['result'][0]['status']
                 sw_status = {v['code']: v['value'] for v in device_status}
@@ -60,7 +61,7 @@ class TuyaController():
         device_id = device.get_id()
         status = self._status(device_id)
         if status['success']:
-            device.update_status({'switch_1': 0, "switch": 0})
+            device.update_status(status)
         return status
 
     def switch_all_on_soft(self, devices):
@@ -87,6 +88,7 @@ class TuyaController():
 
     def update_devices_status(self, devices):
         for device in devices:
+            logging.debug(f"Updated device  status: {device.get_name()}")
             self.update_status(device)
             time.sleep(5)
 
@@ -96,13 +98,14 @@ class TuyaController():
 
     def adjust_devices_speed(self, devices):
         for device in devices:
-            if not device.get_device_type() == 'PUMP':
+            if not device.get_device_type == 'PUMP':
                 continue
             is_device_ready = device.is_device_ready_to_switch_on() or device.is_device_ready_to_switch_off()
             if is_device_ready and device.get_status("mode") == 6:
+                logging.debug(f"Adjust device  speed: {device.get_name()}")
                 self._adjust_pump_power(device)
-            else:
-                logging.info("Pump working mode= %d so no adjustments could be done " % device.get_status("mode"))
+            elif not device.get_status("mode") == 6:
+                logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
                 logging.debug(f"device {device.name} is not ready yet")
 
     def _adjust_pump_power(self, device):

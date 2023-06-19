@@ -14,11 +14,10 @@ class InitiateDevices:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, logger):
+    def __init__(self):
         if hasattr(self, "initialized"):
             return
         self.device_controller = DeviceManager()
-        self.logger = logger
 
         with open(DEVICE_CONFIG) as f:
             devices = yaml.safe_load(f)

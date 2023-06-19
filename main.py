@@ -45,10 +45,10 @@ class SetupLogger():
 if __name__ == '__main__':
     sl = SetupLogger()
     sp = SolarPond()
-    sp.run_read_vals()
+    # sp.run_read_vals()
     while True:
         timestamp = int(time.time())
         time.sleep(SECS)
-        sp.processing_reads()
+        sp.run_read_vals()
         if timestamp % 600 == 0:
             sp.reset_ff()

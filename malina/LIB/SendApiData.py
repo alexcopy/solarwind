@@ -3,10 +3,13 @@
 import json
 import logging
 import time
-import requests
 from urllib.parse import urljoin
+
+import requests
 from dotenv import dotenv_values
 
+from malina.LIB.Device import Device
+from malina.LIB.InitiateDevices import InitiateDevices
 from malina.LIB.FiloFifo import FiloFifo
 from malina.LIB.PrintLogs import SolarLogging
 
@@ -16,7 +19,7 @@ API_URL = config["API_URL"]
 
 class SendApiData():
     def __init__(self, logger):
-        self.logger = logger
+        self.device_manager = InitiateDevices().devices
         self.api_url = API_URL
         self.print_logs = SolarLogging(logger)
 
@@ -30,12 +33,14 @@ class SendApiData():
             return response.json()
         except Exception as ex:
             logging.error("Getting error in sending to remote API data ")
-            self.logger.error(ex)
+            logging.error(ex)
             return {'errors': True}
 
-    def send_pump_stats(self, is_working_mains: int, pump_status):
+    def send_pump_stats(self, device: Device):
         try:
-            pump_status.update({'from_main': is_working_mains})
+            pump_status = device.get_status()
+            is_working_mains = self.device_manager.get_devices_by_name("inverter")[0].get_status('switch_1')
+            pump_status.update({"description": pump_status.get("desc"), 'from_main': is_working_mains})
             payload = json.dumps(pump_status)
             headers = {
                 'Content-Type': 'application/json'
@@ -43,13 +48,13 @@ class SendApiData():
             url = urljoin(self.api_url, 'pondpump/')
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
-                self.logger.error(response['payload'])
-                self.logger.error(response['errors_msg'])
+                logging.error(response['payload'])
+                logging.error(response['errors_msg'])
             return response
         except Exception as ex:
             logging.error("Getting error in send_pump_stats to remote API data ")
             print(ex)
-            self.logger.error(ex)
+            logging.error(ex)
             time.sleep(10)
             return {'errors': True}
 
@@ -89,9 +94,10 @@ class SendApiData():
         if erros_resp:
             logging.error(resp)
 
-    def send_load_stats(self, device, api_path='pondswitch/'):
+    def _send_switch_stats(self, device, api_path='pondswitch/'):
         try:
-            status=device.get_status()
+            status = device.get_status()
+            status.update({"description": status.get("desc")})
             payload = json.dumps(status)
             headers = {
                 'Content-Type': 'application/json'
@@ -99,15 +105,21 @@ class SendApiData():
             url = urljoin(self.api_url, api_path)
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
-                self.logger.error(response['payload'])
-                self.logger.error(response['errors_msg'])
+                logging.error(response['payload'])
+                logging.error(response['errors_msg'])
             return response
         except Exception as ex:
             logging.error("Getting error in send_load_stats to remote API data ")
             print(ex)
-            self.logger.error(ex)
+            logging.error(ex)
             time.sleep(10)
             return {'errors': True}
+
+    def send_load_stats(self, device):
+        if device.get_device_type == "SWITCH":
+            self._send_switch_stats(device)
+        elif device.get_device_type == "PUMP":
+            self.send_pump_stats(device)
 
     def send_weather(self, local_weather):
         try:
@@ -118,12 +130,12 @@ class SendApiData():
             url = urljoin(self.api_url, 'pondweather/')
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
-                self.logger.error(response['payload'])
-                self.logger.error(response['errors_msg'])
+                logging.error(response['payload'])
+                logging.error(response['errors_msg'])
             return response
         except Exception as ex:
             logging.error("Getting error in send_weather to remote API data ")
             print(ex)
-            self.logger.error(ex)
+            logging.error(ex)
             time.sleep(10)
             return {'errors': True}
