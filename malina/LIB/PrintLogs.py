@@ -5,7 +5,7 @@ from malina.LIB import FiloFifo
 class SolarLogging:
     def __init__(self, logging):
         self.logging = logging
-        self.fifo = FiloFifo.FiloFifo().fifo_buff
+        self.fifo = FiloFifo.FiloFifo()
 
     def avg(self, l):
         if len(l) == 0:
@@ -38,7 +38,7 @@ class SolarLogging:
             else:
                 continue
             name = i.title().replace('_', " ")
-            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo[i]), units))
+            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.fifo_buff[i]), units))
 
         self.logging.debug(" ")
         self.logging.debug(" 1S Solar Current: %3.2f " % sol_current['1s_solar_current'])
@@ -53,7 +53,7 @@ class SolarLogging:
     def printing_vars(self, inverter_status, pump_status, load_devices):
         self.logging.info("")
         self.logging.info("--------------------------------------------")
-        for i in self.fifo:
+        for i in self.fifo.fifo_buff:
             if 'voltage' in i:
                 units = "V"
             elif 'current' in i:
@@ -63,7 +63,7 @@ class SolarLogging:
             else:
                 units = "UN"
             name = i
-            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo[i]), units))
+            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.fifo_buff[i]), units))
 
         self.logging.info("")
         sol_current = self.fifo.solar_current
@@ -83,7 +83,7 @@ class SolarLogging:
             "ON" if (load_devices.get_devices_by_name("fountain")[0].get_status("status")) else "OFF"))
         self.logging.info("")
 
-        wtg = (sol_current['10m_solar_current'] * self.fifo['1s_inverter_bus_voltage']) / 1000
+        wtg = (sol_current['10m_solar_current'] * self.fifo.fifo_buff['1s_inverter_bus_voltage']) / 1000
         self.logging.info(" 1S Solar Power: %3.2f W " % wtg)
         self.logging.info(" Pond Pump Speed: %d  " % pump_status)
         self.logging.info("---")
