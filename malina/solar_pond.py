@@ -131,9 +131,13 @@ class SolarPond():
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
 
-        if curr % 30 == 0:
+        if curr % 10 == 0:
+            logging.info("Processing reads")
             self.processing_reads()
-        self._logs(inv_status, pump_status)
+
+        if curr % 10 == 0:
+            logging.info("Printing Logs Reads")
+            self._logs(inv_status, pump_status)
             # self.send_avg_data()  # run every seconds=1200
         # if curr % 120 == 0:
         #     print("UPDATING READ_VALS")
@@ -147,7 +151,6 @@ class SolarPond():
         devices = self.new_devices.get_devices()
         for device in devices:
             self.send_data.send_load_stats(device)
-
 
 # todo:
 #  add weather to table and advance in table pond self temp from future gauge
