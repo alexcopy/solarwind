@@ -49,9 +49,6 @@ class SolarPond():
     def processing_reads(self):
         try:
             inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
-            logging.info(self.new_devices.get_devices_by_name("inverter")[0].get_status())
-            pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
-            logging.info(pump_status)
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
@@ -59,18 +56,6 @@ class SolarPond():
                 'inverter_relay': inv_status,
                 'main_relay_status': inv_status,
             })
-            solar_current = self.filo_fifo.solar_current
-            cur_t = int(time.time())
-            hour = int(time.strftime("%H"))
-            diviser = 4
-            if hour > 21 or hour < 5:
-                diviser = 30
-
-            if cur_t % diviser == 0:
-                self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                              pump_status, solar_current, self.new_devices)
-                self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, pump_status,
-                                        solar_current)
         except IOError as io_err:
             logging.error(
                 f"problem in processing_reads please have a look in IOError {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
@@ -80,6 +65,19 @@ class SolarPond():
             logging.error(
                 f"problem in processing_reads please have a look in Exception {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
             logging.error(ex)
+
+    def _logs(self, inv_status, pump_status):
+        solar_current = self.filo_fifo.solar_current
+        hour = int(time.strftime("%H"))
+        diviser = 4
+        if hour > 21 or hour < 5:
+            diviser = 30
+        cur_t = int(time.time())
+        if cur_t % diviser == 0:
+            self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
+                                          pump_status, solar_current, self.new_devices)
+            self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, pump_status,
+                                    solar_current)
 
     def load_checks(self):
         self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
@@ -130,10 +128,13 @@ class SolarPond():
 
     def run_read_vals(self):
         curr = int(time.time())
+        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+        pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
+
         if curr % 30 == 0:
             self.processing_reads()
+        self._logs(inv_status, pump_status)
             # self.send_avg_data()  # run every seconds=1200
-        # inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         # if curr % 120 == 0:
         #     print("UPDATING READ_VALS")
         #     self.update_devs_stats()  # run every seconds=300 / 5
