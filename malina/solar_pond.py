@@ -74,16 +74,14 @@ class SolarPond():
             diviser = 30
         cur_t = int(time.time())
         if cur_t % diviser == 0:
-            self.print_logs.printing_vars(self.filo_fifo.fifo_buff, inv_status, self.filo_fifo.get_avg_rel_stats,
-                                          pump_status, solar_current, self.new_devices)
-            self.print_logs.log_run(self.filo_fifo.filo_buff, inv_status, pump_status,
-                                    solar_current)
+            self.print_logs.printing_vars(inv_status, self.filo_fifo.get_avg_rel_stats, pump_status, self.new_devices)
+            self.print_logs.log_run(inv_status, pump_status)
 
     def load_checks(self):
         self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
         # self.weather_check_update()
         pumps = self.new_devices.get_devices_by_name("pump")
-        print("Printing out pumps for", pumps)
+
         self.tuya_controller.adjust_devices_speed(pumps)
 
     def weather_check_update(self):
