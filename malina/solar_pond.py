@@ -74,7 +74,7 @@ class SolarPond():
             diviser = 30
         cur_t = int(time.time())
         if cur_t % diviser == 0:
-            self.print_logs.printing_vars(inv_status, self.filo_fifo.get_avg_rel_stats, pump_status, self.new_devices)
+            self.print_logs.printing_vars(inv_status,  pump_status, self.new_devices)
             self.print_logs.log_run(inv_status, pump_status)
 
     def load_checks(self):

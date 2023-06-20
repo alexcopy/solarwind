@@ -25,7 +25,7 @@ class SolarLogging:
             "-------------Switching to INVERTER RELAY status is: %d --------------" % inverter)
         self.logging.error("---------------------------------------------------------------------")
 
-    def log_run(self, invert_status, pump_status ):
+    def log_run(self, invert_status, pump_status):
         sol_current = self.fifo.solar_current
         self.logging.debug("--------------------------------------------")
         for i in self.fifo:
@@ -50,7 +50,7 @@ class SolarLogging:
         self.logging.debug("############################################")
         self.logging.debug("--------------------------------------------")
 
-    def printing_vars(self, inverter_status, statuses, pump_status,   load_devices):
+    def printing_vars(self, inverter_status, pump_status, load_devices):
         self.logging.info("")
         self.logging.info("--------------------------------------------")
         for i in self.fifo:
@@ -79,7 +79,8 @@ class SolarLogging:
 
         self.logging.info(" UV Sterilizer is: %s " % (
             "ON" if (load_devices.get_devices_by_name("uv")[0].get_status("status")) else "OFF"))
-        self.logging.info(" FNT State is: %s " % ("ON" if (load_devices.get_devices_by_name("fountain")[0].get_status("status")) else "OFF"))
+        self.logging.info(" FNT State is: %s " % (
+            "ON" if (load_devices.get_devices_by_name("fountain")[0].get_status("status")) else "OFF"))
         self.logging.info("")
 
         wtg = (sol_current['10m_solar_current'] * self.fifo['1s_inverter_bus_voltage']) / 1000
@@ -88,5 +89,3 @@ class SolarLogging:
         self.logging.info("---")
         self.logging.info("--------------------------------------------")
         self.logging.info("--------------------------------------------")
-
-
