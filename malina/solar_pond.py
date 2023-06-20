@@ -130,19 +130,17 @@ class SolarPond():
 
     def run_read_vals(self):
         curr = int(time.time())
-        # if curr % 30 == 0:
-        #     self.send_avg_data()  # run every seconds=1200
-        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
-
-
-
-        if curr % 20 == 0:
-            print("UPDATING READ_VALS")
-            self.update_devs_stats()  # run every seconds=300 / 5
-        if curr % 50 == 0:
-            self.send_stats_api()  # run every seconds=300 + 60
-        if curr % 20 == 0:
-            self.load_checks()  # run every seconds=30
+        if curr % 30 == 0:
+            self.processing_reads()
+            # self.send_avg_data()  # run every seconds=1200
+        # inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+        # if curr % 120 == 0:
+        #     print("UPDATING READ_VALS")
+        #     self.update_devs_stats()  # run every seconds=300 / 5
+        # if curr % 50 == 0:
+        #     self.send_stats_api()  # run every seconds=300 + 60
+        # if curr % 20 == 0:
+        #     self.load_checks()  # run every seconds=30
 
     def send_stats_api(self):
         devices = self.new_devices.get_devices()
