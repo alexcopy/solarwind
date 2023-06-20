@@ -28,7 +28,7 @@ class SolarLogging:
     def log_run(self, invert_status, pump_status):
         sol_current = self.fifo.solar_current
         self.logging.debug("--------------------------------------------")
-        for i in self.fifo:
+        for i in self.fifo.filo_buff:
             if 'bus_voltage' in i:
                 units = "V"
             elif 'current' in i:
@@ -38,7 +38,7 @@ class SolarLogging:
             else:
                 continue
             name = i.title().replace('_', " ")
-            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
+            self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
         self.logging.debug(" ")
         self.logging.debug(" 1S Solar Current: %3.2f " % sol_current['1s_solar_current'])
@@ -63,7 +63,7 @@ class SolarLogging:
             else:
                 units = "UN"
             name = i
-            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
+            self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
         self.logging.info("")
         sol_current = self.fifo.solar_current
