@@ -51,7 +51,7 @@ class SolarLogging:
         self.logging.debug("--------------------------------------------")
 
     def printing_vars(self, inverter_status, pump_status, load_devices):
-        self.logging.info("")
+        self.logging.info(self.fifo.filo_buff)
         self.logging.info("--------------------------------------------")
         for i in self.fifo.filo_buff:
             if 'voltage' in i:
@@ -83,7 +83,7 @@ class SolarLogging:
             "ON" if (load_devices.get_devices_by_name("fountain")[0].get_status("status")) else "OFF"))
         self.logging.info("")
 
-        wtg = (sol_current['10m_solar_current'] * self.fifo.filo_buff['1s_inverter_bus_voltage']) / 1000
+        wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
         self.logging.info(" 1S Solar Power: %3.2f W " % wtg)
         self.logging.info(" Pond Pump Speed: %d  " % pump_status)
         self.logging.info("---")
