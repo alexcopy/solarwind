@@ -63,9 +63,9 @@ class SolarLogging:
                 units = "Watt"
             else:
                 units = "UN"
-            if i.startswith('1s'):
-                name = i
-                self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
+
+            name = i
+            self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
         self.logging.info("")
         sol_current = self.fifo.solar_current
