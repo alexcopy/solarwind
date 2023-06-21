@@ -37,9 +37,9 @@ class SolarLogging:
                 units = "W"
             else:
                 continue
-            if i.startswith('1s'):
-                name = i.title().replace('_', " ")
-                self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
+
+            name = i.title().replace('_', " ")
+            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
         self.logging.debug(" ")
         self.logging.debug(" 1S Solar Current: %3.2f " % sol_current['1s_solar_current'])
@@ -63,13 +63,14 @@ class SolarLogging:
                 units = "Watt"
             else:
                 units = "UN"
-            name = i
-            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
+            if i.startswith('1s'):
+                name = i
+                self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
         self.logging.info("")
         sol_current = self.fifo.solar_current
-        self.logging.info(" 1S Solar Current: %3.2f " % sol_current['1s_solar_current'])
-        self.logging.info(" 10m Solar Current: %3.2f " % sol_current['10m_solar_current'])
+        self.logging.info(" 1S Solar Current: %3.2f A" % sol_current['1s_solar_current']/1000)
+        self.logging.info(" 10m Solar Current: %3.2f A" % sol_current['10m_solar_current']/1000)
         self.logging.info("")
         self.logging.info("---")
 

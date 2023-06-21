@@ -74,7 +74,7 @@ class SolarPond():
             diviser = 30
         cur_t = int(time.time())
         if cur_t % diviser == 0:
-            self.print_logs.printing_vars(inv_status,  pump_status, self.new_devices)
+            self.print_logs.printing_vars(inv_status, pump_status, self.new_devices)
             self.print_logs.log_run(inv_status, pump_status)
 
     def load_checks(self):
@@ -129,12 +129,10 @@ class SolarPond():
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
 
-        if curr % 10 == 0:
-            logging.info("Processing reads")
+        if curr % 5 == 0:
             self.processing_reads()
 
-        if curr % 10 == 0:
-            logging.info("Printing Logs Reads")
+        if curr % 5 == 0:
             self._logs(inv_status, pump_status)
             # self.send_avg_data()  # run every seconds=1200
         if curr % 30 == 0:
