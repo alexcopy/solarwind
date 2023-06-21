@@ -137,13 +137,13 @@ class SolarPond():
             logging.info("Printing Logs Reads")
             self._logs(inv_status, pump_status)
             # self.send_avg_data()  # run every seconds=1200
-        # if curr % 120 == 0:
-        #     print("UPDATING READ_VALS")
-        #     self.update_devs_stats()  # run every seconds=300 / 5
+        if curr % 30 == 0:
+            print("UPDATING READ_VALS")
+            self.update_devs_stats()  # run every seconds=300 / 5
         # if curr % 50 == 0:
         #     self.send_stats_api()  # run every seconds=300 + 60
-        # if curr % 20 == 0:
-        #     self.load_checks()  # run every seconds=30
+        if curr % 10 == 0:
+            self.load_checks()  # run every seconds=30
 
     def send_stats_api(self):
         devices = self.new_devices.get_devices()
