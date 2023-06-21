@@ -69,8 +69,8 @@ class SolarLogging:
 
         self.logging.info("")
         sol_current = self.fifo.solar_current
-        self.logging.info(" 1S Solar Current: %3.2f A" % sol_current['1s_solar_current']/1000)
-        self.logging.info(" 10m Solar Current: %3.2f A" % sol_current['10m_solar_current']/1000)
+        self.logging.info(" 1S Solar Current: %3.2f A" % float(sol_current['1s_solar_current'] / 1000))
+        self.logging.info(" 10m Solar Current: %3.2f A" % float(sol_current['10m_solar_current'] / 1000))
         self.logging.info("")
         self.logging.info("---")
 
