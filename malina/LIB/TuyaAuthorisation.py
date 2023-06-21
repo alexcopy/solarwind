@@ -27,7 +27,7 @@ class SingletonMeta(type):
 
 class TuyaAuthorisation(metaclass=SingletonMeta):
     def __init__(self, logger):
-        TUYA_LOGGER.setLevel(logging.INFO)
+        TUYA_LOGGER.setLevel(logging.DEBUG)
         self.logger = logger
         self.openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY, AuthType.CUSTOM)
 
