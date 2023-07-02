@@ -28,7 +28,7 @@ class DeviceManager:
     def remove_device(self, device):
         if device not in self._devices.values():
             raise ValueError(f"Device with ID '{device.get_id()}' does not exist.")
-        del self._devices[device.get_id()]
+        del self._devices[device.get_id()]  
         self._device_order.remove(device)
 
     def get_devices(self):
@@ -43,23 +43,6 @@ class DeviceManager:
         device = self.get_device_by_id(device_id)
         device.set_status(status)
 
-    def device_switch_on(self, device_id):
-        device = self.get_device_by_id(device_id)
-        if device.is_device_ready_to_switch_on():
-            dev_status = self.tuya_controller.switch_on_device(device)
-            device.set_status(dev_status)
-        else:
-            logging.debug("-----Device with name %s isn't READY to switch ON last switched: %d " % (
-                device.name, device.last_switched))
-
-    def device_switch_off(self, device_id):
-        device = self.get_device_by_id(device_id)
-        if device.is_device_ready_to_switch_off():
-            dev_status = self.tuya_controller.switch_off_device(device)
-            device.set_status(dev_status)
-        else:
-            logging.debug("-----Device with name %s isn't ready to switch OFF last switched: %d " % (
-            device.name, device.last_switched))
 
     def get_devices_by_name(self, name):
         matching_devices = []
