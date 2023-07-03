@@ -141,7 +141,7 @@ class SolarPond():
         # if curr % 50 == 0:
         #     self.send_stats_api()  # run every seconds=300 + 60
         if curr % 10 == 0:
-            # self.load_checks()  # run every seconds=30
+          self.load_checks()  # run every seconds=30
 
     def send_stats_api(self):
         devices = self.new_devices.get_devices()
