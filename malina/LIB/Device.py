@@ -71,11 +71,11 @@ class Device:
         self.status = status
 
     def set_last_switched(self, time_switch):
-        self.last_switch = time_switch
+        self.time_last_switched = time_switch
 
     @property
-    def last_switched(self ):
-        return self.last_switch
+    def last_switched(self):
+        return self.time_last_switched
 
     def get_status(self, key=None):
         if key is None:
