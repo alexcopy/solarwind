@@ -69,7 +69,7 @@ class TuyaController():
         for device in devices:
             if device.is_device_ready_to_switch_on():
                 logging.error(
-                    f"Device is redy to switch ON {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
+                    f"Device is ready to switch ON dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
 
                 # self.switch_on_device(device)
                 time.sleep(5)
@@ -78,7 +78,7 @@ class TuyaController():
         for device in devices:
             if device.is_device_ready_to_switch_off():
                 logging.error(
-                    f"Device is redy to switch OFF {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
+                    f"Device is ready to switch OFF dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
 
                 # self.switch_off_device(device)
                 time.sleep(5)
@@ -108,10 +108,10 @@ class TuyaController():
             if not device.get_device_type == 'PUMP':
                 continue
             is_device_ready = device.is_device_ready_to_switch_on() or device.is_device_ready_to_switch_off()
-            if is_device_ready and device.get_status("mode") == 6:
+            if is_device_ready and int(device.get_status("mode")) == 6:
                 logging.debug(f"Adjust device  speed: {device.get_name()}")
                 self._adjust_pump_power(device)
-            elif not device.get_status("mode") == 6:
+            elif not int(device.get_status("mode")) == 6:
                 logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
                 logging.debug(f"device {device.name} is not ready yet")
 
