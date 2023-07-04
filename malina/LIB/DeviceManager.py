@@ -28,7 +28,7 @@ class DeviceManager:
     def remove_device(self, device):
         if device not in self._devices.values():
             raise ValueError(f"Device with ID '{device.get_id()}' does not exist.")
-        del self._devices[device.get_id()]  
+        del self._devices[device.get_id()]
         self._device_order.remove(device)
 
     def get_devices(self):
@@ -42,7 +42,6 @@ class DeviceManager:
     def update_device_status(self, device_id, status):
         device = self.get_device_by_id(device_id)
         device.set_status(status)
-
 
     def get_devices_by_name(self, name):
         matching_devices = []

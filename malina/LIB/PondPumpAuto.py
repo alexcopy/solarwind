@@ -110,7 +110,7 @@ class PondPumpAuto():
         voltage = device.get_inverter_values()
         min_bat_volt = device.get_min_volt()
         max_bat_volt = device.get_max_volt()
-        mains_relay_status = self.devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+        mains_relay_status = device.get_inverter_values()
         hour = int(time.strftime("%H"))
         speed_step = int(device.get_extra('speed_step'))
 
