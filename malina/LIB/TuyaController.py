@@ -118,8 +118,8 @@ class TuyaController():
     def _adjust_pump_power(self, device):
 
         try:
-            device_type = device.get_device_type()
-            if device_type == 'PUMP':
+            device_type = device.get_device_type
+            if device_type == "PUMP":
                 speed = self.pump_auto.pond_pump_adj(device)
                 switch_device = self.switch_device(device, speed)
                 if switch_device:
