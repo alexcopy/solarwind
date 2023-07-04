@@ -122,6 +122,7 @@ class TuyaController():
             pump_curr_speed = int(device.get_status("P"))
             if pump_curr_speed == speed:
                 logging.info(" Pump's Speed is optimal : %d  -----so no adjustments needed !!!!!!!!!" % speed)
+                return True
             if device_type == "PUMP":
                 switch_device = self.switch_device(device, speed)
                 if switch_device:
