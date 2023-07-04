@@ -116,7 +116,6 @@ class TuyaController():
                 logging.debug(f"device {device.name} is not ready yet")
 
     def _adjust_pump_power(self, device):
-
         try:
             device_type = device.get_device_type
             if device_type == "PUMP":
@@ -135,4 +134,4 @@ class TuyaController():
                         logging.info(
                             "!!!!!   Pump's Speed successfully adjusted AFTER SLEEP 10 SEC to: %d !!!!!!!!!" % speed)
         except Exception as e:
-            logging.error(f"Device  type is wrong: {str(e)}. The device is {device}")
+            logging.error(f"Something is wrong with adjustment: {str(e)}. The device is {device}")

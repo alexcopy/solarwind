@@ -83,6 +83,8 @@ class Device:
         return self.status.get(key)
 
     def is_device_ready_to_switch_on(self):
+        if self.get_status('switch_1'):
+            return False
         if (self.time_last_switched is not None) and (datetime.now() - self.time_last_switched).total_seconds() < 300:
             return False
         voltage = self.get_inverter_values()
@@ -93,6 +95,8 @@ class Device:
         return False
 
     def is_device_ready_to_switch_off(self):
+        if not self.get_status('switch_1'):
+            return False
         if (self.time_last_switched is not None) and (datetime.now() - self.time_last_switched).total_seconds() < 300:
             return False
         voltage = self.get_inverter_values()
