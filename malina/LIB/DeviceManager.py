@@ -39,10 +39,6 @@ class DeviceManager:
             raise ValueError(f"Device with ID '{device_id}' does not exist.")
         return self._devices[device_id]
 
-    def update_device_status(self, device_id, status):
-        device = self.get_device_by_id(device_id)
-        device.set_status(status)
-
     def get_devices_by_name(self, name):
         matching_devices = []
         for device in self._devices.values():

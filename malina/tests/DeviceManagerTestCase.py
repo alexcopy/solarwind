@@ -52,13 +52,7 @@ class DeviceManagerTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.device_manager.get_device_by_id("3")
 
-    def test_update_device_status(self):
-        self.device_manager.add_device(self.device_1)
-        device_id = "1"
-        status = {"on": True, "mode": "auto"}
-        self.device_manager.update_device_status(device_id, status)
-        device = self.device_manager.get_device_by_id(device_id)
-        self.assertEqual(device.get_status(), status)
+
 
     def test_device_switch_on(self):
         self.device_manager.add_device(self.device_1)

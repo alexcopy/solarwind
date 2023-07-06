@@ -62,16 +62,7 @@ class Device:
         return self.priority
 
     def update_status(self, status):
-
         self.status.update(status)
-
-    def set_status(self, status):
-        if not self.status.get('status') == status.get("status"):
-            self.set_last_switched(datetime.now())
-        self.status = status
-
-    def set_last_switched(self, time_switch):
-        self.time_last_switched = time_switch
 
     @property
     def last_switched(self):
@@ -88,8 +79,8 @@ class Device:
         if (self.time_last_switched is not None) and (datetime.now() - self.time_last_switched).total_seconds() < 300:
             return False
         voltage = self.get_inverter_values()
-        logging.error(
-            f"----------Debugging is_device_ready_to_switch_on voltage: {voltage} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
+        logging.debug(
+            f"----------Debugging is_device_ready_to_switch_on NAme: {self.get_name()}  Device status: {self.get_status('switch_1')} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
         if voltage > self.max_voltage:
             return True
         return False
@@ -100,8 +91,8 @@ class Device:
         if (self.time_last_switched is not None) and (datetime.now() - self.time_last_switched).total_seconds() < 300:
             return False
         voltage = self.get_inverter_values()
-        logging.error(
-            f"----------Debugging is_device_ready_to_switch_off voltage: {voltage} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
+        logging.debug(
+            f"----------Debugging is_device_ready_to_switch_off Name: {self.get_name()} Device status: {self.get_status('switch_1')}  min_volt {self.min_voltage} max voltage: {self.max_voltage}")
         if voltage < self.min_voltage:
             return True
         return False
