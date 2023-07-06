@@ -115,27 +115,28 @@ class TuyaController():
                 logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
                 logging.debug(f"device {device.name} is not ready yet")
 
-    def _adjust_pump_power(self, device):
+    def _adjust_pump_power(self, device: Device):
         try:
-            device_type = device.get_device_type
             speed = self.pump_auto.pond_pump_adj(device)
             pump_curr_speed = int(device.get_status("P"))
+
             if pump_curr_speed == speed:
                 logging.info(" Pump's Speed is optimal : %d  -----so no adjustments needed !!!!!!!!!" % speed)
                 return True
-            if device_type == "PUMP":
+            switch_device = self.switch_device(device, speed)
+
+            if switch_device:
+                logging.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % speed)
+                self._status(device.get_id())
+            else:
+                time.sleep(10)
                 switch_device = self.switch_device(device, speed)
-                if switch_device:
-                    logging.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % speed)
-                    self._status(device.get_id())
+                if not switch_device:
+                    logging.error(
+                        "!!!!   Pump's Speed has failed after SLEEP 10 SEC to adjust in speed to: %d !!!!" % speed)
                 else:
-                    time.sleep(10)
-                    switch_device = self.switch_device(device, speed)
-                    if not switch_device:
-                        logging.error(
-                            "!!!!   Pump's Speed has failed after SLEEP 10 SEC to adjust in speed to: %d !!!!" % speed)
-                    else:
-                        logging.info(
-                            "!!!!!   Pump's Speed successfully adjusted AFTER SLEEP 10 SEC to: %d !!!!!!!!!" % speed)
+                    logging.info(
+                        "!!!!!   Pump's Speed successfully adjusted AFTER SLEEP 10 SEC to: %d !!!!!!!!!" % speed)
+
         except Exception as e:
             logging.error(f"Something is wrong with adjustment type is wrong: {str(e)}. The device is {device}")
