@@ -68,6 +68,9 @@ class Device:
     def last_switched(self):
         return self.time_last_switched
 
+    def device_switched(self):
+        self.time_last_switched = datetime.now()
+
     def get_status(self, key=None):
         if key is None:
             return self.status

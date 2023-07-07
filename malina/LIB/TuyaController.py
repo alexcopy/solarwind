@@ -52,12 +52,14 @@ class TuyaController():
         switched = self.switch_device(device, True)
         if switched:
             self.update_status(device)
+            device.device_switched()
         return switched
 
     def switch_off_device(self, device: Device):
         switch = self.switch_device(device, False)
         if switch:
             self.update_status(device)
+            device.device_switched()
 
     def update_status(self, device: Device):
         device_id = device.get_id()
