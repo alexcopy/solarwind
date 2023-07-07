@@ -71,7 +71,7 @@ class TuyaController():
                 logging.error(
                     f"Device is ready to switch ON dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
                 # todo UNcomment after dubug
-                # self.switch_on_device(device)
+                self.switch_on_device(device)
                 time.sleep(5)
 
     def switch_all_off_soft(self, devices):
@@ -80,7 +80,7 @@ class TuyaController():
                 logging.error(
                     f"Device is ready to switch OFF dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
                 # todo UNcomment after dubug
-                # self.switch_off_device(device)
+                self.switch_off_device(device)
                 time.sleep(5)
 
     def switch_all_on_hard(self, devices):
@@ -126,8 +126,9 @@ class TuyaController():
             switch_device = self.switch_device(device, speed)
 
             if switch_device:
-                logging.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % speed)
                 self._status(device.get_id())
+                logging.info(
+                    f"!!!!!   Pump's Speed successfully adjusted to: {speed} the new speed is: {device.get_status('P')}!!!!!!!!! ")
             else:
                 time.sleep(10)
                 switch_device = self.switch_device(device, speed)
