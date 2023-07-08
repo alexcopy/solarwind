@@ -73,7 +73,6 @@ class TuyaController():
             if device.is_device_ready_to_switch_on():
                 logging.error(
                     f"Device is ready to switch ON dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
-                # todo UNcomment after dubug
                 self.switch_on_device(device)
                 time.sleep(5)
 
@@ -82,7 +81,6 @@ class TuyaController():
             if device.is_device_ready_to_switch_off():
                 logging.error(
                     f"Device is ready to switch OFF dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
-                # todo UNcomment after dubug
                 self.switch_off_device(device)
                 time.sleep(5)
 
