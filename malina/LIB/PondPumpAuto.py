@@ -30,7 +30,7 @@ class PondPumpAuto():
         return self.weather
 
     def refresh_min_speed(self):
-        self.weather = self.weather_data()
+        # self.weather = self.weather_data()
         self._setup_minimum_pump_speed()
 
     def update_weather(self):
