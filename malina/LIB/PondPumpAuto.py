@@ -96,7 +96,7 @@ class PondPumpAuto():
     def check_pump_speed(self, device: Device):
         flow_speed = device.get_status('P')
         speed_step = device.get_extra('speed_step')
-        if not flow_speed % speed_step == 0:
+        if not (flow_speed % speed_step == 0):
             rounded = round(int(flow_speed) / speed_step) * speed_step
             if rounded < speed_step:
                 rounded = speed_step
@@ -106,18 +106,17 @@ class PondPumpAuto():
             return rounded
         return flow_speed
 
-    def pond_pump_adj(self, device: Device):
+    def pond_pump_adj(self, device: Device, inv_status):
         voltage = device.get_inverter_values()
         min_bat_volt = device.get_min_volt()
         max_bat_volt = device.get_max_volt()
-        mains_relay_status = device.get_inverter_values()
         hour = int(time.strftime("%H"))
         speed_step = int(device.get_extra('speed_step'))
 
-        mains_relay_status = int(mains_relay_status)
-        if mains_relay_status == 0:
+        if inv_status == 0:
             self.refresh_min_speed()
-            return self._min_speed['min_speed']
+            logging.info("----------Inverter switched off working from mains -------  ")
+            return device.get_extra("min_speed")
 
         if not speed_step:
             logging.error(" Check Configuration, cannot get Speed step from Config")

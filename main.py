@@ -1,6 +1,7 @@
 import time
 
 from malina.solar_pond import SolarPond
+import concurrent.futures
 
 SECS = 1
 import logging
@@ -52,3 +53,15 @@ if __name__ == '__main__':
         sp.run_read_vals()
         if timestamp % 600 == 0:
             sp.reset_ff()
+
+
+ # while True:
+ #        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+ #            timestamp = int(time.time())
+ #            time.sleep(SECS)
+ #            sp.run_read_vals()
+ #            if timestamp % 600 == 0:
+ #                sp.reset_ff()
+ #            for record, audio, duration in zip(records, audios, executor.map(extract_audio, videos, audios)):
+ #                pass
+

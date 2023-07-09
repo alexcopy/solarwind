@@ -78,10 +78,11 @@ class SolarPond():
             self.print_logs.log_run(inv_status, pump_status)
 
     def load_checks(self):
+        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
         # self.weather_check_update()
         pumps = self.new_devices.get_devices_by_name("pump")
-        self.tuya_controller.adjust_devices_speed(pumps)
+        self.tuya_controller.adjust_devices_speed(pumps, inv_status)
 
     def weather_check_update(self):
         weather_timer = self.automation.local_weather.get('timestamp', 0)

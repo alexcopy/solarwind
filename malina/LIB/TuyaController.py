@@ -104,21 +104,21 @@ class TuyaController():
         self.switch_all_on_soft(devices)
         self.switch_all_off_soft(devices)
 
-    def adjust_devices_speed(self, devices):
+    def adjust_devices_speed(self, devices, inv_status):
         for device in devices:
             if not device.get_device_type == 'PUMP':
                 continue
             is_device_ready = device.is_device_ready_to_switch_on() or device.is_device_ready_to_switch_off()
             if is_device_ready and int(device.get_status("mode")) == 6:
                 logging.debug(f"Adjust device  speed: {device.get_name()}")
-                self._adjust_pump_power(device)
+                self._adjust_pump_power(device, inv_status)
             elif not int(device.get_status("mode")) == 6:
                 logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
                 logging.debug(f"device {device.name} is not ready yet")
 
-    def _adjust_pump_power(self, device: Device):
+    def _adjust_pump_power(self, device: Device, inv_status):
         try:
-            speed = self.pump_auto.pond_pump_adj(device)
+            speed = self.pump_auto.pond_pump_adj(device, inv_status)
             pump_curr_speed = int(device.get_status("P"))
 
             if pump_curr_speed == speed:
