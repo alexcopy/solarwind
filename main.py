@@ -48,7 +48,7 @@ class SetupLogger():
 if __name__ == '__main__':
     sl = SetupLogger()
     sp = SolarPond()
-    # sp.run_read_vals()
+    sp.run_read_vals()
 
     # Инициализация планировщика
     scheduler = schedule.Scheduler()

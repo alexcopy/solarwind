@@ -69,15 +69,8 @@ class SolarPond():
     def show_logs(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
-        solar_current = self.filo_fifo.solar_current
-        hour = int(time.strftime("%H"))
-        diviser = 4
-        if hour > 21 or hour < 5:
-            diviser = 30
-        cur_t = int(time.time())
-        if cur_t % diviser == 0:
-            self.print_logs.printing_vars(inv_status, pump_status, self.new_devices)
-            self.print_logs.log_run(inv_status, pump_status)
+        self.print_logs.printing_vars(inv_status, pump_status, self.new_devices)
+        self.print_logs.log_run(inv_status, pump_status)
 
     def load_checks(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
