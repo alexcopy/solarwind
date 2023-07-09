@@ -1,5 +1,7 @@
 import time
 
+import schedule as schedule
+
 from malina.solar_pond import SolarPond
 import concurrent.futures
 
@@ -48,19 +50,16 @@ if __name__ == '__main__':
     sp = SolarPond()
     # sp.run_read_vals()
 
-    while True:
-        time.sleep(SECS)
-        with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
-            timestamp = int(time.time())
-            if timestamp % 600 == 0:
-                sp.reset_ff()
-            if timestamp % 5 == 0:
-                executor.map(sp.load_checks)
-            if timestamp % 5 == 0:
-                executor.map(sp.update_devs_stats)
+    # Инициализация планировщика
+    scheduler = schedule.Scheduler()
 
-            if timestamp % 5 == 0:
-                executor.map(sp.show_logs)
-                executor.map(sp.show_logs)
-            if timestamp % 60 == 0:
-                executor.map(sp.update_devs_stats)
+    # Добавление задач в планировщик
+    scheduler.every(10).minutes.do(sp.reset_ff)
+    scheduler.every(5).seconds.do(sp.load_checks)
+    scheduler.every(5).seconds.do(sp.update_devs_stats)
+    scheduler.every(5).seconds.do(sp.show_logs)
+    scheduler.every(1).minutes.do(sp.update_devs_stats)
+
+    while True:
+        scheduler.run_pending()
+        time.sleep(1)
