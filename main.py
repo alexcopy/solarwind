@@ -49,19 +49,18 @@ if __name__ == '__main__':
     # sp.run_read_vals()
 
     while True:
-        curr = int(time.time())
+        time.sleep(SECS)
         with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
             timestamp = int(time.time())
-            time.sleep(SECS)
             if timestamp % 600 == 0:
                 sp.reset_ff()
-            if curr % 5 == 0:
+            if timestamp % 5 == 0:
                 executor.map(sp.load_checks)
-            if curr % 5 == 0:
+            if timestamp % 5 == 0:
                 executor.map(sp.update_devs_stats)
 
-            if curr % 5 == 0:
+            if timestamp % 5 == 0:
                 executor.map(sp.show_logs)
                 executor.map(sp.show_logs)
-            if curr % 60 == 0:
+            if timestamp % 60 == 0:
                 executor.map(sp.update_devs_stats)
