@@ -52,6 +52,7 @@ if __name__ == '__main__':
     scheduler = schedule.Scheduler()
 
     # Добавление задач в планировщик
+    scheduler.every(1).seconds.do(sp.processing_reads)
     scheduler.every(10).minutes.do(sp.reset_ff)
     scheduler.every(5).seconds.do(sp.load_checks)
     scheduler.every(2).seconds.do(sp.show_logs)
