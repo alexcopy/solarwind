@@ -66,7 +66,9 @@ class SolarPond():
                 f"problem in processing_reads please have a look in Exception {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
             logging.error(ex)
 
-    def _logs(self, inv_status, pump_status):
+    def show_logs(self):
+        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+        pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
         solar_current = self.filo_fifo.solar_current
         hour = int(time.strftime("%H"))
         diviser = 4
@@ -124,24 +126,7 @@ class SolarPond():
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
         # self.send_data.send_weather(self.automation.local_weather)
 
-    def run_read_vals(self):
-        curr = int(time.time())
-        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
-        pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
 
-        if curr % 5 == 0:
-            self.processing_reads()
-
-        if curr % 5 == 0:
-            self._logs(inv_status, pump_status)
-            # self.send_avg_data()  # run every seconds=1200
-        if curr % 30 == 0:
-            print("UPDATING READ_VALS")
-            self.update_devs_stats()  # run every seconds=300 / 5
-        # if curr % 50 == 0:
-        #     self.send_stats_api()  # run every seconds=300 + 60
-        if curr % 10 == 0:
-          self.load_checks()  # run every seconds=30
 
     def send_stats_api(self):
         devices = self.new_devices.get_devices()

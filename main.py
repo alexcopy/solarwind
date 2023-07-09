@@ -47,21 +47,21 @@ if __name__ == '__main__':
     sl = SetupLogger()
     sp = SolarPond()
     # sp.run_read_vals()
+
     while True:
-        timestamp = int(time.time())
-        time.sleep(SECS)
-        sp.run_read_vals()
-        if timestamp % 600 == 0:
-            sp.reset_ff()
+        curr = int(time.time())
+        with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
+            timestamp = int(time.time())
+            time.sleep(SECS)
+            if timestamp % 600 == 0:
+                sp.reset_ff()
+            if curr % 5 == 0:
+                executor.map(sp.load_checks)
+            if curr % 5 == 0:
+                executor.map(sp.update_devs_stats)
 
-
- # while True:
- #        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
- #            timestamp = int(time.time())
- #            time.sleep(SECS)
- #            sp.run_read_vals()
- #            if timestamp % 600 == 0:
- #                sp.reset_ff()
- #            for record, audio, duration in zip(records, audios, executor.map(extract_audio, videos, audios)):
- #                pass
-
+            if curr % 5 == 0:
+                executor.map(sp.show_logs)
+                executor.map(sp.show_logs)
+            if curr % 60 == 0:
+                executor.map(sp.update_devs_stats)
