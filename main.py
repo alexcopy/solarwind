@@ -48,16 +48,13 @@ class SetupLogger():
 if __name__ == '__main__':
     sl = SetupLogger()
     sp = SolarPond()
-    sp.run_read_vals()
-
     # Инициализация планировщика
     scheduler = schedule.Scheduler()
 
     # Добавление задач в планировщик
     scheduler.every(10).minutes.do(sp.reset_ff)
     scheduler.every(5).seconds.do(sp.load_checks)
-    scheduler.every(5).seconds.do(sp.update_devs_stats)
-    scheduler.every(5).seconds.do(sp.show_logs)
+    scheduler.every(2).seconds.do(sp.show_logs)
     scheduler.every(1).minutes.do(sp.update_devs_stats)
 
     while True:
