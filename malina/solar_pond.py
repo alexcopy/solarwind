@@ -27,9 +27,7 @@ class SolarPond():
         self.tuya_auth = TuyaAuthorisation(logging)
         self.tuya_controller = TuyaController(self.tuya_auth)
         self.new_devices = InitiateDevices().devices
-
         self.send_data = SendApiData.SendApiData(logging)
-        # self.switch_to_solar_power()
         self.new_devices.update_all_statuses()
 
     @staticmethod
@@ -80,11 +78,7 @@ class SolarPond():
         self.tuya_controller.adjust_devices_speed(pumps, inv_status)
 
     def weather_check_update(self):
-        weather_timer = self.automation.local_weather.get('timestamp', 0)
-        if int(time.time()) - weather_timer > 1800:
-            self.automation.refresh_min_speed()
-        if weather_timer == 0:
-            self.automation.update_weather()
+        self.tuya_controller.adjust_min_pump_speed(self.new_devices.get_devices_by_name("pump"))
 
     def get_inverter_values(self, slot='1s', value='bus_voltage'):
         inverter_voltage = self.filo_fifo.get_filo_value('%s_inverter' % slot, value)

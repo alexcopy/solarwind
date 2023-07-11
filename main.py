@@ -57,6 +57,9 @@ if __name__ == '__main__':
     scheduler.every(5).seconds.do(sp.load_checks)
     scheduler.every(2).seconds.do(sp.show_logs)
     scheduler.every(1).minutes.do(sp.update_devs_stats)
+    scheduler.every(10).minutes.do(sp.weather_check_update)
+    # todo uncomment after testing
+    # scheduler.every(1).hour.do(sp.weather_check_update)
 
     while True:
         scheduler.run_pending()

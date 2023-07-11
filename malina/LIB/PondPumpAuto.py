@@ -29,29 +29,24 @@ class PondPumpAuto():
     def local_weather(self):
         return self.weather
 
-    def refresh_min_speed(self):
-        # self.weather = self.weather_data()
-        self._setup_minimum_pump_speed()
-
     def update_weather(self):
         self.weather = self.weather_data()
 
-    def _setup_minimum_pump_speed(self):
-        if (int(time.time()) - self._min_speed['timestamp']) >= 3600:
-            temp = self.weather['temperature']
-            self._min_speed['timestamp'] = int(time.time())
-            min_speed = self._min_speed['min_speed']
-            if temp < 8:
-                min_speed = 10
-            elif temp < 12:
-                min_speed = 20
+    def setup_minimum_pump_speed(self):
+        temp = self.weather['temperature']
+        self._min_speed['timestamp'] = int(time.time())
+        min_speed = self._min_speed['min_speed']
+        if temp < 8:
+            min_speed = 10
+        elif temp < 12:
+            min_speed = 20
 
-            elif temp < 17:
-                min_speed = 30
+        elif temp < 17:
+            min_speed = 30
 
-            elif temp > 17:
-                min_speed = 40
-            self._min_speed['min_speed'] = min_speed
+        elif temp > 17:
+            min_speed = 40
+        return min_speed
 
     def weather_data(self):
         try:
@@ -78,7 +73,6 @@ class PondPumpAuto():
         return device.get_status('P') == 100
 
     def _decrease_pump_speed(self, device: Device):
-        self.refresh_min_speed()
         flow_speed = device.get_status('P')
         min_pump_speed = self._min_speed['min_speed']
         new_speed = flow_speed - int(device.get_extra('speed_step'))
@@ -110,11 +104,11 @@ class PondPumpAuto():
         voltage = device.get_inverter_values()
         min_bat_volt = device.get_min_volt()
         max_bat_volt = device.get_max_volt()
+
         hour = int(time.strftime("%H"))
         speed_step = int(device.get_extra('speed_step'))
 
         if inv_status == 0:
-            self.refresh_min_speed()
             logging.info("----------Inverter switched off working from mains -------  ")
             return device.get_extra("min_speed")
 
@@ -135,7 +129,6 @@ class PondPumpAuto():
         if voltage > max_bat_volt:
             if not self.is_max_speed(device):
                 return self._increase_pump_speed(device)
-        self.refresh_min_speed()
         if self.is_minimum_speed(device):
             return device.get_status("P")
         if voltage < min_bat_volt:

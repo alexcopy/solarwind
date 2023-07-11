@@ -42,6 +42,13 @@ class Device:
         else:
             return None
 
+    def update_extra(self, key, value):
+        if key in self.extra:
+            self.extra.update({key: value})
+        else:
+            logging.error("Key is Unknown setup a new one")
+            self.extra.update({key: value})
+
     def get_name(self):
         return self.name
 

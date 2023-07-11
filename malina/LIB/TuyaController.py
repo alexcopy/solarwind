@@ -17,7 +17,7 @@ class TuyaController():
             commands = {"devId": device.get_id(), "commands": [{"code": api_sw, "value": value}]}
             resp = self.authorisation.device_manager.send_commands(commands["devId"], commands['commands'])
             return bool(resp['success'])
-        except  Exception as ex:
+        except Exception as ex:
             logging.error("---------Problem in switch_device method and class TuyaController ---------")
             logging.error(device)
             logging.error(ex)
@@ -124,10 +124,10 @@ class TuyaController():
             if pump_curr_speed == speed:
                 logging.info(" Pump's Speed is optimal : %d  -----so no adjustments needed !!!!!!!!!" % speed)
                 return True
-            switch_device = self.switch_device(device, speed)
 
+            switch_device = self.switch_device(device, speed)
             if switch_device:
-                self._status(device.get_id())
+                self.update_status(device)
                 logging.info(
                     f"!!!!!   Pump's Speed successfully adjusted to: {speed} the new speed is: {device.get_status('P')}!!!!!!!!! ")
             else:
@@ -142,3 +142,9 @@ class TuyaController():
 
         except Exception as e:
             logging.error(f"Something is wrong with adjustment type is wrong: {str(e)}. The device is {device}")
+
+    def adjust_min_pump_speed(self, pumps):
+        for device in pumps:
+            if not device.get_device_type == 'PUMP':
+                continue
+            device.update_extra("min_speed", self.pump_auto.setup_minimum_pump_speed())
