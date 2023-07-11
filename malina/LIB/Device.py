@@ -23,7 +23,7 @@ class Device:
         self.extra = extra
         self.api_sw = api_sw
         self.voltage = bus_voltage
-        self.time_last_switched = datetime.now() - timedelta(switch_time)
+        self.time_last_switched = int(datetime.now().timestamp())
         self.filo = FiloFifo()
 
     def get_id(self):
@@ -76,36 +76,42 @@ class Device:
         return self.time_last_switched
 
     def device_switched(self):
-        self.time_last_switched = datetime.now()
+        self.time_last_switched = int(datetime.now().timestamp())
 
     def get_status(self, key=None):
         if key is None:
             return self.status
         return self.status.get(key)
 
+    def _check_time(self):
+        if self.time_last_switched is None:
+            logging.error("The time of last switch is zerro")
+            self.device_switched()
+
+        if (int(datetime.now().timestamp()) - self.time_last_switched) < self.get_extra("switch_time"):
+            return False
+        return True
+
     def is_device_ready_to_switch_on(self):
         if self.get_status('switch_1'):
+            logging.debug(f"The {self.get_name()} is already ON: ")
             return False
-        # todo replace 300 with extra
-        if (self.time_last_switched is not None) and (datetime.now() - self.time_last_switched).total_seconds() < 300:
+        if not self._check_time():
             return False
-        voltage = self.get_inverter_values()
+
         logging.debug(
             f"----------Debugging is_device_ready_to_switch_on NAme: {self.get_name()}  Device status: {self.get_status('switch_1')} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
-        if voltage > self.max_voltage:
+        if self.get_inverter_values() > self.max_voltage:
             return True
         return False
 
     def is_device_ready_to_switch_off(self):
-        if not self.get_status('switch_1'):
+        if not self._check_time():
+            logging.debug(f"The {self.get_name()} is already OFF: ")
             return False
-        # todo replace 300 with extra
-        if (self.time_last_switched is not None) and (datetime.now() - self.time_last_switched).total_seconds() < 300:
-            return False
-        voltage = self.get_inverter_values()
         logging.debug(
             f"----------Debugging is_device_ready_to_switch_off Name: {self.get_name()} Device status: {self.get_status('switch_1')}  min_volt {self.min_voltage} max voltage: {self.max_voltage}")
-        if voltage < self.min_voltage:
+        if self.get_inverter_values() < self.min_voltage:
             return True
         return False
 

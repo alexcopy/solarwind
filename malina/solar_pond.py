@@ -75,7 +75,7 @@ class SolarPond():
         self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
         # self.weather_check_update()
         pumps = self.new_devices.get_devices_by_name("pump")
-        self.tuya_controller.adjust_devices_speed(pumps, inv_status)
+        self.tuya_controller.(pumps, inv_status)
 
     def weather_check_update(self):
         self.tuya_controller.adjust_min_pump_speed(self.new_devices.get_devices_by_name("pump"))

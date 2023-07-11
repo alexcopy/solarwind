@@ -108,6 +108,7 @@ class TuyaController():
         for device in devices:
             if not device.get_device_type == 'PUMP':
                 continue
+
             is_device_ready = device.is_device_ready_to_switch_on() or device.is_device_ready_to_switch_off()
             if is_device_ready and int(device.get_status("mode")) == 6:
                 logging.debug(f"Adjust device  speed: {device.get_name()}")
@@ -120,6 +121,9 @@ class TuyaController():
         try:
             speed = self.pump_auto.pond_pump_adj(device, inv_status)
             pump_curr_speed = int(device.get_status("P"))
+            pump_speed = self.pump_auto.check_pump_speed(device)
+
+
 
             if pump_curr_speed == speed:
                 logging.info(" Pump's Speed is optimal : %d  -----so no adjustments needed !!!!!!!!!" % speed)
