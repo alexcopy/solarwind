@@ -62,5 +62,8 @@ if __name__ == '__main__':
     # scheduler.every(1).hour.do(sp.weather_check_update)
 
     while True:
-        scheduler.run_pending()
-        time.sleep(1)
+        try:
+            scheduler.run_pending()
+            time.sleep(1)
+        except Exception as ex:
+            logging.error(f"Exception in one of the schedules failed: {ex}")
