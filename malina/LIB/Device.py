@@ -96,7 +96,6 @@ class Device:
         if self.get_status('switch_1'):
             logging.debug(f"The {self.get_name()} is already ON: ")
             return False
-        else:
 
         if not self._check_time():
             return False

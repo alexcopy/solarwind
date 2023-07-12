@@ -22,7 +22,8 @@ DAY_TIME_COMPENSATE = 1.5
 class PondPumpAuto():
     def __init__(self, devices):
         self._min_speed = {'min_speed': 10, 'timestamp': int(time.time())}
-        self.weather = {}
+        # todo remove from constructor
+        self.weather = self.update_weather()
         self.devices = devices
 
     @property
