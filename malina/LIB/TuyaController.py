@@ -124,8 +124,10 @@ class TuyaController():
             chk_pump_speed = self.pump_auto.check_pump_speed(device)
 
             if not chk_pump_speed == pump_curr_speed:
-                logging.error(f" Pump's Speed is needs to round up existing speed which is {pump_curr_speed} to a new speed is{chk_pump_speed}")
+                logging.error(
+                    f" Pump's Speed is needs to round up existing speed which is {pump_curr_speed} to a new speed is: {chk_pump_speed}")
                 self.switch_device(device, chk_pump_speed)
+                device.update_status({"P": chk_pump_speed})
 
             if pump_curr_speed == speed:
                 logging.info(" Pump's Speed is optimal : %d  -----so no adjustments needed !!!!!!!!!" % speed)
