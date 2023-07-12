@@ -66,30 +66,28 @@ class PondPumpAuto():
                     'pressure': 0, 'timestamp': int(time.time()), 'town': WEATHER_TOWN
                     }
 
-    def is_minimum_speed(self, device: Device):
-        return self._min_speed['min_speed'] == device.get_status('P')
-
-    def is_max_speed(self, device):
-        return device.get_status('P') == 100
-
     def _decrease_pump_speed(self, device: Device):
         flow_speed = device.get_status('P')
-        min_pump_speed = self._min_speed['min_speed']
+        min_pump_speed = int(device.get_extra('min_speed'))
         new_speed = flow_speed - int(device.get_extra('speed_step'))
         if flow_speed == min_pump_speed or new_speed < min_pump_speed:
             new_speed = min_pump_speed
-        return new_speed
+        return self.check_pump_speed(new_speed)
 
     def _increase_pump_speed(self, device: Device):
         flow_speed = device.get_status('P')
-        new_speed = flow_speed + int(device.get_extra('speed_step'))
-        if flow_speed > 95 or new_speed > 95:
-            new_speed = 100
-        return new_speed
+        max_speed = int(device.get_extra('max_speed'))
+        speed_step = int(device.get_extra('speed_step'))
+        suggested_speed = flow_speed + speed_step
+        devi_step = max_speed - (speed_step - 1)
+
+        if flow_speed > devi_step or suggested_speed > devi_step:
+            suggested_speed = max_speed
+        return self.check_pump_speed(suggested_speed)
 
     def check_pump_speed(self, device: Device):
-        flow_speed = device.get_status('P')
-        speed_step = device.get_extra('speed_step')
+        flow_speed = int(device.get_status('P'))
+        speed_step = int(device.get_extra('speed_step'))
         if not (flow_speed % speed_step == 0):
             rounded = round(int(flow_speed) / speed_step) * speed_step
             if rounded < speed_step:
@@ -102,10 +100,9 @@ class PondPumpAuto():
 
     def pond_pump_adj(self, device: Device, inv_status):
         voltage = device.get_inverter_values()
-        min_bat_volt = device.get_min_volt()
-        max_bat_volt = device.get_max_volt()
-
-        hour = int(time.strftime("%H"))
+        min_bat_volt = float(device.get_min_volt())
+        max_bat_volt = float(device.get_max_volt())
+        curr_speed = int(device.get_status('P'))
         speed_step = int(device.get_extra('speed_step'))
 
         if inv_status == 0:
@@ -115,24 +112,30 @@ class PondPumpAuto():
         if not speed_step:
             logging.error(" Check Configuration, cannot get Speed step from Config")
             raise Exception(" Check Configuration, cannot get Speed step from Config")
-        if hour > 17:
-            min_bat_volt = min_bat_volt + 1.5
-            max_bat_volt = max_bat_volt + 1.5
-
-        if 6 < hour < 16:
-            min_bat_volt = min_bat_volt - 1.5
-            max_bat_volt = max_bat_volt - 1.5
+        max_bat_volt, min_bat_volt = self.day_time_adjust(max_bat_volt, min_bat_volt)
 
         if min_bat_volt < voltage < max_bat_volt:
             return device.get_status("P")
+        max_speed = int(device.get_extra('max_speed')) == curr_speed
+        min_speed = int(device.get_extra('min_speed')) == curr_speed
 
         if voltage > max_bat_volt:
-            if not self.is_max_speed(device):
+            if not max_speed and curr_speed < max_speed:
                 return self._increase_pump_speed(device)
-        if self.is_minimum_speed(device):
+        if min_speed:
             return device.get_status("P")
         if voltage < min_bat_volt:
             return self._decrease_pump_speed(device)
+
+    def day_time_adjust(self, max_bat_volt, min_bat_volt):
+        hour = int(time.strftime("%H"))
+        if hour > 17:
+            min_bat_volt = min_bat_volt + 1.5
+            max_bat_volt = max_bat_volt + 1.5
+        if 6 < hour < 16:
+            min_bat_volt = min_bat_volt - 1.5
+            max_bat_volt = max_bat_volt - 1.5
+        return max_bat_volt, min_bat_volt
 
     async def _getweather(self):
         # declare the client. format defaults to the metric system (celcius, km/h, etc.)
