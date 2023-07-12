@@ -115,7 +115,8 @@ class TuyaController():
             elif not int(device.get_status("mode")) == 6:
                 logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
             else:
-                logging.debug(f"device {device.name} is not ready yet the status is: {is_device_ready}")
+                logging.debug(
+                    f"device {device.name} is not ready yet the status is: {device.is_device_ready_to_switch_on()}")
 
     def _adjust_pump_power(self, device: Device, inv_status):
         try:
@@ -128,6 +129,7 @@ class TuyaController():
                     f" Pump's Speed is needs to round up existing speed which is {pump_curr_speed} to a new speed is: {chk_pump_speed}")
                 self.switch_device(device, chk_pump_speed)
                 device.update_status({"P": chk_pump_speed})
+                return True
 
             if pump_curr_speed == speed:
                 logging.info(" Pump's Speed is optimal : %d  -----so no adjustments needed !!!!!!!!!" % speed)

@@ -120,13 +120,18 @@ class PondPumpAuto():
         max_speed = int(device.get_extra('max_speed')) == curr_speed
         min_speed = int(device.get_extra('min_speed')) == curr_speed
 
+        logging.info(f"The INVERT Voltage is {voltage}  and max  {max_bat_volt}")
         if voltage > max_bat_volt:
             if not max_speed and curr_speed < max_speed:
-                return self._increase_pump_speed(device)
+                new_speed = self._increase_pump_speed(device)
+                logging.info(f"The PUMP speed needs to INCREASE {new_speed}")
+                return new_speed
         if min_speed:
             return device.get_status("P")
         if voltage < min_bat_volt:
-            return self._decrease_pump_speed(device)
+            pump_speed = self._decrease_pump_speed(device)
+            logging.info(f"The PUMP speed needs to DECREASE {pump_speed}")
+            return pump_speed
 
     def day_time_adjust(self, max_bat_volt, min_bat_volt):
         hour = int(time.strftime("%H"))
