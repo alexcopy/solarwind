@@ -108,8 +108,8 @@ class TuyaController():
         for device in devices:
             if not device.get_device_type == 'PUMP':
                 continue
-            is_device_ready = device.is_device_ready_to_switch_on() or device.is_device_ready_to_switch_off()
-            if is_device_ready and int(device.get_status("mode")) == 6:
+
+            if int(device.get_status("mode")) == 6:
                 logging.debug(f"Adjust device  speed: {device.get_name()}")
                 self._adjust_pump_power(device, inv_status)
             elif not int(device.get_status("mode")) == 6:
