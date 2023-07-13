@@ -121,6 +121,8 @@ class TuyaController():
     def _adjust_pump_power(self, device: Device, inv_status):
         try:
             speed = self.pump_auto.pond_pump_adj(device, inv_status)
+            logging.info(
+                f"The calculated speed is:{speed} and device {device.get_name()} speed_cur: {device.get_status('P')}")
             pump_curr_speed = device.get_status("P")
             chk_pump_speed = self.pump_auto.check_pump_speed(device)
 
