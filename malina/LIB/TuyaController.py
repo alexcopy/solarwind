@@ -111,7 +111,7 @@ class TuyaController():
 
             if int(device.get_status("mode")) == 6:
                 logging.debug(f"Adjust device  speed: {device.get_name()}")
-                self._adjust_pump_power(device, inv_status)
+                self._adjust_pump_power(device=device, inv_status=inv_status)
             elif not int(device.get_status("mode")) == 6:
                 logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
             else:
@@ -121,7 +121,7 @@ class TuyaController():
     def _adjust_pump_power(self, device: Device, inv_status):
         try:
             speed = self.pump_auto.pond_pump_adj(device, inv_status)
-            pump_curr_speed = int(device.get_status("P"))
+            pump_curr_speed = device.get_status("P")
             chk_pump_speed = self.pump_auto.check_pump_speed(device)
 
             if not chk_pump_speed == pump_curr_speed:
