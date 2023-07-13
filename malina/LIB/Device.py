@@ -75,6 +75,10 @@ class Device:
     def last_switched(self):
         return self.time_last_switched
 
+    @property
+    def switched_delta(self):
+        return self.time_last_switched - int(datetime.now().timestamp())
+
     def device_switched(self):
         self.time_last_switched = int(datetime.now().timestamp())
 
@@ -94,12 +98,10 @@ class Device:
 
     def is_device_ready_to_switch_on(self):
         if self.get_status('switch_1'):
-            logging.debug(f"The {self.get_name()} is already ON: ")
+            logging.debug(f"The {self.get_name()} is already ON: no actions ")
             return False
-
         if not self._check_time():
             return False
-
         logging.debug(
             f"----------Debugging is_device_ready_to_switch_on NAme: {self.get_name()}  Device status: {self.get_status('switch_1')} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
         if self.get_inverter_values() > self.max_voltage:
@@ -107,8 +109,12 @@ class Device:
         return False
 
     def is_device_ready_to_switch_off(self):
+        if not self.get_status('switch_1'):
+            logging.debug(f"The {self.get_name()} is already OFF SW status is: {self.get_status('switch_1')}")
+            return False
+
         if not self._check_time():
-            logging.debug(f"The {self.get_name()} is already OFF: ")
+            logging.debug(f"The {self.get_name()} isn't ready to be switched as delta is: {self.switched_delta}")
             return False
         logging.debug(
             f"----------Debugging is_device_ready_to_switch_off Name: {self.get_name()} Device status: {self.get_status('switch_1')}  min_volt {self.min_voltage} max voltage: {self.max_voltage}")
