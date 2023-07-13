@@ -42,7 +42,7 @@ class SolarPond():
         time.sleep(2)
         self.devices.update_fnt_dev_stats()
 
-        self.switch_to_solar_power()
+        # self.switch_to_solar_power()
 
     @staticmethod
     def avg(l):
