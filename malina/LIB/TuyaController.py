@@ -159,4 +159,4 @@ class TuyaController():
         for device in pumps:
             if not device.get_device_type == 'PUMP':
                 continue
-            device.update_extra("min_speed", self.pump_auto.setup_minimum_pump_speed())
+            device.update_extra("min_speed", self.pump_auto.setup_minimum_pump_speed(device))

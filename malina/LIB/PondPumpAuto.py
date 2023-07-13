@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import time
+from asyncio.log import logger
 
 import python_weather
 from dotenv import dotenv_values
@@ -33,21 +34,27 @@ class PondPumpAuto():
     def update_weather(self):
         self.weather = self.weather_data()
 
-    def setup_minimum_pump_speed(self):
-        temp = self.weather['temperature']
-        self._min_speed['timestamp'] = int(time.time())
-        min_speed = self._min_speed['min_speed']
-        if temp < 8:
-            min_speed = 10
-        elif temp < 12:
-            min_speed = 20
+    def setup_minimum_pump_speed(self, device: Device):
+        try:
+            logger.debug(
+                f"Setting up the minimum speed for device {device.name}  with  weather table is: {device.get_extra('weather')}")
+            temp = self.weather_data()['temperature']
+            min_speed = device.get_extra('min_speed')
+            if temp < 8:
+                min_speed = 10
+            elif temp < 12:
+                min_speed = 20
 
-        elif temp < 17:
-            min_speed = 30
+            elif temp < 17:
+                min_speed = 30
 
-        elif temp > 17:
-            min_speed = 40
-        return min_speed
+            elif temp > 17:
+                min_speed = 40
+            return min_speed
+        except Exception as e:
+            logger.error(
+                f"Problem with device: {device.name} to get proper min temp got an Exception: {e} weather table is: {device.get_extra('weather')}")
+            return device.get_extra('min_speed')
 
     def weather_data(self):
         try:
