@@ -117,17 +117,18 @@ class PondPumpAuto():
 
         if min_bat_volt < voltage < max_bat_volt:
             return device.get_status("P")
-        max_speed = int(device.get_extra('max_speed')) == curr_speed
-        min_speed = int(device.get_extra('min_speed')) == curr_speed
+        max_speed = int(device.get_extra('max_speed'))
+        is_max_speed = max_speed == curr_speed
+        is_min_speed = int(device.get_extra('min_speed')) == curr_speed
 
         logging.info(f"The INVERT Voltage is {voltage}  and max  {max_bat_volt}")
-        logging.info(f"The Max Speed is {max_speed} and curr_speed is {curr_speed} mx speed is {max_speed} ")
+        logging.info(f"The Max Speed is {is_max_speed} and curr_speed is {curr_speed} mx speed is {max_speed} ")
         if voltage > max_bat_volt:
-            if not max_speed and curr_speed < max_speed:
+            if (not is_max_speed) and curr_speed < max_speed:
                 new_speed = self._increase_pump_speed(device)
                 logging.info(f"The PUMP speed needs to INCREASE {new_speed}")
                 return new_speed
-        if min_speed:
+        if is_min_speed:
             return device.get_status("P")
         if voltage < min_bat_volt:
             pump_speed = self._decrease_pump_speed(device)
