@@ -17,16 +17,15 @@ class InitiateDevices:
     def __init__(self):
         if hasattr(self, "initialized"):
             return
-        self.device_controller = DeviceManager()
+        self.device_manager = DeviceManager()
 
         with open(DEVICE_CONFIG) as f:
             devices = yaml.safe_load(f)
         for device_config in devices:
             device = Device(**device_config)
-            self.device_controller.add_device(device)
-
+            self.device_manager.add_device(device)
         self.initialized = True
 
     @property
-    def devices(self):
-        return self.device_controller
+    def device_controller(self):
+        return self.device_manager

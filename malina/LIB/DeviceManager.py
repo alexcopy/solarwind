@@ -1,9 +1,5 @@
 import logging
-import os
 
-import yaml
-
-from malina.LIB.Device import Device
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.TuyaController import TuyaController
 
@@ -14,7 +10,7 @@ class DeviceManager:
         self.logger = logging
         self._device_order = []
         self._power_limit = 10000
-        self.tuya_controller = TuyaController(TuyaAuthorisation(self.logger))
+        self.tuya_controller = TuyaController(TuyaAuthorisation())
 
     def add_device(self, device):
         if device.get_id() in self._devices:

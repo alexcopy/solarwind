@@ -3,19 +3,24 @@ import time
 import unittest
 from unittest.mock import Mock
 
-
 sys.path.append('../')
 
-
+from malina.LIB.TuyaController import TuyaController
+from malina.LIB.InitiateDevices import InitiateDevices
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
-from malina.LIB.LoadRelayAutomation import LoadRelayAutomation
 
 
 class LoadRelayAutoTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.assertEqual(True, True)
         # self.logger = Mock()
-        # device_manager=TuyaAuthorisation(self.logger).device_manager
+        tua_manager = TuyaAuthorisation()
+        device_manager = TuyaController(tua_manager)
+        dev = InitiateDevices().device_controller
+        devices = dev.get_devices()
+
+        device_manager.update_devices_status(devices)
+
         # self.load_automation = LoadRelayAutomation(self.logger, device_manager)
         # self.devices = LoadDevices(Mock(), device_manager)
 

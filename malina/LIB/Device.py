@@ -96,6 +96,19 @@ class Device:
             return False
         return True
 
+    # todo investigate why int in switch_1 and not bool
+    def extract_status_params(self, device_status):
+        sw_status = {v['code']: v['value'] for v in device_status}
+        if "Power" in sw_status:
+            sw_status.update({"switch_1": int(sw_status.get("Power"))})
+        if "switch_1" not in sw_status and "switch" in sw_status:
+            sw_status.update({"switch_1": int(sw_status.get("switch")), "switch": int(sw_status.get("switch"))})
+        extra_params = {
+            'status': int(sw_status['switch_1']), 't': int(datetime.now().timestamp()), 'device_id': self.get_id(),
+            'success': True}
+        sw_status.update(extra_params)
+        return sw_status
+
     def is_device_ready_to_switch_on(self):
         if self.get_status('switch_1'):
             logging.debug(f"The {self.get_name()} is already ON: no actions ")

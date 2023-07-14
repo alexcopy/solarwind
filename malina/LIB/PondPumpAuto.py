@@ -24,7 +24,6 @@ class PondPumpAuto():
     def __init__(self, devices):
         self._min_speed = {'min_speed': 10, 'timestamp': int(time.time())}
         # todo remove from constructor
-        self.weather = self.update_weather()
         self.devices = devices
 
     @property
@@ -35,25 +34,23 @@ class PondPumpAuto():
         self.weather = self.weather_data()
 
     def setup_minimum_pump_speed(self, device: Device):
+        weather_conds = device.get_extra('weather')
         try:
             logger.debug(
-                f"Setting up the minimum speed for device {device.name}  with  weather table is: {device.get_extra('weather')}")
+                f"Setting up the minimum speed for device {device.name}  with  weather table is: {weather_conds}")
             temp = self.weather_data()['temperature']
             min_speed = device.get_extra('min_speed')
-            if temp < 8:
-                min_speed = 10
-            elif temp < 12:
-                min_speed = 20
 
-            elif temp < 17:
-                min_speed = 30
-
-            elif temp > 17:
-                min_speed = 40
+            for i in weather_conds:
+                val_tmp = int(weather_conds[i])
+                if temp < int(i):
+                    min_speed = val_tmp
+                else:
+                    min_speed = 40
             return min_speed
         except Exception as e:
             logger.error(
-                f"Problem with device: {device.name} to get proper min temp got an Exception: {e} weather table is: {device.get_extra('weather')}")
+                f"Problem with device: {device.name} to get proper min temp got an Exception: {e} weather table is: {weather_conds}")
             return device.get_extra('min_speed')
 
     def weather_data(self):

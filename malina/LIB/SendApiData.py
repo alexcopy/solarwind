@@ -19,7 +19,7 @@ API_URL = config["API_URL"]
 
 class SendApiData():
     def __init__(self, logger):
-        self.device_manager = InitiateDevices().devices
+        self.device_manager = InitiateDevices().device_controller
         self.api_url = API_URL
         self.print_logs = SolarLogging(logger)
 

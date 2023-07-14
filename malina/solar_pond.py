@@ -24,9 +24,9 @@ class SolarPond():
         self.FILTER_FLUSH = []
         self.print_logs = SolarLogging(logging)
         self.filo_fifo = FiloFifo.FiloFifo()
-        self.tuya_auth = TuyaAuthorisation(logging)
+        self.tuya_auth = TuyaAuthorisation()
         self.tuya_controller = TuyaController(self.tuya_auth)
-        self.new_devices = InitiateDevices().devices
+        self.new_devices = InitiateDevices().device_controller
         self.send_data = SendApiData.SendApiData(logging)
         self.new_devices.update_all_statuses()
 

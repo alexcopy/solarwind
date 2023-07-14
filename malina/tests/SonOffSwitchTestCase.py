@@ -29,9 +29,9 @@ mock_time = 60
 
 class SonOffSwitchTestCase(unittest.TestCase):
     def test_valid_structure_without_values(self):
-        tuya_auth = TuyaAuthorisation(Mock())
+        tuya_auth = TuyaAuthorisation()
         tuya_controller = TuyaController(tuya_auth)
-        devices = InitiateDevices().devices
+        devices = InitiateDevices().device_controller
 
 
         fontan = devices.get_devices_by_name("inverter")[0] # fontan

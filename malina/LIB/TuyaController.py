@@ -23,22 +23,14 @@ class TuyaController():
             logging.error(ex)
             return False
 
-    def _status(self, device_id):
+    def _status(self, device: Device):
         try:
+            device_id = device.get_id()
             logging.debug(" ---------Getting device status for %s  ---------" % device_id)
-            status = self.authorisation.device_manager.get_device_list_status([device_id])
+            status = self.authorisation.device_manager.get_device_list_status([device_id])['result'][0]['status']
             logging.debug(f" --------- device status is: {status}  ---------")
             if status["success"]:
-                device_status = status['result'][0]['status']
-                sw_status = {v['code']: v['value'] for v in device_status}
-                if "Power" in sw_status:
-                    sw_status.update({"switch_1": int(sw_status.get("Power"))})
-                if "switch_1" not in sw_status and "switch" in sw_status:
-                    sw_status.update({"switch_1": int(sw_status.get("switch")), "switch": int(sw_status.get("switch"))})
-                extra_params = {
-                    'status': int(sw_status['switch_1']), 't': int(status['t'] / 1000), 'device_id': device_id,
-                    'success': status['success']}
-                sw_status.update(extra_params)
+                sw_status = device.extract_status_params(status)
                 return sw_status
             else:
                 raise Exception("Wasn't successfully executed command for device: %s" % device_id)
@@ -51,19 +43,20 @@ class TuyaController():
     def switch_on_device(self, device: Device):
         switched = self.switch_device(device, True)
         if switched:
-            self.update_status(device)
+            api_sw = device.get_api_sw
+            device.update_status({api_sw: True})
             device.device_switched()
         return switched
 
     def switch_off_device(self, device: Device):
         switch = self.switch_device(device, False)
+        api_sw = device.get_api_sw
         if switch:
-            self.update_status(device)
+            device.update_status({api_sw: False})
             device.device_switched()
 
     def update_status(self, device: Device):
-        device_id = device.get_id()
-        status = self._status(device_id)
+        status = self._status(device)
         if status['success']:
             device.update_status(status)
         return status
@@ -95,10 +88,25 @@ class TuyaController():
             time.sleep(5)
 
     def update_devices_status(self, devices):
+        device_ids = [device.get_id() for device in devices]
+        statuses = self.authorisation.device_manager.get_device_list_status(device_ids)['result']
+
+        for status in statuses:
+            dev_id = status["id"]
+            device = self.select_dev_by_id(devices, dev_id)
+            if device is None:
+                logging.error(f"Device is missing from the list with id {dev_id}")
+                continue
+            if "status" in status:
+                status_params = device.extract_status_params(status["status"])
+                device.update_status(status_params)
+
+    def select_dev_by_id(self, devices, lookup_id):
         for device in devices:
-            logging.debug(f"Updated device  status: {device.get_name()}")
-            self.update_status(device)
-            time.sleep(5)
+            dev_id = device.get_id()
+            if lookup_id == dev_id:
+                return device
+        return None
 
     def switch_on_off_all_devices(self, devices):
         self.switch_all_on_soft(devices)
@@ -139,7 +147,7 @@ class TuyaController():
 
             switch_device = self.switch_device(device, speed)
             if switch_device:
-                self.update_status(device)
+                device.update_status({"P": speed})
                 logging.info(
                     f"!!!!!   Pump's Speed successfully adjusted to: {speed} the new speed is: {device.get_status('P')}!!!!!!!!! ")
             else:
