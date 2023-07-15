@@ -77,10 +77,10 @@ class PondPumpAuto():
         new_speed = flow_speed - int(device.get_extra('speed_step'))
         if flow_speed == min_pump_speed or new_speed < min_pump_speed:
             new_speed = min_pump_speed
-        return self.check_pump_speed(new_speed)
+        return new_speed
 
     def _increase_pump_speed(self, device: Device):
-        flow_speed=0
+
         try:
             max_speed = int(device.get_extra('max_speed'))
             speed_step = int(device.get_extra('speed_step'))
@@ -90,11 +90,11 @@ class PondPumpAuto():
 
             if flow_speed > devi_step or suggested_speed > devi_step:
                 suggested_speed = max_speed
-            logging.error("returning and checking is speed rounded")
-            return self.check_pump_speed(suggested_speed)
+            return suggested_speed
         except Exception as e:
-            logging.error(f'Something is wrong in _increase_pump_speed {flow_speed} {str(e)} {device}')
-            return 40
+            logging.error(f'Something is wrong in _increase_pump_speed   {str(e)} {device}')
+            return device.get_extra('min_speed')
+
     def check_pump_speed(self, device: Device):
         flow_speed = int(device.get_status('P'))
         speed_step = int(device.get_extra('speed_step'))
