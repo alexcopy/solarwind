@@ -81,9 +81,9 @@ class SolarLogging:
 
         devices = load_devices.get_devices_by_device_type("SWITCH")
         for device in devices:
-            self.logging.info(f"{device.get_desc} %s " % (
+            self.logging.info(f"{device.get_desc}: %s " % (
                 "ON" if (device.get_status('switch_1')) else "OFF"))
-            self.logging.info("")
+        self.logging.info("")
 
         wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
         self.logging.info(" 1S Solar Power: %3.2f W " % wtg)
