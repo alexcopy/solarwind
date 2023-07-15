@@ -141,6 +141,7 @@ class PondPumpAuto():
             pump_speed = self._decrease_pump_speed(device)
             logging.info(f"The PUMP speed needs to DECREASE {pump_speed}")
             return pump_speed
+        return curr_speed
 
     def day_time_adjust(self, max_bat_volt, min_bat_volt):
         hour = int(time.strftime("%H"))
