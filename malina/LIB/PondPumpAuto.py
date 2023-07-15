@@ -80,15 +80,19 @@ class PondPumpAuto():
         return self.check_pump_speed(new_speed)
 
     def _increase_pump_speed(self, device: Device):
-        flow_speed = device.get_status("P")
-        max_speed = int(device.get_extra('max_speed'))
-        speed_step = int(device.get_extra('speed_step'))
-        suggested_speed = flow_speed + speed_step
-        devi_step = max_speed - (speed_step - 1)
+        flow_speed=0
+        try:
+            max_speed = int(device.get_extra('max_speed'))
+            speed_step = int(device.get_extra('speed_step'))
+            flow_speed = device.get_status("P")
+            suggested_speed = flow_speed + speed_step
+            devi_step = max_speed - (speed_step - 1)
 
-        if flow_speed > devi_step or suggested_speed > devi_step:
-            suggested_speed = max_speed
-        return self.check_pump_speed(suggested_speed)
+            if flow_speed > devi_step or suggested_speed > devi_step:
+                suggested_speed = max_speed
+            return self.check_pump_speed(suggested_speed)
+        except:
+            logging.error(f'Something is wrong in _increase_pump_speed {flow_speed}')
 
     def check_pump_speed(self, device: Device):
         flow_speed = int(device.get_status('P'))
