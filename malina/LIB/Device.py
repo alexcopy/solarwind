@@ -33,6 +33,10 @@ class Device:
     def get_device_type(self):
         return self.device_type.upper()
 
+    @property
+    def get_desc(self):
+        return self.desc
+
     def get_device_desc(self):
         return self.desc
 

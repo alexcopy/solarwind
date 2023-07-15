@@ -66,7 +66,7 @@ class SolarLogging:
 
             name = i
             if name.startswith('1s_'):
-               self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
+                self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
         self.logging.info("")
         sol_current = self.fifo.solar_current
@@ -75,16 +75,16 @@ class SolarLogging:
         self.logging.info("")
         self.logging.info("---")
 
-        self.logging.info(" Inverter Status is: %s  " % ('ON' if (inverter_status == 1) else "OFF"))
         self.logging.info(
             " Main Relay works from: %s  " % ("INVERT" if (inverter_status == 1) else "MAIN"))
         self.logging.info("")
 
-        self.logging.info(" UV Sterilizer is: %s " % (
-            "ON" if (load_devices.get_devices_by_name("uv")[0].get_status("status")) else "OFF"))
-        self.logging.info(" FNT State is: %s " % (
-            "ON" if (load_devices.get_devices_by_name("fountain")[0].get_status("status")) else "OFF"))
-        self.logging.info("")
+        devices = load_devices.get_devices_by_device_type("SWITCH")
+
+        for device in devices:
+            self.logging.info(f"{device.get_desc()} %s " % (
+                "ON" if (device.get_status('switch_1')) else "OFF"))
+            self.logging.info("")
 
         wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
         self.logging.info(" 1S Solar Power: %3.2f W " % wtg)
