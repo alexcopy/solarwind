@@ -117,7 +117,6 @@ class PondPumpAuto():
         speed_step = int(device.get_extra('speed_step'))
 
         if inv_status == 0:
-            logging.info("----------Inverter switched off working from mains -------  ")
             return device.get_extra("min_speed")
 
         if not speed_step:
