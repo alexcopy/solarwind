@@ -129,7 +129,7 @@ class TuyaController():
     def _adjust_pump_power(self, device: Device, inv_status):
         try:
             speed = self.pump_auto.pond_pump_adj(device, inv_status)
-            logging.info(
+            logging.error(
                 f"The calculated speed is:{speed} and device {device.get_name()} speed_cur: {device.get_status('P')}")
             pump_curr_speed = device.get_status("P")
             chk_pump_speed = self.pump_auto.check_pump_speed(device)
@@ -142,13 +142,13 @@ class TuyaController():
                 return True
 
             if pump_curr_speed == speed:
-                logging.info(" Pump's Speed is optimal : %d  -----so no adjustments needed !!!!!!!!!" % speed)
+                logging.error(" Pump's Speed is optimal : %d  -----so no adjustments needed !!!!!!!!!" % speed)
                 return True
 
             switch_device = self.switch_device(device, speed)
             if switch_device:
                 device.update_status({"P": speed})
-                logging.info(
+                logging.error(
                     f"!!!!!   Pump's Speed successfully adjusted to: {speed} the new speed is: {device.get_status('P')}!!!!!!!!! ")
             else:
                 time.sleep(10)
@@ -157,7 +157,7 @@ class TuyaController():
                     logging.error(
                         "!!!!   Pump's Speed has failed after SLEEP 10 SEC to adjust in speed to: %d !!!!" % speed)
                 else:
-                    logging.info(
+                    logging.error(
                         "!!!!!   Pump's Speed successfully adjusted AFTER SLEEP 10 SEC to: %d !!!!!!!!!" % speed)
 
         except Exception as e:
