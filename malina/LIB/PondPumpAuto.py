@@ -92,7 +92,7 @@ class PondPumpAuto():
                 suggested_speed = max_speed
             return self.check_pump_speed(suggested_speed)
         except Exception as e:
-            logging.error(f'Something is wrong in _increase_pump_speed {flow_speed} {str(e)}')
+            logging.error(f'Something is wrong in _increase_pump_speed {flow_speed} {str(e)} {device}')
             return 40
     def check_pump_speed(self, device: Device):
         flow_speed = int(device.get_status('P'))
