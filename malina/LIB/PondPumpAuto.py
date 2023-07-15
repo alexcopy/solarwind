@@ -104,7 +104,7 @@ class PondPumpAuto():
                 rounded = speed_step
             logging.error(
                 "The device status is not divisible by POND_SPEED_STEP %d" % flow_speed)
-            logging.error("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
+            logging.debug("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
             return rounded
         return flow_speed
 
@@ -112,7 +112,7 @@ class PondPumpAuto():
         voltage = device.get_inverter_values()
         min_bat_volt = float(device.get_min_volt())
         max_bat_volt = float(device.get_max_volt())
-        logging.error(f"Getting speed curr_speed ")
+        logging.debug(f"Getting speed curr_speed ")
         curr_speed = int(device.get_status("P"))
         speed_step = int(device.get_extra('speed_step'))
 
@@ -121,7 +121,7 @@ class PondPumpAuto():
             return device.get_extra("min_speed")
 
         if not speed_step:
-            logging.error(" Check Configuration, cannot get Speed step from Config")
+            logging.debug(" Check Configuration, cannot get Speed step from Config")
             raise Exception(" Check Configuration, cannot get Speed step from Config")
         max_bat_volt, min_bat_volt = self.day_time_adjust(max_bat_volt, min_bat_volt)
 
@@ -132,15 +132,15 @@ class PondPumpAuto():
         is_min_speed = int(device.get_extra('min_speed')) == curr_speed
 
         logging.info(f"The INVERT Voltage is {voltage}  and max  {max_bat_volt}")
-        logging.error(f"The Max Speed is {is_max_speed} and curr_speed is {curr_speed} mx speed is {max_speed} ")
+        logging.debug(f"The Max Speed is {is_max_speed} and curr_speed is {curr_speed} mx speed is {max_speed} ")
         if voltage > max_bat_volt:
             if (not is_max_speed) and curr_speed < max_speed:
-                logging.error(f"The PUMP speed needs more speed")
+                logging.debug(f"The PUMP speed needs more speed")
                 new_speed = self._increase_pump_speed(device)
                 logging.info(f"The PUMP speed needs to INCREASE {new_speed}")
                 return new_speed
         if is_min_speed:
-            logging.error(f"The PUMP speed needs min speed is: {device}")
+            logging.debug(f"The PUMP speed needs min speed is: {device}")
             return device.get_status("P")
         if voltage < min_bat_volt:
             pump_speed = self._decrease_pump_speed(device)
