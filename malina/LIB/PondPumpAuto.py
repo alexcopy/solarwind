@@ -135,6 +135,7 @@ class PondPumpAuto():
                 logging.info(f"The PUMP speed needs to INCREASE {new_speed}")
                 return new_speed
         if is_min_speed:
+            logging.error(f"The PUMP speed needs min speed is: {device}")
             return device.get_status("P")
         if voltage < min_bat_volt:
             pump_speed = self._decrease_pump_speed(device)
