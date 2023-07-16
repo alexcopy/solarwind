@@ -81,7 +81,7 @@ class Device:
 
     @property
     def switched_delta(self):
-        return self.time_last_switched - int(datetime.now().timestamp())
+        return int(datetime.now().timestamp()) - self.time_last_switched
 
     def device_switched(self):
         self.time_last_switched = int(datetime.now().timestamp())
