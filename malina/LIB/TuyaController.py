@@ -23,23 +23,6 @@ class TuyaController():
             logging.error(ex)
             return False
 
-    def _status(self, device: Device):
-        try:
-            device_id = device.get_id()
-            logging.debug(" ---------Getting device status for %s  ---------" % device_id)
-            status = self.authorisation.device_manager.get_device_list_status([device_id])['result'][0]['status']
-            logging.debug(f" --------- device status is: {status}  ---------")
-            if status["success"]:
-                sw_status = device.extract_status_params(status)
-                return sw_status
-            else:
-                raise Exception("Wasn't successfully executed command for device: %s" % device_id)
-
-        except Exception as ex:
-            logging.error("---------Problem in _status method and class TuyaController ---------")
-            logging.error(ex)
-            return {'success': False}
-
     def switch_on_device(self, device: Device):
         switched = self.switch_device(device, True)
         if switched:
@@ -54,12 +37,6 @@ class TuyaController():
         if switch:
             device.update_status({api_sw: False})
             device.device_switched()
-
-    def update_status(self, device: Device):
-        status = self._status(device)
-        if status['success']:
-            device.update_status(status)
-        return status
 
     def switch_all_on_soft(self, devices):
         for device in devices:
