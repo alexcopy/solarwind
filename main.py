@@ -42,15 +42,7 @@ class SetupLogger():
         return log
 
 
-def _stats():
-    hour = int(time.strftime("%H"))
-    # Проверяем, находимся ли мы в диапазоне с 19:00 до 6:00
-    if hour >= 19 or hour < 6:
-        # Запускаем задание каждые 10 минут
-        schedule.every(10).minutes.do(sp.update_devs_stats)
-    else:
-        # Запускаем задание каждые 2 minutes
-        scheduler.every(2).minutes.do(sp.update_devs_stats)
+
 
 
 if __name__ == '__main__':
@@ -64,11 +56,12 @@ if __name__ == '__main__':
     scheduler.every(2).seconds.do(sp.show_logs)
     scheduler.every(5).minutes.do(sp.reset_ff)
     scheduler.every(120).minutes.do(sp.weather_check_update)
+    scheduler.every(2).minutes.do(sp.update_devs_stats)
 
     while True:
         try:
             scheduler.run_pending()
-            _stats()
+
             time.sleep(1)
         except Exception as ex:
             logging.error(f"Exception in one of the schedules failed: {ex} {scheduler}")
