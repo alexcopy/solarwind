@@ -1,11 +1,6 @@
-import time
-
 import schedule as schedule
-
 from malina.solar_pond import SolarPond
-import concurrent.futures
 
-SECS = 1
 import logging
 import logging.handlers
 import os
@@ -36,6 +31,8 @@ class SetupLogger():
         logger.addHandler(warn_handler)
         info_handler = self.setup_logger(current_path, formatter, 'info.log', logging.INFO)
         logger.addHandler(info_handler)
+        debug_handler = self.setup_logger(current_path, formatter, 'debug.log', logging.DEBUG)
+        logger.addHandler(debug_handler)
 
     def setup_logger(self, current_path, formatter, log_file, level):
         log = logging.handlers.RotatingFileHandler(os.path.join(current_path, log_file), maxBytes=3000000,
@@ -43,6 +40,17 @@ class SetupLogger():
         log.setFormatter(formatter)
         log.setLevel(level)
         return log
+
+
+def _stats():
+    hour = int(time.strftime("%H"))
+    # Проверяем, находимся ли мы в диапазоне с 19:00 до 6:00
+    if hour >= 19 or hour < 6:
+        # Запускаем задание каждые 10 минут
+        schedule.every(10).minutes.do(sp.update_devs_stats)
+    else:
+        # Запускаем задание каждые 5 секунд
+        scheduler.every(2).minutes.do(sp.update_devs_stats)
 
 
 if __name__ == '__main__':
@@ -54,14 +62,13 @@ if __name__ == '__main__':
     scheduler.every(1).seconds.do(sp.processing_reads)
     scheduler.every(5).seconds.do(sp.load_checks)
     scheduler.every(2).seconds.do(sp.show_logs)
-
-    scheduler.every(3).minutes.do(sp.update_devs_stats)
     scheduler.every(5).minutes.do(sp.reset_ff)
     scheduler.every(120).minutes.do(sp.weather_check_update)
 
     while True:
         try:
             scheduler.run_pending()
+            _stats()
             time.sleep(1)
         except Exception as ex:
             logging.error(f"Exception in one of the schedules failed: {ex} {scheduler}")

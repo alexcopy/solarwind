@@ -39,10 +39,6 @@ class TuyaController():
             device.device_switched()
 
     def switch_all_on_soft(self, devices):
-        pump_mode = next((int(d.get_status("mode")) for d in devices if d.get_device_type == "PUMP"), 6)
-        if not pump_mode == 6:
-            logging.error(f"Cannot SWITCH ALL ON as PUMP mode is: {pump_mode}")
-            return False
         for device in devices:
 
             if device.is_device_ready_to_switch_on():
@@ -52,10 +48,6 @@ class TuyaController():
                 time.sleep(5)
 
     def switch_all_off_soft(self, devices):
-        pump_mode = next((int(d.get_status("mode")) for d in devices if d.get_device_type == "PUMP"), 6)
-        if not pump_mode == 6:
-            logging.error(f"Cannot SWITCH ALL OFF as PUMP mode is: {pump_mode}")
-            return False
         for device in devices:
             if device.is_device_ready_to_switch_off():
                 logging.debug(
@@ -95,6 +87,10 @@ class TuyaController():
         return None
 
     def switch_on_off_all_devices(self, devices):
+        pump_mode = next((int(d.get_status("mode")) for d in devices if d.get_device_type == "PUMP"), 6)
+        if not pump_mode == 6:
+            logging.error(f"Cannot SWITCH ALL ON/OFF ALL DEVICES as PUMP mode is: {pump_mode}")
+            return False
         self.switch_all_on_soft(devices)
         self.switch_all_off_soft(devices)
 
