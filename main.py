@@ -49,7 +49,7 @@ def _stats():
         # Запускаем задание каждые 10 минут
         schedule.every(10).minutes.do(sp.update_devs_stats)
     else:
-        # Запускаем задание каждые 5 секунд
+        # Запускаем задание каждые 2 minutes
         scheduler.every(2).minutes.do(sp.update_devs_stats)
 
 
