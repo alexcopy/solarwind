@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import schedule as schedule
 from malina.solar_pond import SolarPond
 
@@ -42,7 +44,17 @@ class SetupLogger():
         return log
 
 
-
+def _stats():
+    hour = int(time.strftime("%H"))
+    timestamp = int(datetime.now().timestamp())
+    # Проверяем, находимся ли мы в диапазоне с 19:00 до 6:00
+    if hour >= 19 or hour < 6:
+        if not (timestamp % 600):
+            logging.error(f"Update Stats every 600 sec {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            sp.update_devs_stats()
+    else:
+        logging.error(f"Update Stats every 120 sec: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        sp.update_devs_stats()
 
 
 if __name__ == '__main__':
@@ -56,12 +68,11 @@ if __name__ == '__main__':
     scheduler.every(2).seconds.do(sp.show_logs)
     scheduler.every(5).minutes.do(sp.reset_ff)
     scheduler.every(120).minutes.do(sp.weather_check_update)
-    scheduler.every(2).minutes.do(sp.update_devs_stats)
+    scheduler.every(2).minutes.do(_stats)
 
     while True:
         try:
             scheduler.run_pending()
-
             time.sleep(1)
         except Exception as ex:
             logging.error(f"Exception in one of the schedules failed: {ex} {scheduler}")
