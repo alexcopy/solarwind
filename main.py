@@ -8,6 +8,7 @@ import logging.handlers
 import os
 import time
 from pathlib import Path
+last_run = 0
 
 
 class SetupLogger():
@@ -45,16 +46,19 @@ class SetupLogger():
 
 
 def _stats():
+    global last_run
     hour = int(time.strftime("%H"))
     timestamp = int(datetime.now().timestamp())
     # Проверяем, находимся ли мы в диапазоне с 19:00 до 6:00
     if hour >= 19 or hour < 6:
-        if not (timestamp % 600):
+        if (timestamp - last_run) >= 600:
             logging.error(f"Update Stats every 600 sec {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             sp.update_devs_stats()
+            last_run = timestamp
     else:
         logging.error(f"Update Stats every 120 sec: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         sp.update_devs_stats()
+
 
 
 if __name__ == '__main__':
@@ -75,4 +79,4 @@ if __name__ == '__main__':
             scheduler.run_pending()
             time.sleep(1)
         except Exception as ex:
-            logging.error(f"Exception in one of the schedules failed: {ex} {scheduler}")
+            logging.error(f"Exception in one of the schedules failed: {ex}")
