@@ -53,7 +53,7 @@ class FiloFifoTestCase(unittest.TestCase):
                               '1h_leisure_test_field_3': [], '1h_inverter_test_field_1': [],
                               '1h_inverter_test_field_2': [], '1h_inverter_test_field_3': []}
 
-        self.ff_buff = FF.FiloFifo(self.logger, self.shunt, 'test_field_1', 'test_field_2', 'test_field_3')
+        self.ff_buff = FF.FiloFifo( 'test_field_1', 'test_field_2', 'test_field_3')
         self.current_only = {'1s_tiger_test_field_1': [0.0, 0.0], '1s_tiger_test_field_2': [0.0, 0.0],
                              '1s_tiger_test_field_3': [300.0, 300.0], '1s_leisure_test_field_1': [0.0, 0.0],
                              '1s_leisure_test_field_2': [0.0, 0.0], '1s_leisure_test_field_3': [300.0, 300.0],
@@ -169,6 +169,10 @@ class FiloFifoTestCase(unittest.TestCase):
         for l in range(0, times_to_run):
             self.ff_buff.buffers_run(1)
 
+    def test_get_filo_value(self):
+        slot = '1s'
+        value = 'bus_voltage'
+        inverter_voltage = self.FF.get_filo_value('%s_inverter' % slot, value)
 
 if __name__ == '__main__':
     unittest.main()

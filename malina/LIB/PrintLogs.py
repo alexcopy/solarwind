@@ -5,6 +5,7 @@ from malina.LIB import FiloFifo
 class SolarLogging:
     def __init__(self, logging):
         self.logging = logging
+        self.fifo = FiloFifo.FiloFifo()
 
     def avg(self, l):
         if len(l) == 0:
@@ -16,42 +17,15 @@ class SolarLogging:
         self.logging.info(url_path)
         self.logging.info("--------------------------------------------")
 
-    def integrity_error(self, avg_status, pond_relay, inverter):
-        self.logging.error("-------------Switching to MAINS avg _status is: %3.2f ---------------" % avg_status)
-        self.logging.error(
-            "-------------Switching to POND RELAY status is: %d ------------------" % pond_relay)
-        self.logging.error(
-            "-------------Switching to INVERTER RELAY status is: %d --------------" % inverter)
-        self.logging.error("---------------------------------------------------------------------")
 
-    def log_run(self, filo_buffer: dict, invert_status, pump_status, solar_current):
-        self.logging.debug("--------------------------------------------")
-        for i in filo_buffer:
-            if 'voltage' in i:
-                units = "V"
-            elif 'current' in i:
-                units = "mA"
-            elif 'wattage' in i:
-                units = "W"
-            else:
-                continue
-            name = i.title().replace('_', " ")
-            self.logging.debug("AVG %s: %3.2f %s " % (name, self.avg(filo_buffer[i]), units))
-
-        self.logging.debug(" ")
-        self.logging.debug(" 1S Solar Current: %3.2f " % solar_current['1s_solar_current'])
-        self.logging.debug(" 10m Solar Current: %3.2f " % solar_current['10m_solar_current'])
-        self.logging.debug(" 10m Solar Current: %3.2f " % solar_current['1h_solar_current'])
-        self.logging.debug("--------------------------------------------")
-        self.logging.debug(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
-        self.logging.debug(" Inverter Status is: %d  " % invert_status)
-        self.logging.debug("############################################")
+    def log_run(self, invert_status, pump_status):
         self.logging.debug("--------------------------------------------")
 
-    def printing_vars(self, fifo_buffer, inverter_status, statuses, pump_status, solar_current, load_devices):
-        self.logging.info("")
+
+    def printing_vars(self, inverter_status, pump_status, load_devices):
+
         self.logging.info("--------------------------------------------")
-        for i in fifo_buffer:
+        for i in self.fifo.filo_buff:
             if 'voltage' in i:
                 units = "V"
             elif 'current' in i:
@@ -60,27 +34,31 @@ class SolarLogging:
                 units = "Watt"
             else:
                 units = "UN"
+
             name = i
-            self.logging.info("%s: %3.2f %s " % (name, fifo_buffer[i], units))
+            if name.startswith('1s_'):
+                self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
         self.logging.info("")
-        self.logging.info(" 1S Solar Current: %3.2f " % solar_current['1s_solar_current'])
-        self.logging.info(" 10m Solar Current: %3.2f " % solar_current['10m_solar_current'])
+        sol_current = self.fifo.solar_current
+        self.logging.info(" 1S Solar Current: %3.2f A" % float(sol_current['1s_solar_current'] / 1000))
+        self.logging.info(" 10m Solar Current: %3.2f A" % float(sol_current['10m_solar_current'] / 1000))
         self.logging.info("")
         self.logging.info("---")
 
-        self.logging.info(" Inverter Status is: %s  " % ('ON' if (inverter_status == 1) else "OFF"))
         self.logging.info(
             " Main Relay works from: %s  " % ("INVERT" if (inverter_status == 1) else "MAIN"))
         self.logging.info("")
 
-        self.logging.info(" UV Sterilizer is: %s " % ("ON" if (load_devices.get_uv_sw_state['switch_1']) else "OFF"))
-        self.logging.info(" FNT Pump State is: %s " % ("ON" if (load_devices.get_fnt_sw_state['switch_1']) else "OFF"))
+        devices = load_devices.get_devices_by_device_type("SWITCH")
+        for device in devices:
+            self.logging.info(f"{device.get_desc}: %s " % (
+                "ON" if (device.get_status('switch_1')) else "OFF"))
         self.logging.info("")
 
-        wtg = (solar_current['10m_solar_current'] * fifo_buffer['1s_inverter_bus_voltage']) / 1000
+        wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
         self.logging.info(" 1S Solar Power: %3.2f W " % wtg)
-        self.logging.info(" Pond Pump Speed: %d  " % pump_status['flow_speed'])
+        self.logging.info(" Pond Pump Speed: %d  " % pump_status)
         self.logging.info("---")
         self.logging.info("--------------------------------------------")
         self.logging.info("--------------------------------------------")

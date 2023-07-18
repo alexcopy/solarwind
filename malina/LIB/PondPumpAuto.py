@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 import asyncio
+import logging
 import time
+from asyncio.log import logger
+
 import python_weather
 from dotenv import dotenv_values
-from malina.LIB.LoadDevices import LoadDevices
+
+from malina.LIB.Device import Device
 
 config = dotenv_values(".env")
 BASE_URL = config['API_URL']
@@ -17,74 +21,37 @@ DAY_TIME_COMPENSATE = 1.5
 
 
 class PondPumpAuto():
-    def __init__(self, logger, device_manager, remote_api):
-        self.logger = logger
-        self.deviceManager = device_manager
-        self.pump_status = {'flow_speed': 0}
-        self.remote_api = remote_api
-        self.refresh_pump_status()
-        self._min_speed = self.min_pump_speed
-        self.weather = {}
-
-    def refresh_pump_status(self):
-        try:
-            device_status = self.deviceManager.get_device_status(PUMP_ID)
-            if device_status['success'] is False:
-                self.logger.error(device_status)
-                raise Exception(device_status)
-            self._update_pump_status(device_status)
-
-        except Exception as ex:
-            print(ex)
-            self.logger.error(ex)
-            return {'flow_speed': 0, "Power": 0, 'error': True}
-
-    @property
-    def min_pump_speed(self):
-        self.refresh_min_speed()
-        return self._min_speed
+    def __init__(self, devices):
+        self._min_speed = {'min_speed': 10, 'timestamp': int(time.time())}
+        # todo remove from constructor
+        self.devices = devices
 
     @property
     def local_weather(self):
         return self.weather
 
-    def refresh_min_speed(self):
-        self.weather = self.weather_data()
-        self._setup_minimum_pump_speed()
-
     def update_weather(self):
         self.weather = self.weather_data()
 
-    def _setup_minimum_pump_speed(self):
-        temp = self.weather['temperature']
-        self._min_speed = 10
-        if temp < 8:
-            self._min_speed = 10
-        elif temp < 12:
-            self._min_speed = 20
+    def setup_minimum_pump_speed(self, device: Device):
+        weather_conds = device.get_extra('weather')
+        try:
+            logger.debug(
+                f"Setting up the minimum speed for device {device.name}  with  weather table is: {weather_conds}")
+            temp = self.weather_data()['temperature']
+            min_speed = device.get_extra('min_speed')
 
-        elif temp < 14:
-            self._min_speed = 30
-
-        elif temp > 14:
-            self._min_speed = 40
-
-    def _update_pump_status(self, tuya_responce):
-        pump = {}
-        pond_pump = tuya_responce['result']
-        for k in pond_pump:
-            if k['value'] is True:
-                k['value'] = 1
-            elif k['value'] is False:
-                k['value'] = 0
-
-            if k['code'] == 'P':
-                k['code'] = 'flow_speed'
-
-            pump.update({k['code']: self.is_integer(k['value'])})
-        pump.update({'name': PUMP_NAME})
-        pump.update({'timestamp': time.time()})
-        self.pump_status = pump
+            for i in weather_conds:
+                val_tmp = int(weather_conds[i])
+                if temp < int(i):
+                    min_speed = val_tmp
+                else:
+                    min_speed = 40
+            return min_speed
+        except Exception as e:
+            logger.error(
+                f"Problem with device: {device.name} to get proper min temp got an Exception: {e} weather table is: {weather_conds}")
+            return device.get_extra('min_speed')
 
     def weather_data(self):
         try:
@@ -97,96 +64,98 @@ class PondPumpAuto():
                     'pressure': float(weather.current.pressure), 'timestamp': int(time.time()), 'town': WEATHER_TOWN}
 
         except Exception as e:
-            self.logger.error(e)
+            logging.error("Problem in weather data getter")
+            logging.error(e)
             return {'temperature': 0, 'wind_speed': 0, 'visibility': 0, 'uv_index': 0, 'humidity': 0,
                     'precipitation': 0, 'type': "", 'wind_direction': "", 'description': "", 'feels_like': 0,
                     'pressure': 0, 'timestamp': int(time.time()), 'town': WEATHER_TOWN
                     }
 
-    def change_pump_speed(self, value: int, is_working_mains: int):
-        if value > 100:
-            self.logger.error("The value of PumpSpeed is OUT of Range PLS Check %d" % value)
-            value = 100
-        command = [
-            {
-                "code": "P",
-                "value": value
-            }
-        ]
-        res = self.deviceManager.send_commands(PUMP_ID, command)
-        if res['success'] is True:
-            self.logger.info("!!!!!   Pump's Speed successfully adjusted to: %d !!!!!!!!!" % value)
-        else:
-            self.logger.error("!!!!   Pump's Speed has failed to adjust in speed to: %d !!!!" % value)
-            self.logger.error(res)
-
-        self.refresh_pump_status()
-        resp = self.remote_api.send_pump_stats(not is_working_mains, self.get_current_status)
-        erros_resp = resp['errors']
-        if erros_resp:
-            time.sleep(5)
-            self.refresh_pump_status()
-            self.remote_api.send_pump_stats(not is_working_mains, self.get_current_status)
-
-    def is_minimum_speed(self, min_speed):
-        return min_speed == self.get_current_status['flow_speed']
-
-    @property
-    def is_max_speed(self):
-        return self.pump_status['flow_speed'] == 100
-
-    @property
-    def get_current_status(self):
-        if self.pump_status['flow_speed'] == 0:
-            self.refresh_pump_status()
-        return self.pump_status
-
-    def _decrease_pump_speed(self, step, min_pump_speed, mains_relay_status):
-        flow_speed = self.pump_status['flow_speed']
-        new_speed = flow_speed - step
+    def _decrease_pump_speed(self, device: Device):
+        flow_speed = device.get_status('P')
+        min_pump_speed = int(device.get_extra('min_speed'))
+        new_speed = flow_speed - int(device.get_extra('speed_step'))
         if flow_speed == min_pump_speed or new_speed < min_pump_speed:
             new_speed = min_pump_speed
+        return new_speed
 
-        self.change_pump_speed(new_speed, mains_relay_status)
-        return self.pump_status
+    def _increase_pump_speed(self, device: Device):
 
-    def _increase_pump_speed(self, step, mains_relay_status):
-        flow_speed = self.pump_status['flow_speed']
-        new_speed = flow_speed + step
-        if flow_speed > 95 or new_speed > 95:
-            new_speed = 100
-        self.change_pump_speed(new_speed, mains_relay_status)
-        return self.pump_status
+        try:
+            max_speed = int(device.get_extra('max_speed'))
+            speed_step = int(device.get_extra('speed_step'))
+            flow_speed = device.get_status("P")
+            suggested_speed = flow_speed + speed_step
+            devi_step = max_speed - (speed_step - 1)
 
-    def pond_pump_adj(self, min_speed, volt_avg, mains_relay_status):
-        min_bat_volt = MIN_BAT_VOLT
-        max_bat_volt = MAX_BAT_VOLT
+            if flow_speed > devi_step or suggested_speed > devi_step:
+                suggested_speed = max_speed
+            return suggested_speed
+        except Exception as e:
+            logging.error(f'Something is wrong in _increase_pump_speed   {str(e)} {device}')
+            return device.get_extra('min_speed')
+
+    def check_pump_speed(self, device: Device):
+        flow_speed = int(device.get_status('P'))
+        speed_step = int(device.get_extra('speed_step'))
+        if not (flow_speed % speed_step == 0):
+            rounded = round(int(flow_speed) / speed_step) * speed_step
+            if rounded < speed_step:
+                rounded = speed_step
+            logging.error(
+                "The device status is not divisible by POND_SPEED_STEP %d" % flow_speed)
+            logging.debug("Round UP to nearest  POND_SPEED_STEP value %d" % rounded)
+            return rounded
+        return flow_speed
+
+    def pond_pump_adj(self, device: Device, inv_status):
+        voltage = device.get_inverter_values()
+        min_bat_volt = float(device.get_min_volt())
+        max_bat_volt = float(device.get_max_volt())
+        logging.debug(f"Getting speed curr_speed ")
+        curr_speed = int(device.get_status("P"))
+        speed_step = int(device.get_extra('speed_step'))
+
+        if inv_status == 0:
+            return device.get_extra("min_speed")
+
+        if not speed_step:
+            logging.debug(" Check Configuration, cannot get Speed step from Config")
+            raise Exception(" Check Configuration, cannot get Speed step from Config")
+        max_bat_volt, min_bat_volt = self.day_time_adjust(max_bat_volt, min_bat_volt)
+
+        if min_bat_volt < voltage < max_bat_volt:
+            return device.get_status("P")
+        max_speed = int(device.get_extra('max_speed'))
+        is_max_speed = max_speed == curr_speed
+        is_min_speed = int(device.get_extra('min_speed')) == curr_speed
+
+        logging.info(f"The INVERT Voltage is {voltage}  and max  {max_bat_volt}")
+        logging.debug(f"The Max Speed is {is_max_speed} and curr_speed is {curr_speed} mx speed is {max_speed} ")
+        if voltage > max_bat_volt:
+            if (not is_max_speed) and curr_speed < max_speed:
+                logging.debug(f"The PUMP speed needs more speed")
+                new_speed = self._increase_pump_speed(device)
+                logging.info(f"The PUMP speed needs to INCREASE {new_speed}")
+                return new_speed
+        if is_min_speed:
+            logging.debug(f"The PUMP speed needs min speed is: {device}")
+            return device.get_status("P")
+        if voltage < min_bat_volt:
+            pump_speed = self._decrease_pump_speed(device)
+            logging.info(f"The PUMP speed needs to DECREASE {pump_speed}")
+            return pump_speed
+        return curr_speed
+
+    def day_time_adjust(self, max_bat_volt, min_bat_volt):
         hour = int(time.strftime("%H"))
-        speed_step = POND_SPEED_STEP
         if hour > 17:
             min_bat_volt = min_bat_volt + 1.5
             max_bat_volt = max_bat_volt + 1.5
-
         if 6 < hour < 16:
             min_bat_volt = min_bat_volt - 1.5
             max_bat_volt = max_bat_volt - 1.5
-
-        mains_relay_status = int(round(mains_relay_status, 0))
-        if mains_relay_status == 0:
-            if not self.is_minimum_speed(min_speed):
-                return self._decrease_pump_speed(100, min_speed, mains_relay_status)
-
-        if min_bat_volt < volt_avg < max_bat_volt:
-            return True
-
-        if volt_avg > max_bat_volt:
-            if not self.is_max_speed:
-                return self._increase_pump_speed(speed_step, mains_relay_status)
-
-        if self.is_minimum_speed(min_speed):
-            return True
-        if volt_avg < min_bat_volt:
-            return self._decrease_pump_speed(speed_step, min_speed, mains_relay_status)
+        return max_bat_volt, min_bat_volt
 
     async def _getweather(self):
         # declare the client. format defaults to the metric system (celcius, km/h, etc.)
@@ -194,14 +163,3 @@ class PondPumpAuto():
             # fetch a weather forecast from a city
             weather = await client.get(WEATHER_TOWN)
             return weather
-
-    def is_integer(self, n):
-        try:
-            return int(n)
-        except ValueError:
-            flag = False
-        if not flag:
-            try:
-                return float(n)
-            except ValueError:
-                return str(n)
