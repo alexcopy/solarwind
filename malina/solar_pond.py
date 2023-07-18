@@ -72,10 +72,17 @@ class SolarPond():
 
     def load_checks(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
-        self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
-        # self.weather_check_update()
-        pumps = self.new_devices.get_devices_by_name("pump")
-        self.tuya_controller.adjust_devices_speed(pumps, inv_status)
+        pump = self.new_devices.get_devices_by_name("pump")[0]
+        if not int(pump.get_status("mode")) == 6:
+            logging.info(
+                f"Pump working mode= {pump.get_status('mode')}  "
+                f"switches wouldn't be AUTO controlled the only INVERTER AUTO controlled")
+            self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_name("inverter"))
+            return False
+        else:
+            self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
+            # self.weather_check_update()
+            self.tuya_controller.adjust_devices_speed(pump, inv_status)
 
     def weather_check_update(self):
         self.tuya_controller.adjust_min_pump_speed(self.new_devices.get_devices_by_name("pump"))
@@ -112,8 +119,6 @@ class SolarPond():
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
         # self.send_data.send_weather(self.automation.local_weather)
-
-
 
     def send_stats_api(self):
         devices = self.new_devices.get_devices()

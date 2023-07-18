@@ -94,11 +94,7 @@ class TuyaController():
         self.switch_all_on_soft(devices)
         self.switch_all_off_soft(devices)
 
-    def adjust_devices_speed(self, devices, inv_status):
-        for device in devices:
-            if not device.get_device_type == 'PUMP':
-                continue
-
+    def adjust_devices_speed(self, device, inv_status):
             if int(device.get_status("mode")) == 6:
                 logging.debug(f"Adjust device  speed: {device.get_name()}")
                 self._adjust_pump_power(device=device, inv_status=inv_status)
