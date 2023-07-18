@@ -18,7 +18,6 @@ class SolarLogging:
         self.logging.info("--------------------------------------------")
 
 
-
     def log_run(self, invert_status, pump_status):
         self.logging.debug("--------------------------------------------")
 

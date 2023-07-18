@@ -29,7 +29,7 @@ class SolarPond():
         self.new_devices = InitiateDevices().device_controller
         self.send_data = SendApiData.SendApiData(logging)
         self.new_devices.update_all_statuses()
-
+        
     @staticmethod
     def avg(l):
         if len(l) == 0:
