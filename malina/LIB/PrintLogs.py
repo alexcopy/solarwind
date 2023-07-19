@@ -52,7 +52,7 @@ class SolarLogging:
 
         devices = load_devices.get_devices_by_device_type("SWITCH")
         for device in devices:
-            self.logging.info(f"{device.get_desc}: %s " % (
+            self.logging.info(f"{device.get_desc<20}: %s " % (
                 "ON" if (device.get_status('switch_1')) else "OFF"))
         self.logging.info("")
 
