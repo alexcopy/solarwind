@@ -30,11 +30,11 @@ class SolarLogging:
                 continue
             val = self.avg(self.fifo.filo_buff[i])
             if 'voltage' in i:
-                _with_col = f'AVG {i.ljust(40)}{Fore.BLUE}: {val: 3.2f}V {Style.RESET_ALL}'
+                _with_col = f'AVG {i.ljust(30)}: {Fore.RED}{val: 3.2f}V {Style.RESET_ALL}'
             elif 'current' in i:
-                _with_col = f'AVG {i.ljust(40)}{Fore.GREEN}: {val / 1000: 3.2f} A {Style.RESET_ALL}'
+                _with_col = f'AVG {i.ljust(30)}: {Fore.GREEN}{val / 1000: 3.2f} A {Style.RESET_ALL}'
             elif 'wattage' in i:
-                _with_col = f'AVG {i.ljust(40)}{Fore.RED}: {val: 3.2f} Watt {Style.RESET_ALL}'
+                _with_col = f'AVG {i.ljust(30)}: {Fore.GREEN}{val: 3.2f} W {Style.RESET_ALL}'
             else:
                 _with_col = "UN"
             logging.info(_with_col)
@@ -57,8 +57,8 @@ class SolarLogging:
 
         _pump_text = "Pump Speed"
         formatted_string = f'{_pump_text.ljust(20)}'
-        _with_color = f'{Fore.RED}{pump_status}{Style.RESET_ALL}'
-        logging.info(f"{formatted_string}: {_with_color}%")
+        _with_color = f'{Fore.RED}{pump_status}%{Style.RESET_ALL}'
+        logging.info(f"{formatted_string}: {_with_color}")
         logging.info("")
 
         wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
