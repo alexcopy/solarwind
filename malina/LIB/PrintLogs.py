@@ -26,23 +26,23 @@ class SolarLogging:
         logging.info("\n\n")
         logging.info("--------------------------------------------")
         for i in self.fifo.filo_buff:
+            if not i.startswith('1s_'):
+                continue
+            val = self.avg(self.fifo.filo_buff[i])
             if 'voltage' in i:
-                units = "V"
+                _with_col = f'AVG {i.ljust(40)}{Fore.BLUE}: {val: 3.2f}V {Style.RESET_ALL}'
             elif 'current' in i:
-                units = "mA"
+                _with_col = f'AVG {i.ljust(40)}{Fore.GREEN}: {val / 1000: 3.2f} A {Style.RESET_ALL}'
             elif 'wattage' in i:
-                units = "Watt"
+                _with_col = f'AVG {i.ljust(40)}{Fore.RED}: {val: 3.2f} Watt {Style.RESET_ALL}'
             else:
-                units = "UN"
-
-            name = i
-            if name.startswith('1s_'):
-                logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
+                _with_col = "UN"
+                logging.info(_with_col)
 
         sol_current = self.fifo.solar_current
         logging.info("")
         logging.info(f"{'1S Solar Current'.ljust(20)}: {sol_current['1s_solar_current'] / 1000:3.2f} A")
-        logging.info(f"{'10m Solar Current'.ljust(20)}: {sol_current['10m_solar_current'] / 1000:3.2f}A")
+        logging.info(f"{'10m Solar Current'.ljust(20)}: {sol_current['10m_solar_current'] / 1000:3.2f} A")
         logging.info("")
         logging.info("---")
 
@@ -58,11 +58,11 @@ class SolarLogging:
         _pump_text = "Pump Speed"
         formatted_string = f'{_pump_text.ljust(20)}'
         _with_color = f'{Fore.RED}{pump_status}{Style.RESET_ALL}'
-        logging.info(f"{formatted_string}: {_with_color}  ")
+        logging.info(f"{formatted_string}: {_with_color}%")
         logging.info("")
 
         wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
-        logging.info(f"{'1S  Power'.ljust(20)}: {Fore.GREEN}{wtg:3.2f} W{Style.RESET_ALL}")
+        logging.info(f"{'Solar Power'.ljust(20)}: {Fore.GREEN}{wtg:3.2f} W{Style.RESET_ALL}")
         logging.info("---")
         logging.info("--------------------------------------------")
         logging.info("--------------------------------------------")
