@@ -40,8 +40,9 @@ class SolarLogging:
                 logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
         sol_current = self.fifo.solar_current
-        logging.info(" 1S Solar Current: %3.2f A" % float(sol_current['1s_solar_current'] / 1000))
-        logging.info(" 10m Solar Current: %3.2f A" % float(sol_current['10m_solar_current'] / 1000))
+        logging.info("")
+        logging.info(f"{'1S Solar Current'.ljust(20)}: {sol_current['1s_solar_current'] / 1000:3.2f} A")
+        logging.info(f"{'10m Solar Current'.ljust(20)}: {sol_current['10m_solar_current'] / 1000:3.2f}A")
         logging.info("")
         logging.info("---")
 
@@ -56,12 +57,12 @@ class SolarLogging:
 
         _pump_text = "Pump Speed"
         formatted_string = f'{_pump_text.ljust(20)}'
-        _with_color = f'{Fore.GREEN}{pump_status}{Style.RESET_ALL}'
-        logging.info(f"{formatted_string}:{pump_status}  ")
+        _with_color = f'{Fore.RED}{pump_status}{Style.RESET_ALL}'
+        logging.info(f"{formatted_string}: {_with_color}  ")
         logging.info("")
 
         wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
-        logging.info(" 1S Solar Power: %3.2f W " % wtg)
+        logging.info(f"{'1S  Power'.ljust(20)}: {Fore.GREEN}{wtg:3.2f} W{Style.RESET_ALL}")
         logging.info("---")
         logging.info("--------------------------------------------")
         logging.info("--------------------------------------------")
