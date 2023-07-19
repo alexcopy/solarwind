@@ -26,7 +26,7 @@ class SolarLogging:
         logging.info("\n\n")
         logging.info("--------------------------------------------")
         for i in self.fifo.filo_buff:
-            if not i.startswith('1s_'):
+            if not i.startswith('1s'):
                 continue
             val = self.avg(self.fifo.filo_buff[i])
             if 'voltage' in i:
@@ -37,7 +37,7 @@ class SolarLogging:
                 _with_col = f'AVG {i.ljust(40)}{Fore.RED}: {val: 3.2f} Watt {Style.RESET_ALL}'
             else:
                 _with_col = "UN"
-                logging.info(_with_col)
+            logging.info(_with_col)
 
         sol_current = self.fifo.solar_current
         logging.info("")
