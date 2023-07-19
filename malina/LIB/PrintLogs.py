@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 from malina.LIB import FiloFifo
+from colorama import Fore, Style
+import logging
 
 
 class SolarLogging:
     def __init__(self, logging):
-        self.logging = logging
+        logger = logging
         self.fifo = FiloFifo.FiloFifo()
 
     def avg(self, l):
@@ -13,18 +15,16 @@ class SolarLogging:
         return float(round(sum(l, 0.0) / len(l), 2))
 
     def loger_remote(self, url_path):
-        self.logging.info("------------SENDING TO REMOTE--------------")
-        self.logging.info(url_path)
-        self.logging.info("--------------------------------------------")
-
+        logging.info("------------SENDING TO REMOTE--------------")
+        logging.info(url_path)
+        logging.info("--------------------------------------------")
 
     def log_run(self, invert_status, pump_status):
-        self.logging.debug("--------------------------------------------")
-
+        logging.debug("--------------------------------------------")
 
     def printing_vars(self, inverter_status, pump_status, load_devices):
-
-        self.logging.info("--------------------------------------------")
+        logging.info("\n\n")
+        logging.info("--------------------------------------------")
         for i in self.fifo.filo_buff:
             if 'voltage' in i:
                 units = "V"
@@ -37,28 +37,31 @@ class SolarLogging:
 
             name = i
             if name.startswith('1s_'):
-                self.logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
+                logging.info("AVG %s: %3.2f %s " % (name, self.avg(self.fifo.filo_buff[i]), units))
 
-        self.logging.info("")
         sol_current = self.fifo.solar_current
-        self.logging.info(" 1S Solar Current: %3.2f A" % float(sol_current['1s_solar_current'] / 1000))
-        self.logging.info(" 10m Solar Current: %3.2f A" % float(sol_current['10m_solar_current'] / 1000))
-        self.logging.info("")
-        self.logging.info("---")
+        logging.info(" 1S Solar Current: %3.2f A" % float(sol_current['1s_solar_current'] / 1000))
+        logging.info(" 10m Solar Current: %3.2f A" % float(sol_current['10m_solar_current'] / 1000))
+        logging.info("")
+        logging.info("---")
 
-        self.logging.info(
+        logging.info(
             " Main Relay works from: %s  " % ("INVERT" if (inverter_status == 1) else "MAIN"))
-        self.logging.info("")
+        logging.info("")
 
         devices = load_devices.get_devices_by_device_type("SWITCH")
         for device in devices:
-            self.logging.info(f"{device.get_desc.ljust(20)}: %s " % (
+            logging.info(f"{device.get_desc.ljust(20)}: %s " % (
                 "ON" if (device.get_status('switch_1')) else "OFF"))
-        self.logging.info("")
+
+        _pump_text = "Pump Speed"
+        formatted_string = f'{_pump_text.ljust(20)}'
+        _with_color = f'{Fore.GREEN}{pump_status}{Style.RESET_ALL}'
+        logging.info(f"{formatted_string}:{pump_status}  ")
+        logging.info("")
 
         wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
-        self.logging.info(" 1S Solar Power: %3.2f W " % wtg)
-        self.logging.info(" Pond Pump Speed: %d  " % pump_status)
-        self.logging.info("---")
-        self.logging.info("--------------------------------------------")
-        self.logging.info("--------------------------------------------")
+        logging.info(" 1S Solar Power: %3.2f W " % wtg)
+        logging.info("---")
+        logging.info("--------------------------------------------")
+        logging.info("--------------------------------------------")
