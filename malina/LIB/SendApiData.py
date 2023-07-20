@@ -99,10 +99,10 @@ class SendApiData():
         if erros_resp:
             logging.error(resp)
 
-    def _send_switch_stats(self, device: Device, api_path='pondswitch/'):
+    def _send_switch_stats(self, device: Device, inv_status, api_path='pondswitch/'):
         status = device.get_status()
         try:
-            status.update({"description": device.get_desc})
+            status.update({"description": device.get_desc, 'from_main': not inv_status})
             payload = json.dumps(status)
             headers = {
                 'Content-Type': 'application/json'
@@ -124,7 +124,7 @@ class SendApiData():
 
     def send_load_stats(self, device, inv_status):
         if device.get_device_type == "SWITCH":
-            self._send_switch_stats(device)
+            self._send_switch_stats(device, inv_status)
         elif device.get_device_type == "PUMP":
             self.send_pump_stats(device, inv_status)
 

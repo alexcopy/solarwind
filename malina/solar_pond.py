@@ -123,7 +123,7 @@ class SolarPond():
         # self.send_data.send_weather(self.automation.local_weather)
 
     def send_stats_to_api(self):
-        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+        inv_status = int(self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1'))
         devices = self.new_devices.get_devices()
         for device in devices:
             self.send_data.send_load_stats(device, inv_status)
