@@ -102,7 +102,12 @@ class SendApiData():
     def _send_switch_stats(self, device: Device, inv_status, api_path='pondswitch/'):
         status = device.get_status()
         try:
-            status.update({"description": device.get_desc, 'from_main': not inv_status})
+            status.update({
+                "description": device.get_desc,
+                "relay_status": int(device.get_status('switch_1')),
+                'from_main': not inv_status
+            })
+
             payload = json.dumps(status)
             headers = {
                 'Content-Type': 'application/json'
