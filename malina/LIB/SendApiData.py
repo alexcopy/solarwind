@@ -108,7 +108,7 @@ class SendApiData():
                 'Content-Type': 'application/json'
             }
             url = urljoin(self.api_url, api_path)
-            logging.debug(f"Debugging URL: {url}")
+            logging.error(f"Debugging URL: {url}")
             logging.error(f"Debugging json: {json.dumps(status)}")
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
