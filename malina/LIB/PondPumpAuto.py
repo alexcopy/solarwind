@@ -31,11 +31,14 @@ class PondPumpAuto():
         return self.weather
 
     def update_weather(self):
-        from malina.LIB.SendApiData import SendApiData
-        self.weather = self.weather_data()
-        if self.weather is not None and self.weather['is_valid']:
-            api_data = SendApiData()
-            api_data.send_weather(self.weather)
+        try:
+            from malina.LIB.SendApiData import SendApiData
+            self.weather = self.weather_data()
+            if self.weather is not None and self.weather['is_valid']:
+                api_data = SendApiData()
+                api_data.send_weather(self.weather)
+        except Exception as e:
+            logging.error(f"Cannot update weather the error is: {str(e)}")
 
     def setup_minimum_pump_speed(self, device: Device):
         weather_conds = device.get_extra('weather')
