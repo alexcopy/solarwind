@@ -9,7 +9,7 @@ from malina.LIB.Device import Device
 class TuyaController():
     def __init__(self, authorisation: TuyaAuthorisation):
         self.authorisation = authorisation
-        self.pump_auto = PondPumpAuto(authorisation.device_manager)
+        self.pump_auto = PondPumpAuto()
 
     def switch_device(self, device: Device, value) -> bool:
         try:

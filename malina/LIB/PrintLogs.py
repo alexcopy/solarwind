@@ -30,7 +30,7 @@ class SolarLogging:
                 continue
             val = self.avg(self.fifo.filo_buff[i])
             if 'voltage' in i:
-                _with_col = f'AVG {i.ljust(30)}: {Fore.RED}{val: 3.2f}V {Style.RESET_ALL}'
+                _with_col = f'AVG {i.ljust(30)}: {Fore.RED}{val: 3.2f} V {Style.RESET_ALL}'
             elif 'current' in i:
                 _with_col = f'AVG {i.ljust(30)}: {Fore.GREEN}{val / 1000: 3.2f} A {Style.RESET_ALL}'
             elif 'wattage' in i:

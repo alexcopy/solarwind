@@ -21,10 +21,9 @@ DAY_TIME_COMPENSATE = 1.5
 
 
 class PondPumpAuto():
-    def __init__(self, devices):
+    def __init__(self):
         self._min_speed = {'min_speed': 10, 'timestamp': int(time.time())}
-        # todo remove from constructor
-        self.devices = devices
+
 
     @property
     def local_weather(self):
@@ -33,13 +32,19 @@ class PondPumpAuto():
     def update_weather(self):
         self.weather = self.weather_data()
 
+
     def setup_minimum_pump_speed(self, device: Device):
         weather_conds = device.get_extra('weather')
         try:
             logger.debug(
                 f"Setting up the minimum speed for device {device.name}  with  weather table is: {weather_conds}")
-            temp = self.weather_data()['temperature']
             min_speed = device.get_extra('min_speed')
+            self.update_weather()
+
+            if not self.weather['is_valid']:
+                logger.error(f"The weather has not been updated or not valid, min speed remains: {min_speed}")
+                return min_speed
+            temp = self.weather['temperature']
 
             for i in weather_conds:
                 val_tmp = int(weather_conds[i])
@@ -61,14 +66,15 @@ class PondPumpAuto():
                     'humidity': int(weather.current.humidity), 'precipitation': float(weather.current.precipitation),
                     'type': str(weather.current.type), 'wind_direction': str(weather.current.wind_direction),
                     'feels_like': int(weather.current.feels_like), 'description': str(weather.current.description),
-                    'pressure': float(weather.current.pressure), 'timestamp': int(time.time()), 'town': WEATHER_TOWN}
+                    'pressure': float(weather.current.pressure), 'timestamp': int(time.time()), 'town': WEATHER_TOWN,
+                    'is_valid': True}
 
         except Exception as e:
             logging.error("Problem in weather data getter")
             logging.error(e)
-            return {'temperature': 0, 'wind_speed': 0, 'visibility': 0, 'uv_index': 0, 'humidity': 0,
+            return {'temperature': 14, 'wind_speed': 0, 'visibility': 0, 'uv_index': 0, 'humidity': 0,
                     'precipitation': 0, 'type': "", 'wind_direction': "", 'description': "", 'feels_like': 0,
-                    'pressure': 0, 'timestamp': int(time.time()), 'town': WEATHER_TOWN
+                    'pressure': 0, 'timestamp': int(time.time()), 'town': WEATHER_TOWN, 'is_valid': False
                     }
 
     def _decrease_pump_speed(self, device: Device):
