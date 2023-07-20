@@ -95,7 +95,7 @@ class SendApiData():
         status = device.get_status()
         try:
             status.update({"description": device.get_status("desc")})
-            payload = json.dumps(device.get_status())
+            payload = json.dumps(status)
             headers = {
                 'Content-Type': 'application/json'
             }
