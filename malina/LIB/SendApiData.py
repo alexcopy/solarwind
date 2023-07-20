@@ -37,7 +37,7 @@ class SendApiData():
     def send_pump_stats(self, device: Device, inv_status):
         try:
             pump_status = device.get_status()
-            pump_status.update({"description": pump_status.get("desc"), 'from_main': inv_status})
+            pump_status.update({"description": pump_status.get_status("desc"), 'from_main': inv_status})
             payload = json.dumps(pump_status)
             headers = {
                 'Content-Type': 'application/json'
