@@ -120,7 +120,7 @@ class SolarPond():
         self.send_data.send_avg_data(self.filo_fifo, inv_status)
         # self.send_data.send_weather(self.automation.local_weather)
 
-    def send_stats_api(self):
+    def send_stats_to_api(self):
         devices = self.new_devices.get_devices()
         for device in devices:
             self.send_data.send_load_stats(device)
