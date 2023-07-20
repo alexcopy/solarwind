@@ -41,16 +41,16 @@ class SendApiData():
                 "description": device.get_desc,
                 'name': device.get_name(),
                 'flow_speed': device.get_status('P'),
-                'from_main': inv_status
+                'from_main': not inv_status
             })
-            logging.error(f"Debugging:{json.dumps(pump_status)}")
+            logging.debug(f"Debugging:{json.dumps(pump_status)}")
             payload = json.dumps(pump_status)
 
             headers = {
                 'Content-Type': 'application/json'
             }
             url = urljoin(self.api_url, 'pondpump/')
-            logging.error(f"Debugging URL :{url}")
+            logging.debug(f"Debugging URL :{url}")
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
                 logging.error(response['payload'])
@@ -108,6 +108,8 @@ class SendApiData():
                 'Content-Type': 'application/json'
             }
             url = urljoin(self.api_url, api_path)
+            logging.debug(f"Debugging URL: {url}")
+            logging.error(f"Debugging json: {json.dumps(status)}")
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
                 logging.error(response['payload'])
