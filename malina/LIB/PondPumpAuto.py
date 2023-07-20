@@ -7,7 +7,7 @@ from asyncio.log import logger
 import python_weather
 from dotenv import dotenv_values
 
-from malina.LIB.SendApiData import SendApiData
+
 from malina.LIB.Device import Device
 
 config = dotenv_values(".env")
@@ -31,6 +31,7 @@ class PondPumpAuto():
         return self.weather
 
     def update_weather(self):
+        from malina.LIB.SendApiData import SendApiData
         self.weather = self.weather_data()
         if self.weather is not None and self.weather['is_valid']:
             api_data = SendApiData()
