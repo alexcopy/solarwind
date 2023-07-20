@@ -38,11 +38,13 @@ class SendApiData():
         pump_status = device.get_status()
         try:
             pump_status.update({"description": device.get_desc, 'from_main': inv_status})
+            logging.error(f"Debugging:{json.dumps(pump_status)}")
             payload = json.dumps(pump_status)
             headers = {
                 'Content-Type': 'application/json'
             }
             url = urljoin(self.api_url, 'pondpump/')
+            logging.error(f"Debugging URL :{url}")
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
                 logging.error(response['payload'])
@@ -50,14 +52,14 @@ class SendApiData():
             return response
         except Exception as ex:
             logging.error(f"Getting error in send_pump_stats to remote API data {json.dumps(pump_status)}")
-            print(ex)
             logging.error(ex)
             time.sleep(10)
             return {'errors': True}
 
     def send_avg_data(self, filo_fifo: FiloFifo, inverter_status):
 
-        for v in filo_fifo.filo_buff:
+        buff = filo_fifo.filo_buff
+        for v in buff:
             if not '1h' in v:
                 continue
             val_type = "V"
@@ -71,8 +73,8 @@ class SendApiData():
                 "value_type": val_type,
                 "name": v,
                 "inverter_status": inverter_status,
-                "avg_value": FiloFifo.avg(filo_fifo.filo_buff[v]),
-                "serialized": filo_fifo.filo_buff[v],
+                "avg_value": FiloFifo.avg(buff[v]),
+                "serialized": buff[v],
             })
             url_path = "%ssolarpower" % self.api_url
             self.send_to_remote(url_path, payload)
