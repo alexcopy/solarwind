@@ -40,7 +40,7 @@ class SendApiData():
             pump_status.update({
                 "description": device.get_desc,
                 'name': device.get_name(),
-                'flow_speed': device.get_status('rotating_speed'),
+                'flow_speed': device.get_status('P'),
                 'from_main': inv_status
             })
             logging.error(f"Debugging:{json.dumps(pump_status)}")
