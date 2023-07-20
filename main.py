@@ -80,7 +80,7 @@ if __name__ == '__main__':
     scheduler.every(5).minutes.do(sp.reset_ff)
     scheduler.every(120).minutes.do(sp.weather_check_update)
     scheduler.every(2).minutes.do(_stats)
-    scheduler.every(30).minutes.do(sp.send_stats_to_api)
+    scheduler.every(5).minutes.do(sp.send_stats_to_api)
 
     while True:
         try:

@@ -9,7 +9,6 @@ import requests
 from dotenv import dotenv_values
 
 from malina.LIB.Device import Device
-from malina.LIB.InitiateDevices import InitiateDevices
 from malina.LIB.FiloFifo import FiloFifo
 from malina.LIB.PrintLogs import SolarLogging
 
@@ -19,7 +18,6 @@ API_URL = config["API_URL"]
 
 class SendApiData():
     def __init__(self):
-        self.device_manager = InitiateDevices().device_controller
         self.api_url = API_URL
         self.print_logs = SolarLogging()
 
@@ -95,10 +93,10 @@ class SendApiData():
             logging.error(resp)
 
     def _send_switch_stats(self, device, api_path='pondswitch/'):
+        status = device.get_status()
         try:
-            status = device.get_status()
-            status.update({"description": status.get("desc")})
-            payload = json.dumps(status)
+            status.update({"description": device.get_status("desc")})
+            payload = json.dumps(device.get_status())
             headers = {
                 'Content-Type': 'application/json'
             }
@@ -109,7 +107,7 @@ class SendApiData():
                 logging.error(response['errors_msg'])
             return response
         except Exception as ex:
-            logging.error("Getting error in send_load_stats to remote API data ")
+            logging.error(f"Getting error in _send_switch_stats  to remote API data: {status}")
             print(ex)
             logging.error(ex)
             time.sleep(10)
