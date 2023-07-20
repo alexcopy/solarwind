@@ -22,12 +22,12 @@ Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 class SolarPond():
     def __init__(self):
         self.FILTER_FLUSH = []
-        self.print_logs = SolarLogging(logging)
+        self.print_logs = SolarLogging()
         self.filo_fifo = FiloFifo.FiloFifo()
         self.tuya_auth = TuyaAuthorisation()
         self.tuya_controller = TuyaController(self.tuya_auth)
         self.new_devices = InitiateDevices().device_controller
-        self.send_data = SendApiData.SendApiData(logging)
+        self.send_data = SendApiData.SendApiData()
         self.new_devices.update_all_statuses()
         
     @staticmethod

@@ -18,13 +18,13 @@ API_URL = config["API_URL"]
 
 
 class SendApiData():
-    def __init__(self, logger):
+    def __init__(self):
         self.device_manager = InitiateDevices().device_controller
         self.api_url = API_URL
-        self.print_logs = SolarLogging(logger)
+        self.print_logs = SolarLogging()
 
     def send_to_remote(self, url_path, payload):
-        self.print_logs.loger_remote(url_path)
+        SolarLogging().loger_remote(url_path)
         headers = {
             'Content-Type': 'application/json'
         }

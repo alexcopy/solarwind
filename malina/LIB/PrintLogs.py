@@ -5,8 +5,7 @@ import logging
 
 
 class SolarLogging:
-    def __init__(self, logging):
-        logger = logging
+    def __init__(self):
         self.fifo = FiloFifo.FiloFifo()
 
     def avg(self, l):
@@ -14,7 +13,8 @@ class SolarLogging:
             return 0
         return float(round(sum(l, 0.0) / len(l), 2))
 
-    def loger_remote(self, url_path):
+    @staticmethod
+    def loger_remote(url_path):
         logging.info("------------SENDING TO REMOTE--------------")
         logging.info(url_path)
         logging.info("--------------------------------------------")

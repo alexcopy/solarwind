@@ -7,6 +7,7 @@ from asyncio.log import logger
 import python_weather
 from dotenv import dotenv_values
 
+from malina.LIB.SendApiData import SendApiData
 from malina.LIB.Device import Device
 
 config = dotenv_values(".env")
@@ -22,8 +23,8 @@ DAY_TIME_COMPENSATE = 1.5
 
 class PondPumpAuto():
     def __init__(self):
+        self.weather = None
         self._min_speed = {'min_speed': 10, 'timestamp': int(time.time())}
-
 
     @property
     def local_weather(self):
@@ -31,7 +32,9 @@ class PondPumpAuto():
 
     def update_weather(self):
         self.weather = self.weather_data()
-
+        if self.weather is not None and self.weather['is_valid']:
+            api_data = SendApiData()
+            api_data.send_weather(self.weather)
 
     def setup_minimum_pump_speed(self, device: Device):
         weather_conds = device.get_extra('weather')
