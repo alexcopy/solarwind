@@ -37,7 +37,7 @@ class SendApiData():
     def send_pump_stats(self, device: Device, inv_status):
         try:
             pump_status = device.get_status()
-            pump_status.update({"description": pump_status.get_status("desc"), 'from_main': inv_status})
+            pump_status.update({"description": device.get_desc, 'from_main': inv_status})
             payload = json.dumps(pump_status)
             headers = {
                 'Content-Type': 'application/json'
@@ -91,10 +91,10 @@ class SendApiData():
         if erros_resp:
             logging.error(resp)
 
-    def _send_switch_stats(self, device, api_path='pondswitch/'):
+    def _send_switch_stats(self, device: Device, api_path='pondswitch/'):
         status = device.get_status()
         try:
-            status.update({"description": device.get_status("desc")})
+            status.update({"description": device.get_desc})
             payload = json.dumps(status)
             headers = {
                 'Content-Type': 'application/json'
