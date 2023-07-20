@@ -117,7 +117,9 @@ class SolarPond():
 
     def send_avg_data(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
-        self.send_data.send_avg_data(self.filo_fifo, inv_status)
+
+        # todo: check why FiloFifo reseting
+        # self.send_data.send_avg_data(self.filo_fifo, inv_status)
         # self.send_data.send_weather(self.automation.local_weather)
 
     def send_stats_to_api(self):
