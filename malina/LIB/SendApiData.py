@@ -35,8 +35,8 @@ class SendApiData():
             return {'errors': True}
 
     def send_pump_stats(self, device: Device, inv_status):
+        pump_status = device.get_status()
         try:
-            pump_status = device.get_status()
             pump_status.update({"description": device.get_desc, 'from_main': inv_status})
             payload = json.dumps(pump_status)
             headers = {
@@ -49,7 +49,7 @@ class SendApiData():
                 logging.error(response['errors_msg'])
             return response
         except Exception as ex:
-            logging.error("Getting error in send_pump_stats to remote API data ")
+            logging.error(f"Getting error in send_pump_stats to remote API data {json.dumps(pump_status)}")
             print(ex)
             logging.error(ex)
             time.sleep(10)
@@ -106,7 +106,7 @@ class SendApiData():
                 logging.error(response['errors_msg'])
             return response
         except Exception as ex:
-            logging.error(f"Getting error in _send_switch_stats  to remote API data: {status}")
+            logging.error(f"Getting error in _send_switch_stats  to remote API data: {json.dumps(status)}")
             print(ex)
             logging.error(ex)
             time.sleep(10)
