@@ -34,11 +34,10 @@ class SendApiData():
             logging.error(ex)
             return {'errors': True}
 
-    def send_pump_stats(self, device: Device):
+    def send_pump_stats(self, device: Device, inv_status):
         try:
             pump_status = device.get_status()
-            is_working_mains = self.device_manager.get_devices_by_name("inverter")[0].get_status('switch_1')
-            pump_status.update({"description": pump_status.get("desc"), 'from_main': is_working_mains})
+            pump_status.update({"description": pump_status.get("desc"), 'from_main': inv_status})
             payload = json.dumps(pump_status)
             headers = {
                 'Content-Type': 'application/json'
@@ -113,11 +112,11 @@ class SendApiData():
             time.sleep(10)
             return {'errors': True}
 
-    def send_load_stats(self, device):
+    def send_load_stats(self, device, inv_status):
         if device.get_device_type == "SWITCH":
             self._send_switch_stats(device)
         elif device.get_device_type == "PUMP":
-            self.send_pump_stats(device)
+            self.send_pump_stats(device, inv_status)
 
     def send_weather(self, local_weather):
         try:
