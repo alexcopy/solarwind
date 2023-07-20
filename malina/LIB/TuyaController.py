@@ -4,6 +4,7 @@ import time
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.PondPumpAuto import PondPumpAuto
 from malina.LIB.Device import Device
+from malina.LIB.SendApiData import SendApiData
 
 
 class TuyaController():
@@ -125,13 +126,16 @@ class TuyaController():
                 return True
 
             switch_device = self.switch_device(device, speed)
+
             if switch_device:
                 device.update_status({"P": speed})
+                SendApiData().send_pump_stats(device, inv_status)
                 logging.debug(
                     f"!!!!!   Pump's Speed successfully adjusted to: {speed} the new speed is: {device.get_status('P')}!!!!!!!!! ")
             else:
                 time.sleep(10)
                 switch_device = self.switch_device(device, speed)
+                SendApiData().send_pump_stats(device, inv_status)
                 if not switch_device:
                     logging.error(
                         "!!!!   Pump's Speed has failed after SLEEP 10 SEC to adjust in speed to: %d !!!!" % speed)
