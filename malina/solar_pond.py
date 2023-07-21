@@ -133,7 +133,7 @@ class SolarPond():
                     continue
                 avg_val = self.avg(buff_v_)
                 val_type = "V"
-                name = v
+                name = v.lower()
 
                 if 'current' in v:
                     val_type = "A"
@@ -146,7 +146,7 @@ class SolarPond():
                     "name": name,
                     "inverter_status": inv_status,
                     "avg_value": avg_val,
-                    "serialized": buff_v_,
+                    "serialized": json.dumps(buff_v_),
                 })
                 payloads.append(payload)
             url_path = "%ssolarpower"
