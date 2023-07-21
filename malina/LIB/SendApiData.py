@@ -71,14 +71,17 @@ class SendApiData():
             return {'errors': True}
 
     def send_avg_data(self, inverter_status):
-        buff = copy.deepcopy(self.fifo.filo_buff)
+        buff = self.fifo.filo_buff
         logging.error(f"Debugging: Sending FIFO data to remote API data {json.dumps(buff)}")
         logging.error("\n\n\n\n")
         for v in buff:
             logging.error(f" The Param is: {v}")
+            buff_v_ = buff[v]
             if not '1h' in v:
                 continue
+            avg_val = self.avg(buff_v_)
             val_type = "V"
+
             if 'current' in v:
                 val_type = "A"
 
@@ -89,8 +92,8 @@ class SendApiData():
                 "value_type": val_type,
                 "name": v,
                 "inverter_status": inverter_status,
-                "avg_value": self.avg(buff[v]),
-                "serialized": buff[v],
+                "avg_value": avg_val,
+                "serialized": buff_v_,
             })
             url_path = "%ssolarpower" % self.api_url
             self.send_to_remote(url_path, payload)

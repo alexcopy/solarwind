@@ -127,22 +127,6 @@ class FiloFifo:
         self.REL_STATUS['main_relay_status'].append(statuses['main_relay_status'])
         self.REL_STATUS['status_check'].append(statuses['status_check'])
 
-    @property
-    def get_main_rel_status(self):
-        return self.avg(self.REL_STATUS['main_relay_status'])
-
-    @property
-    def get_avg_rel_stats(self):
-        return {i: self.avg(val) for i, val in self.REL_STATUS.items()}
-
-    @property
-    def len_sts_chk(self):
-        return len(self.REL_STATUS['status_check'])
-
-    @property
-    def get_avg_rel_status(self):
-        return self.avg(self.REL_STATUS['status_check'])
-
     def buffers_run(self, inverter_state):
         self.inverter_on = inverter_state
         self._fill_buffers()
