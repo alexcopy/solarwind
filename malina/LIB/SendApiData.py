@@ -8,9 +8,7 @@ from urllib.parse import urljoin
 import requests
 import copy
 from dotenv import dotenv_values
-
 from malina.LIB.Device import Device
-from malina.LIB import FiloFifo
 from malina.LIB.PrintLogs import SolarLogging
 
 config = dotenv_values(".env")
@@ -21,7 +19,7 @@ class SendApiData():
     def __init__(self):
         self.api_url = API_URL
         self.print_logs = SolarLogging()
-        self.fifo = FiloFifo.FiloFifo()
+
 
     @staticmethod
     def avg(l):
@@ -30,6 +28,7 @@ class SendApiData():
         return float(round(sum(l, 0.0) / len(l), 2))
 
     def send_to_remote(self, url_path, payload):
+        url_path = url_path % self.api_url
         SolarLogging().loger_remote(url_path)
         headers = {
             'Content-Type': 'application/json'
@@ -70,34 +69,6 @@ class SendApiData():
             time.sleep(10)
             return {'errors': True}
 
-    def send_avg_data(self, inverter_status):
-        buff = self.fifo.filo_buff
-        logging.error(f"Debugging: Sending FIFO data to remote API data {json.dumps(buff)}")
-        logging.error("\n\n\n\n")
-        for v in buff:
-            logging.error(f" The Param is: {v}")
-            buff_v_ = buff[v]
-            if not '1h' in v:
-                continue
-            avg_val = self.avg(buff_v_)
-            val_type = "V"
-
-            if 'current' in v:
-                val_type = "A"
-
-            if 'wattage' in v:
-                val_type = "W"
-
-            payload = json.dumps({
-                "value_type": val_type,
-                "name": v,
-                "inverter_status": inverter_status,
-                "avg_value": avg_val,
-                "serialized": buff_v_,
-            })
-            url_path = "%ssolarpower" % self.api_url
-            self.send_to_remote(url_path, payload)
-
     def send_ff_data(self, shunt_name: str, filter_flush, avg_cc, tik_time=1):
         payload = json.dumps({
             "max_current": max(filter_flush),
@@ -105,8 +76,7 @@ class SendApiData():
             "duration": len(filter_flush) * tik_time,
             "name": shunt_name
         })
-        url_path = "%sfflash" % self.api_url
-        resp = self.send_to_remote(url_path, payload)
+        resp = self.send_to_remote("%sfflash", payload)
         erros_resp = resp['errors']
         if erros_resp:
             logging.error(resp)

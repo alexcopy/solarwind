@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import json
 import logging
 import logging.handlers
 import time
@@ -29,7 +30,7 @@ class SolarPond():
         self.new_devices = InitiateDevices().device_controller
         self.send_data = SendApiData.SendApiData()
         self.new_devices.update_all_statuses()
-        
+
     @staticmethod
     def avg(l):
         if len(l) == 0:
@@ -115,19 +116,44 @@ class SolarPond():
         devices = self.new_devices.get_devices()
         self.tuya_controller.update_devices_status(devices)
 
-    def send_avg_data(self):
-        try:
-            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
-            self.send_data.send_avg_data(inv_status)
-        except Exception as e:
-            logging.error(f"ERROR: {e}")
-
     def send_stats_to_api(self):
         inv_status = int(self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1'))
         devices = self.new_devices.get_devices()
         for device in devices:
             self.send_data.send_load_stats(device, inv_status)
 
+    def send_avg_data(self):
+        try:
+            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+            buff = self.filo_fifo.filo_buff
+            logging.error(f"Debugging: Sending FIFO data to remote API data {json.dumps(buff)}")
+            logging.error("\n\n\n\n")
+            for v in buff:
+                logging.error(f" The Param is: {v}")
+                buff_v_ = buff[v]
+                if not '1h' in v:
+                    continue
+                avg_val = self.avg(buff_v_)
+                val_type = "V"
+                name = v
+
+                if 'current' in v:
+                    val_type = "A"
+
+                if 'wattage' in v:
+                    val_type = "W"
+
+                payload = json.dumps({
+                    "value_type": val_type,
+                    "name": name,
+                    "inverter_status": inv_status,
+                    "avg_value": avg_val,
+                    "serialized": buff_v_,
+                })
+                url_path = "%ssolarpower"
+                self.send_data.send_to_remote(url_path, payload)
+        except Exception as e:
+            logging.error(f"ERROR: {e}")
 # todo:
 #  add weather to table and advance in table pond self temp from future gauge
 #  add proper error handling for api calls
