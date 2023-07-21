@@ -126,10 +126,7 @@ class SolarPond():
         try:
             inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
             buff = self.filo_fifo.filo_buff
-            logging.error(f"Debugging: Sending FIFO data to remote API data {json.dumps(buff)}")
-            logging.error("\n\n\n\n")
             for v in buff:
-                logging.error(f" The Param is: {v}")
                 buff_v_ = buff[v]
                 if not '1h' in v:
                     continue
