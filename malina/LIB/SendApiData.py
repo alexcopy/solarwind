@@ -64,7 +64,10 @@ class SendApiData():
 
     def send_avg_data(self, inverter_status):
         buff = FiloFifo().filo_buff
+        logging.error(f"Debugging: Sending FIFO data to remote API data {json.dumps(buff)}")
+        logging.error("\n\n\n\n")
         for v in buff:
+            logging.info(f" The Param is: {v}")
             if not '1h' in v:
                 continue
             val_type = "V"
