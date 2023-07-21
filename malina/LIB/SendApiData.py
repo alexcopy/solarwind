@@ -26,6 +26,10 @@ class SendApiData():
 
     @staticmethod
     def _to_remote(url_path, payload):
+        if payload is None:
+            logging.error("Payload is None, skipping...")
+            return None
+
         logging.info("------------SENDING TO REMOTE--------------")
         logging.info(url_path)
         logging.info("--------------------------------------------")
@@ -41,6 +45,9 @@ class SendApiData():
             return {'errors': True}
 
     def send_to_remote(self, url_path, payloads):
+        if payloads is None:
+            logging.error("Payloads is None, exiting...")
+            return
         url_path = url_path % self.api_url
         with concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
             future_to_payload = {executor.submit(self._to_remote, url_path, payload): payload for payload in payloads}
