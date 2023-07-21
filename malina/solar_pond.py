@@ -4,7 +4,7 @@ import logging
 import logging.handlers
 import time
 from pathlib import Path
-
+import traceback
 from dotenv import dotenv_values
 
 from malina.LIB import FiloFifo
@@ -49,7 +49,9 @@ class SolarPond():
         try:
             inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
             self.filo_fifo.buffers_run(inv_status)
-            self.filter_flush_run()
+
+            # todo check why ?
+            # self.filter_flush_run()
             self.filo_fifo.update_rel_status({
                 'status_check': 1,
                 'inverter_relay': inv_status,
@@ -61,9 +63,9 @@ class SolarPond():
             logging.info(io_err)
 
         except Exception as ex:
-            logging.error(
-                f"problem in processing_reads please have a look in Exception {self.new_devices.get_devices_by_name('inverter')[0].get_status()}")
-            logging.error(ex)
+            logging.error(f"problem in processing_reads please have a look in Exception{ex}")
+            traceback.print_exc()
+            logging.error("-----------------END--------------------")
 
     def show_logs(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
