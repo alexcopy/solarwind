@@ -42,10 +42,16 @@ class SendApiData():
 
     def send_to_remote(self, url_path, payloads):
         url_path = url_path % self.api_url
-        for payload in payloads:
-            with  concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
-                result = executor.map(SendApiData()._to_remote, url_path, payload)
-                logging.error(f"The result is result: {result}")
+        with concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            future_to_payload = {executor.submit(self._to_remote, url_path, payload): payload for payload in payloads}
+            for future in concurrent.futures.as_completed(future_to_payload):
+                payload = future_to_payload[future]
+                try:
+                    result = future.result()
+                    logging.error(f"The result is result: {result}")
+                except Exception as ex:
+                    logging.error("Getting error in sending to remote API data ")
+                    logging.error(ex)
 
     def send_pump_stats(self, device: Device, inv_status):
         pump_status = device.get_status()
