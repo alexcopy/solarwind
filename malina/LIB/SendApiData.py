@@ -62,9 +62,8 @@ class SendApiData():
             time.sleep(10)
             return {'errors': True}
 
-    def send_avg_data(self, filo_fifo: FiloFifo, inverter_status):
-
-        buff = filo_fifo.filo_buff
+    def send_avg_data(self, inverter_status):
+        buff = FiloFifo().filo_buff
         for v in buff:
             if not '1h' in v:
                 continue
@@ -79,7 +78,7 @@ class SendApiData():
                 "value_type": val_type,
                 "name": v,
                 "inverter_status": inverter_status,
-                "avg_value": FiloFifo.avg(buff[v]),
+                "avg_value": FiloFifo().avg(buff[v]),
                 "serialized": buff[v],
             })
             url_path = "%ssolarpower" % self.api_url
@@ -95,7 +94,6 @@ class SendApiData():
         url_path = "%sfflash" % self.api_url
         resp = self.send_to_remote(url_path, payload)
         erros_resp = resp['errors']
-
         if erros_resp:
             logging.error(resp)
 
@@ -113,8 +111,8 @@ class SendApiData():
                 'Content-Type': 'application/json'
             }
             url = urljoin(self.api_url, api_path)
-            logging.error(f"Debugging URL: {url}")
-            logging.error(f"Debugging json: {json.dumps(status)}")
+            logging.debug(f"Debugging URL: {url}")
+            logging.debug(f"Debugging json: {json.dumps(status)}")
             response = requests.request("POST", url, headers=headers, data=payload).json()
             if response['errors']:
                 logging.error(response['payload'])
@@ -122,7 +120,6 @@ class SendApiData():
             return response
         except Exception as ex:
             logging.error(f"Getting error in _send_switch_stats  to remote API data: {json.dumps(status)}")
-            print(ex)
             logging.error(ex)
             time.sleep(10)
             return {'errors': True}

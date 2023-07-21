@@ -78,11 +78,11 @@ if __name__ == '__main__':
     scheduler.every(5).seconds.do(sp.load_checks)
     scheduler.every(2).seconds.do(sp.show_logs)
     scheduler.every(5).minutes.do(sp.reset_ff)
-    scheduler.every(120).minutes.do(sp.weather_check_update)
     scheduler.every(2).minutes.do(_stats)
+    scheduler.every(30).minutes.do(sp.send_stats_to_api)
     # todo change timing after testing
-    scheduler.every(5).minutes.do(sp.send_stats_to_api)
-    scheduler.every(4).minutes.do(sp.send_avg_data)
+    scheduler.every(2).minutes.do(sp.weather_check_update)
+    scheduler.every(2).minutes.do(sp.send_avg_data)
 
     while True:
         try:
