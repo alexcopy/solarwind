@@ -48,16 +48,17 @@ class SendApiData():
         if payloads is None:
             logging.error("Payloads is None, exiting...")
             return
+
         url_path = url_path % self.api_url
         with concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            future_to_payload = {executor.submit(self._to_remote, url_path, payload): payload for payload in payloads}
-            for future in concurrent.futures.as_completed(future_to_payload):
-                payload = future_to_payload[future]
+            futures = [executor.submit(self._to_remote, url_path, payload) for payload in payloads]
+
+            for future, payload in zip(concurrent.futures.as_completed(futures), payloads):
                 try:
                     result = future.result()
-                    logging.error(f"The result is result: {result}")
+                    logging.error(f"The result for payload {payload} is: {result}")
                 except Exception as ex:
-                    logging.error("Getting error in sending to remote API data ")
+                    logging.error(f"Getting error in sending to remote API data for payload {payload}")
                     logging.error(ex)
 
     def send_pump_stats(self, device: Device, inv_status):
