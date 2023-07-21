@@ -1,11 +1,7 @@
 #!/usr/bin/env python
-from malina.INA3221 import SDL_Pi_INA3221
-
-import schedule
-import time
 import logging
-import threading
-import copy
+import time
+from malina.INA3221 import SDL_Pi_INA3221
 
 INVERT_CHANNEL = 1
 LEISURE_BAT_CHANNEL = 2
@@ -14,17 +10,8 @@ SHUNT_IMP = 0.00155
 
 
 class FiloFifo:
-    _instance_lock = threading.Lock()
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            with cls._instance_lock:
-                if cls._instance is None:
-                    cls._instance = super(FiloFifo, cls).__new__(cls)
-        return cls._instance
-
-    def __init__(self, bus_voltage='bus_voltage', wattage='wattage', bat_current='bat_current'):
+    def __init__(self, bus_voltage='bus_voltage', wattage='wattage',
+                 bat_current='bat_current'):
 
         self.shunt_bat = SHUNT_IMP
         self.logging = logging
@@ -40,10 +27,6 @@ class FiloFifo:
         self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
         self.load_names = {'tiger': TIGER_BAT_CHANNEL, 'leisure': LEISURE_BAT_CHANNEL, 'inverter': INVERT_CHANNEL}
         self._setup_buffers()
-        # Create locks for thread safety
-        self.filo_lock = threading.Lock()
-        self.fifo_lock = threading.Lock()
-        self.filo_buff_lock = threading.Lock()
 
     def _setup_buffers(self):
         self.FILO = self._make_filo_fields()
@@ -65,7 +48,7 @@ class FiloFifo:
 
     @property
     def filo_buff(self):
-        filo = copy.deepcopy(self.FILO)
+        filo = self.FILO
         return filo
 
     @property
@@ -82,7 +65,22 @@ class FiloFifo:
 
     @property
     def fifo_buff(self):
-        return copy.deepcopy(self.FIFO)
+        return self.FIFO
+
+    def _update_filo_buffer(self):
+        timestamp = int(time.time())
+        if timestamp % 10 == 0:
+            prefix = '10m_'
+            for field in self.fifo_buff:
+                m_field = field.replace('1s_', prefix)
+                self.FILO[m_field].append(self.avg(self.filo_buff[field]))
+
+        if timestamp % 60 == 0:
+            prefix = '1h_'
+            for field in self.filo_buff:
+                if not '10m_' in field: continue
+                h_field = field.replace('10m_', prefix)
+                self.FILO[h_field].append(self.avg(self.filo_buff[field]))
 
     def _read_vals(self, channel):
         voltage = round(float(self.shunt_load.getBusVoltage_V(channel)), 2)
@@ -99,32 +97,8 @@ class FiloFifo:
         return [v for k, v in self.filo_buff.items() if
                 k.startswith(pref) and k.endswith(suffix)]
 
-    def update_rel_status(self, statuses: dict):
-        self.REL_STATUS['inverter_relay'].append(statuses['inverter_relay'])
-        self.REL_STATUS['main_relay_status'].append(statuses['main_relay_status'])
-        self.REL_STATUS['status_check'].append(statuses['status_check'])
-
-    def _update_filo_buffer(self):
-        timestamp = int(time.time())
-        if timestamp % 10 == 0:
-            prefix = '10m_'
-            for field in self.fifo_buff:
-                m_field = field.replace('1s_', prefix)
-                self.filo_lock.acquire()
-                self.FILO[m_field].append(self.avg(self.filo_buff[field]))
-                self.filo_lock.release()
-
-        if timestamp % 60 == 0:
-            prefix = '1h_'
-            for field in self.fifo_buff:
-                if not '10m_' in field:
-                    continue
-                h_field = field.replace('10m_', prefix)
-                self.filo_lock.acquire()
-                self.FILO[h_field].append(self.avg(self.filo_buff[field]))
-                self.filo_lock.release()
-
     def _fill_buffers(self):
+
         channels = {
             'tiger': self._read_vals(TIGER_BAT_CHANNEL),
             'leisure': self._read_vals(LEISURE_BAT_CHANNEL),
@@ -134,34 +108,37 @@ class FiloFifo:
         for ch in channels:
             for val in channels[ch]:
                 key = "1s_%s_%s" % (ch, val)
-                self.fifo_lock.acquire()
                 self.FIFO[key] = channels[ch][val]
-                self.fifo_lock.release()
-
-                self.filo_lock.acquire()
                 self.FILO[key].append(channels[ch][val])
-                self.filo_lock.release()
 
     def _cleanup_filo(self, filo, pos=-60):
         for v in filo:
-            self.filo_lock.acquire()
             filo[v] = filo[v][pos:]
-            self.filo_lock.release()
+
+    def update_rel_status(self, statuses: dict):
+        self.REL_STATUS['inverter_relay'].append(statuses['inverter_relay'])
+        self.REL_STATUS['main_relay_status'].append(statuses['main_relay_status'])
+        self.REL_STATUS['status_check'].append(statuses['status_check'])
+
+    @property
+    def get_main_rel_status(self):
+        return self.avg(self.REL_STATUS['main_relay_status'])
+
+    @property
+    def get_avg_rel_stats(self):
+        return {i: self.avg(val) for i, val in self.REL_STATUS.items()}
+
+    @property
+    def len_sts_chk(self):
+        return len(self.REL_STATUS['status_check'])
+
+    @property
+    def get_avg_rel_status(self):
+        return self.avg(self.REL_STATUS['status_check'])
 
     def buffers_run(self, inverter_state):
         self.inverter_on = inverter_state
-
-        self.filo_lock.acquire()
-        self.fifo_lock.acquire()
         self._fill_buffers()
-        self.fifo_lock.release()
-        self.filo_lock.release()
-
-        self.filo_lock.acquire()
         self._update_filo_buffer()
-        self.filo_lock.release()
-
-        self.filo_lock.acquire()
         self._cleanup_filo(self.FILO)
         self._cleanup_filo(self.REL_STATUS, -10)
-        self.filo_lock.release()

@@ -2,7 +2,6 @@ import logging
 import time
 from datetime import datetime, timedelta
 
-from malina.LIB.FiloFifo import FiloFifo
 
 
 class Device:
@@ -113,7 +112,7 @@ class Device:
         sw_status.update(extra_params)
         return sw_status
 
-    def is_device_ready_to_switch_on(self):
+    def is_device_ready_to_switch_on(self, inverter_voltage):
         if bool(self.get_status('switch_1')):
             logging.debug(f"The {self.get_name()} is already ON: no actions ")
             return False
@@ -121,16 +120,15 @@ class Device:
             return False
         logging.debug(
             f" -- is_device_ready_to_switch_on: {self.get_name()}  Device status: {bool(self.get_status('switch_1'))} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
-        inverter_values = self.get_inverter_values()
 
-        if inverter_values < 10:
-            logging.error(f" !!!!!! Something went wrong for Inverter: {inverter_values} Needs to be checked !!!! ")
+        if inverter_voltage < 10:
+            logging.error(f" !!!!!! Something went wrong for Inverter: {inverter_voltage} Needs to be checked !!!! ")
             return False
-        if inverter_values > self.max_voltage:
+        if inverter_voltage > self.max_voltage:
             return True
         return False
 
-    def is_device_ready_to_switch_off(self):
+    def is_device_ready_to_switch_off(self, inverter_voltage):
         if not bool(self.get_status('switch_1')):
             logging.debug(f"The {self.get_name()} is already OFF SW status is: {bool(self.get_status('switch_1'))}")
             return False
@@ -141,12 +139,11 @@ class Device:
 
         logging.debug(
             f" -- is_device_ready_to_switch_off: {self.get_name()} Device status: {bool(self.get_status('switch_1'))}  min_volt {self.min_voltage} max voltage: {self.max_voltage}")
-        inverter_values = self.get_inverter_values()
-        if inverter_values < 10:
-            logging.error(f" !!!!!! Something went wrong for Inverter: {inverter_values} Needs to be checked !!!! ")
+        if inverter_voltage < 10:
+            logging.error(f" !!!!!! Something went wrong for Inverter: {inverter_voltage} Needs to be checked !!!! ")
             return False
 
-        if inverter_values < self.min_voltage:
+        if inverter_voltage < self.min_voltage:
             return True
         return False
 
@@ -154,12 +151,6 @@ class Device:
     @property
     def power_consumption(self):
         return self.coefficient * (self.max_voltage - self.min_voltage)
-
-    def get_inverter_values(self, slot='1s', value='bus_voltage'):
-        inverter_voltage = self.filo.get_filo_value('%s_inverter' % slot, value)
-        if len(inverter_voltage) == 0:
-            return 0
-        return FiloFifo.avg(inverter_voltage.pop())
 
     def summer_saving_adjustment(self, volt):
         hour = int(time.strftime("%H"))

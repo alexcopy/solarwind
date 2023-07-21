@@ -5,21 +5,18 @@ import logging
 
 
 class SolarLogging:
-    def __init__(self):
-        self.fifo = FiloFifo.FiloFifo()
-
     def avg(self, l):
         if len(l) == 0:
             return 0
         return float(round(sum(l, 0.0) / len(l), 2))
 
-    def printing_vars(self, inverter_status, pump_status, load_devices):
+    def printing_vars(self, filo_fifo, inverter_status, pump_status, load_devices):
         logging.info("\n\n")
         logging.info("--------------------------------------------")
-        for i in self.fifo.filo_buff:
+        for i in filo_fifo.filo_buff:
             if not i.startswith('1s'):
                 continue
-            val = self.avg(self.fifo.filo_buff[i])
+            val = self.avg(filo_fifo.filo_buff[i])
             if 'voltage' in i:
                 _with_col = f'AVG {i.ljust(30)}: {Fore.RED}{val: 3.2f} V {Style.RESET_ALL}'
             elif 'current' in i:
@@ -30,7 +27,7 @@ class SolarLogging:
                 _with_col = "UN"
             logging.info(_with_col)
 
-        sol_current = self.fifo.solar_current
+        sol_current = filo_fifo.solar_current
         logging.info("")
         logging.info(f"{'1S Solar Current'.ljust(20)}: {sol_current['1s_solar_current'] / 1000:3.2f} A")
         logging.info(f"{'10m Solar Current'.ljust(20)}: {sol_current['10m_solar_current'] / 1000:3.2f} A")
@@ -52,7 +49,7 @@ class SolarLogging:
         logging.info(f"{formatted_string}: {_with_color}")
         logging.info("")
 
-        wtg = (sol_current['1s_solar_current'] * self.avg(self.fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
+        wtg = (sol_current['1s_solar_current'] * self.avg(filo_fifo.filo_buff['1s_inverter_bus_voltage'])) / 1000
         logging.info(f"{'Solar Power'.ljust(20)}: {Fore.GREEN}{wtg:3.2f} W{Style.RESET_ALL}")
         logging.info("---")
         logging.info("--------------------------------------------")

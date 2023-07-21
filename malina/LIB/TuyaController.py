@@ -1,6 +1,7 @@
 import logging
 import time
 
+from malina.LIB.FiloFifo import FiloFifo
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.PondPumpAuto import PondPumpAuto
 from malina.LIB.Device import Device
@@ -39,17 +40,17 @@ class TuyaController():
             device.update_status({api_sw: False})
             device.device_switched()
 
-    def switch_all_on_soft(self, devices):
+    def switch_all_on_soft(self, devices, inver_volts):
         for device in devices:
-            if device.is_device_ready_to_switch_on():
+            if device.is_device_ready_to_switch_on(inver_volts):
                 logging.debug(
                     f"Device is ready to switch ON dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
                 self.switch_on_device(device)
                 time.sleep(5)
 
-    def switch_all_off_soft(self, devices):
+    def switch_all_off_soft(self, devices, inver_volts):
         for device in devices:
-            if device.is_device_ready_to_switch_off():
+            if device.is_device_ready_to_switch_off(inver_volts):
                 logging.debug(
                     f"Device is ready to switch OFF dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
                 self.switch_off_device(device)
@@ -86,13 +87,14 @@ class TuyaController():
                 return device
         return None
 
-    def switch_on_off_all_devices(self, devices):
+    def switch_on_off_all_devices(self, devices, filo_fifo):
         pump_mode = next((int(d.get_status("mode")) for d in devices if d.get_device_type == "PUMP"), 6)
+        inver_volts = self.get_inverter_values(filo_fifo)
         if not pump_mode == 6:
             logging.error(f"Cannot SWITCH ALL ON/OFF ALL DEVICES as PUMP mode is: {pump_mode}")
             return False
-        self.switch_all_on_soft(devices)
-        self.switch_all_off_soft(devices)
+        self.switch_all_on_soft(devices, inver_volts)
+        self.switch_all_off_soft(devices,inver_volts)
 
     def adjust_devices_speed(self, device, inv_status):
             if int(device.get_status("mode")) == 6:
@@ -144,6 +146,12 @@ class TuyaController():
 
         except Exception as e:
             logging.error(f"Something is wrong with adjustment type is wrong: {str(e)}. The device is {device}")
+
+    def get_inverter_values(self, filo, slot='1s', value='bus_voltage'):
+        inverter_voltage =  filo.get_filo_value('%s_inverter' % slot, value)
+        if len(inverter_voltage) == 0:
+            return 0
+        return FiloFifo().avg(inverter_voltage.pop())
 
     def adjust_min_pump_speed(self, pumps):
         for device in pumps:

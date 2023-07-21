@@ -67,7 +67,7 @@ class SolarPond():
     def show_logs(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
-        self.print_logs.printing_vars(inv_status, pump_status, self.new_devices)
+        self.print_logs.printing_vars(self.filo_fifo, inv_status, pump_status, self.new_devices)
 
     def load_checks(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
