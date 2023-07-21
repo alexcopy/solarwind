@@ -50,6 +50,7 @@ class SolarPond():
             self.filo_fifo.buffers_run(inv_status)
             self.filter_flush_run()
             self.filo_fifo.update_rel_status({
+                'status_check': 1,
                 'inverter_relay': inv_status,
                 'main_relay_status': inv_status,
             })
