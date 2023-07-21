@@ -116,11 +116,11 @@ class SolarPond():
         self.tuya_controller.update_devices_status(devices)
 
     def send_avg_data(self):
-        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
-
-        # todo: check why FiloFifo reseting
-        self.send_data.send_avg_data(inv_status)
-
+        try:
+            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+            self.send_data.send_avg_data(inv_status)
+        except Exception as e:
+            logging.error(f"ERROR: {e}")
 
     def send_stats_to_api(self):
         inv_status = int(self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1'))
