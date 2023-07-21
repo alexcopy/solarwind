@@ -132,6 +132,12 @@ class FiloFifo:
     def len_sts_chk(self):
         return len(self.REL_STATUS['status_check'])
 
+    def get_inverter_voltage(self, slot='1s', value='bus_voltage'):
+        inverter_voltage = self.get_filo_value('%s_inverter' % slot, value)
+        if len(inverter_voltage) == 0:
+            return 0
+        return self.avg(inverter_voltage.pop())
+
     @property
     def get_avg_rel_status(self):
         return self.avg(self.REL_STATUS['status_check'])

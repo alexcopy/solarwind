@@ -87,27 +87,28 @@ class TuyaController():
                 return device
         return None
 
-    def switch_on_off_all_devices(self, filo_fifo, devices):
+    def switch_on_off_all_devices(self, filo_fifo: FiloFifo, devices):
         pump_mode = next((int(d.get_status("mode")) for d in devices if d.get_device_type == "PUMP"), 6)
-        inver_volts = self.get_inverter_values(filo_fifo)
+        inver_volts = filo_fifo.get_inverter_voltage()
         if not pump_mode == 6:
             logging.error(f"Cannot SWITCH ALL ON/OFF ALL DEVICES as PUMP mode is: {pump_mode}")
             return False
         self.switch_all_on_soft(devices, inver_volts)
         self.switch_all_off_soft(devices,inver_volts)
 
-    def adjust_devices_speed(self, device, inv_status):
+    def adjust_devices_speed(self, device, inv_status,  filo_fifo):
             if int(device.get_status("mode")) == 6:
                 logging.debug(f"Adjust device  speed: {device.get_name()}")
-                self._adjust_pump_power(device=device, inv_status=inv_status)
+                self._adjust_pump_power(device=device, inv_status=inv_status, filo_fifo=filo_fifo)
             elif not int(device.get_status("mode")) == 6:
                 logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
             else:
                 logging.debug(
                     f"device {device.name} is not ready yet the status is: {device.is_device_ready_to_switch_on()}")
 
-    def _adjust_pump_power(self, device: Device, inv_status):
+    def _adjust_pump_power(self, device: Device, inv_status, filo_fifo):
         try:
+            inver_volts = filo_fifo.get_inverter_voltage()
             pump_curr_speed = device.get_status("P")
             chk_pump_speed = self.pump_auto.check_pump_speed(device)
 
@@ -118,7 +119,7 @@ class TuyaController():
                 device.update_status({"P": chk_pump_speed})
                 return True
 
-            speed = self.pump_auto.pond_pump_adj(device, inv_status)
+            speed = self.pump_auto.pond_pump_adj(device, inv_status, inver_volts)
             logging.debug(
                 f"The calculated speed is:{speed} and device {device.get_name()} speed_cur: {device.get_status('P')}")
 
@@ -147,11 +148,7 @@ class TuyaController():
         except Exception as e:
             logging.error(f"Something is wrong with adjustment type is wrong: {str(e)}. The device is {device}")
 
-    def get_inverter_values(self, filo, slot='1s', value='bus_voltage'):
-        inverter_voltage =  filo.get_filo_value('%s_inverter' % slot, value)
-        if len(inverter_voltage) == 0:
-            return 0
-        return FiloFifo().avg(inverter_voltage.pop())
+
 
     def adjust_min_pump_speed(self, pumps):
         for device in pumps:

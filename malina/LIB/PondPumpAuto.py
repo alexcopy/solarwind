@@ -121,8 +121,8 @@ class PondPumpAuto():
             return rounded
         return flow_speed
 
-    def pond_pump_adj(self, device: Device, inv_status):
-        voltage = device.get_inverter_values()
+    def pond_pump_adj(self, device: Device, inv_status, invert_voltage):
+        voltage = invert_voltage
         min_bat_volt = float(device.get_min_volt())
         max_bat_volt = float(device.get_max_volt())
         logging.debug(f"Getting speed curr_speed ")
