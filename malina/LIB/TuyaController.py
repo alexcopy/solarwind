@@ -87,7 +87,7 @@ class TuyaController():
                 return device
         return None
 
-    def switch_on_off_all_devices(self, devices, filo_fifo):
+    def switch_on_off_all_devices(self, filo_fifo, devices):
         pump_mode = next((int(d.get_status("mode")) for d in devices if d.get_device_type == "PUMP"), 6)
         inver_volts = self.get_inverter_values(filo_fifo)
         if not pump_mode == 6:
