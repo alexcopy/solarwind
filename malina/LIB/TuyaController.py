@@ -41,7 +41,6 @@ class TuyaController():
 
     def switch_all_on_soft(self, devices):
         for device in devices:
-
             if device.is_device_ready_to_switch_on():
                 logging.debug(
                     f"Device is ready to switch ON dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")

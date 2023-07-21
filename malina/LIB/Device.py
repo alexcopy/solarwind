@@ -121,7 +121,12 @@ class Device:
             return False
         logging.debug(
             f" -- is_device_ready_to_switch_on: {self.get_name()}  Device status: {bool(self.get_status('switch_1'))} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
-        if self.get_inverter_values() > self.max_voltage:
+        inverter_values = self.get_inverter_values()
+
+        if inverter_values < 10:
+            logging.error(f" !!!!!! Something went wrong for Inverter: {inverter_values} Needs to be checked !!!! ")
+            return False
+        if inverter_values > self.max_voltage:
             return True
         return False
 
@@ -133,9 +138,15 @@ class Device:
         if not self._check_time():
             logging.debug(f"The {self.get_name()} isn't ready to be switched as delta is: {self.switched_delta}")
             return False
+
         logging.debug(
             f" -- is_device_ready_to_switch_off: {self.get_name()} Device status: {bool(self.get_status('switch_1'))}  min_volt {self.min_voltage} max voltage: {self.max_voltage}")
-        if self.get_inverter_values() < self.min_voltage:
+        inverter_values = self.get_inverter_values()
+        if inverter_values < 10:
+            logging.error(f" !!!!!! Something went wrong for Inverter: {inverter_values} Needs to be checked !!!! ")
+            return False
+
+        if inverter_values < self.min_voltage:
             return True
         return False
 
