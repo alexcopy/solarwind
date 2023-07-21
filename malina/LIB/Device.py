@@ -23,7 +23,6 @@ class Device:
         self.api_sw = api_sw
         self.voltage = bus_voltage
         self.time_last_switched = int(datetime.now().timestamp())
-        self.filo = FiloFifo()
 
     def get_id(self):
         return self.id
