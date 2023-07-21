@@ -13,13 +13,6 @@ class SolarLogging:
             return 0
         return float(round(sum(l, 0.0) / len(l), 2))
 
-    @staticmethod
-    def loger_remote(url_path):
-
-
-    def log_run(self, invert_status, pump_status):
-        logging.debug("--------------------------------------------")
-
     def printing_vars(self, inverter_status, pump_status, load_devices):
         logging.info("\n\n")
         logging.info("--------------------------------------------")
