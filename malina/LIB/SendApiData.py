@@ -96,10 +96,7 @@ class SendApiData():
             "duration": len(filter_flush) * tik_time,
             "name": shunt_name
         })
-        resp = self.send_to_remote("%sfflash", [payload])
-        erros_resp = resp['errors']
-        if erros_resp:
-            logging.error(resp)
+        self.send_to_remote("%sfflash", [payload])
 
     def _send_switch_stats(self, device: Device, inv_status, api_path='pondswitch/'):
         status = device.get_status()
