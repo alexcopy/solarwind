@@ -9,7 +9,7 @@ import requests
 from dotenv import dotenv_values
 
 from malina.LIB.Device import Device
-from malina.LIB.FiloFifo import FiloFifo
+from malina.LIB import FiloFifo
 from malina.LIB.PrintLogs import SolarLogging
 
 config = dotenv_values(".env")
@@ -20,6 +20,7 @@ class SendApiData():
     def __init__(self):
         self.api_url = API_URL
         self.print_logs = SolarLogging()
+        self.fifo = FiloFifo.FiloFifo()
 
     def send_to_remote(self, url_path, payload):
         SolarLogging().loger_remote(url_path)
@@ -63,11 +64,11 @@ class SendApiData():
             return {'errors': True}
 
     def send_avg_data(self, inverter_status):
-        buff = FiloFifo().filo_buff
+        buff = self.fifo.filo_buff
         logging.error(f"Debugging: Sending FIFO data to remote API data {json.dumps(buff)}")
         logging.error("\n\n\n\n")
         for v in buff:
-            logging.info(f" The Param is: {v}")
+            logging.error(f" The Param is: {v}")
             if not '1h' in v:
                 continue
             val_type = "V"
