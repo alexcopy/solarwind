@@ -6,6 +6,7 @@ import time
 from urllib.parse import urljoin
 
 import requests
+import copy
 from dotenv import dotenv_values
 
 from malina.LIB.Device import Device
@@ -70,7 +71,7 @@ class SendApiData():
             return {'errors': True}
 
     def send_avg_data(self, inverter_status):
-        buff = self.fifo.filo_buff
+        buff = copy.deepcopy(self.fifo.filo_buff)
         logging.error(f"Debugging: Sending FIFO data to remote API data {json.dumps(buff)}")
         logging.error("\n\n\n\n")
         for v in buff:
