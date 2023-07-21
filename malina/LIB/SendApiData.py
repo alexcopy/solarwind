@@ -4,22 +4,19 @@ import json
 import logging
 import time
 from urllib.parse import urljoin
-
+import concurrent.futures
 import requests
-import copy
 from dotenv import dotenv_values
 from malina.LIB.Device import Device
-from malina.LIB.PrintLogs import SolarLogging
 
 config = dotenv_values(".env")
 API_URL = config["API_URL"]
+MAX_WORKERS = 10
 
 
 class SendApiData():
     def __init__(self):
         self.api_url = API_URL
-        self.print_logs = SolarLogging()
-
 
     @staticmethod
     def avg(l):
@@ -27,9 +24,11 @@ class SendApiData():
             return 0
         return float(round(sum(l, 0.0) / len(l), 2))
 
-    def send_to_remote(self, url_path, payload):
-        url_path = url_path % self.api_url
-        SolarLogging().loger_remote(url_path)
+    @staticmethod
+    def _to_remote(url_path, payload):
+        logging.info("------------SENDING TO REMOTE--------------")
+        logging.info(url_path)
+        logging.info("--------------------------------------------")
         headers = {
             'Content-Type': 'application/json'
         }
@@ -40,6 +39,13 @@ class SendApiData():
             logging.error("Getting error in sending to remote API data ")
             logging.error(ex)
             return {'errors': True}
+
+    def send_to_remote(self, url_path, payloads):
+        url_path = url_path % self.api_url
+        for payload in payloads:
+            with  concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                result = executor.map(SendApiData()._to_remote, url_path, payload)
+                logging.error(f"The result is result: {result}")
 
     def send_pump_stats(self, device: Device, inv_status):
         pump_status = device.get_status()
@@ -76,7 +82,7 @@ class SendApiData():
             "duration": len(filter_flush) * tik_time,
             "name": shunt_name
         })
-        resp = self.send_to_remote("%sfflash", payload)
+        resp = self.send_to_remote("%sfflash", [payload])
         erros_resp = resp['errors']
         if erros_resp:
             logging.error(resp)

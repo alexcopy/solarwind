@@ -123,6 +123,7 @@ class SolarPond():
             self.send_data.send_load_stats(device, inv_status)
 
     def send_avg_data(self):
+        payloads = []
         try:
             inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
             buff = self.filo_fifo.filo_buff
@@ -147,8 +148,9 @@ class SolarPond():
                     "avg_value": avg_val,
                     "serialized": buff_v_,
                 })
-                url_path = "%ssolarpower"
-                self.send_data.send_to_remote(url_path, payload)
+                payloads.append(payload)
+            url_path = "%ssolarpower"
+            self.send_data.send_to_remote(url_path, payloads)
         except Exception as e:
             logging.error(f"ERROR: {e}")
 # todo:

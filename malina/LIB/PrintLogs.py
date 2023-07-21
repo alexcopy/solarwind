@@ -15,9 +15,7 @@ class SolarLogging:
 
     @staticmethod
     def loger_remote(url_path):
-        logging.info("------------SENDING TO REMOTE--------------")
-        logging.info(url_path)
-        logging.info("--------------------------------------------")
+
 
     def log_run(self, invert_status, pump_status):
         logging.debug("--------------------------------------------")
