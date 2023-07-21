@@ -76,10 +76,12 @@ class SolarPond():
             logging.info(
                 f"Pump working mode= {pump.get_status('mode')}  "
                 f"switches wouldn't be AUTO controlled the only INVERTER AUTO controlled")
-            self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_name("inverter"))
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo,
+                                                           self.new_devices.get_devices_by_name("inverter"))
             return False
         else:
-            self.tuya_controller.switch_on_off_all_devices(self.new_devices.get_devices_by_device_type("SWITCH"))
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo,
+                                                           self.new_devices.get_devices_by_device_type("SWITCH"))
             # self.weather_check_update()
             self.tuya_controller.adjust_devices_speed(pump, inv_status)
 
