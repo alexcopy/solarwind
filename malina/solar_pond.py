@@ -49,9 +49,6 @@ class SolarPond():
         try:
             inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
             self.filo_fifo.buffers_run(inv_status)
-
-            # todo check why ?
-            # self.filter_flush_run()
             self.filo_fifo.update_rel_status({
                 'status_check': 1,
                 'inverter_relay': inv_status,
