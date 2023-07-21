@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import copy
 import logging
 import time
 from malina.INA3221 import SDL_Pi_INA3221
@@ -55,7 +56,7 @@ class FiloFifo:
 
     @property
     def filo_buff(self):
-        filo = self.FILO
+        filo = copy.deepcopy(self.FILO)
         return filo
 
     @property
@@ -72,7 +73,7 @@ class FiloFifo:
 
     @property
     def fifo_buff(self):
-        return self.FIFO
+        return copy.deepcopy(self.FIFO)
 
     def _update_filo_buffer(self):
         timestamp = int(time.time())
