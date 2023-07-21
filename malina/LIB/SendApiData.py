@@ -22,6 +22,12 @@ class SendApiData():
         self.print_logs = SolarLogging()
         self.fifo = FiloFifo.FiloFifo()
 
+    @staticmethod
+    def avg(l):
+        if len(l) == 0:
+            return 0
+        return float(round(sum(l, 0.0) / len(l), 2))
+
     def send_to_remote(self, url_path, payload):
         SolarLogging().loger_remote(url_path)
         headers = {
@@ -82,7 +88,7 @@ class SendApiData():
                 "value_type": val_type,
                 "name": v,
                 "inverter_status": inverter_status,
-                "avg_value": FiloFifo().avg(buff[v]),
+                "avg_value": self.avg(buff[v]),
                 "serialized": buff[v],
             })
             url_path = "%ssolarpower" % self.api_url
