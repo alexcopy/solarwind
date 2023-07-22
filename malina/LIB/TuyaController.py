@@ -43,7 +43,7 @@ class TuyaController():
     def switch_all_on_soft(self, devices, inver_volts):
         for device in devices:
             if device.is_device_ready_to_switch_on(inver_volts):
-                logging.debug(
+                logging.info(
                     f"Device is ready to switch ON dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
                 self.switch_on_device(device)
                 time.sleep(5)
@@ -51,7 +51,7 @@ class TuyaController():
     def switch_all_off_soft(self, devices, inver_volts):
         for device in devices:
             if device.is_device_ready_to_switch_off(inver_volts):
-                logging.debug(
+                logging.info(
                     f"Device is ready to switch OFF dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
                 self.switch_off_device(device)
                 time.sleep(5)

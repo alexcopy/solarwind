@@ -3,7 +3,6 @@ import time
 from datetime import datetime, timedelta
 
 
-
 class Device:
     def __init__(self, id, device_type, status: dict, name: str, desc: str, api_sw: str, coefficient, min_volt,
                  max_volt, priority, bus_voltage=0, extra=None):
@@ -93,8 +92,11 @@ class Device:
         if self.time_last_switched is None:
             logging.error("The time of last switch is zerro")
             self.device_switched()
+            return False
 
         if (int(datetime.now().timestamp()) - self.time_last_switched) < self.get_extra("switch_time"):
+            logging.info(
+                f"The {self.get_name()} is NOT ready to be switched OFF/ON as delta is: {self.switched_delta} and should be more then: {self.get_extra('switch_time')}")
             return False
         return True
 
@@ -113,31 +115,28 @@ class Device:
 
     def is_device_ready_to_switch_on(self, inverter_voltage):
         if bool(self.get_status('switch_1')):
-            logging.debug(f"The {self.get_name()} is already ON: no actions ")
+            logging.info(f"The {self.get_name()} is already ON: no actions status {bool(self.get_status(self.api_sw))}")
             return False
+
         if not self._check_time():
             return False
-        logging.debug(
-            f" -- is_device_ready_to_switch_on: {self.get_name()}  Device status: {bool(self.get_status('switch_1'))} min_volt {self.min_voltage} max voltage: {self.max_voltage}")
 
         if inverter_voltage < 10:
             logging.error(f" !!!!!! Something went wrong for Inverter: {inverter_voltage} Needs to be checked !!!! ")
             return False
+
         if inverter_voltage > self.max_voltage:
             return True
         return False
 
     def is_device_ready_to_switch_off(self, inverter_voltage):
         if not bool(self.get_status('switch_1')):
-            logging.debug(f"The {self.get_name()} is already OFF SW status is: {bool(self.get_status('switch_1'))}")
+            logging.info(f"The {self.get_name()} is already OFF SW status is: {bool(self.get_status('switch_1'))}")
             return False
 
         if not self._check_time():
-            logging.debug(f"The {self.get_name()} isn't ready to be switched as delta is: {self.switched_delta}")
             return False
 
-        logging.debug(
-            f" -- is_device_ready_to_switch_off: {self.get_name()} Device status: {bool(self.get_status('switch_1'))}  min_volt {self.min_voltage} max voltage: {self.max_voltage}")
         if inverter_voltage < 10:
             logging.error(f" !!!!!! Something went wrong for Inverter: {inverter_voltage} Needs to be checked !!!! ")
             return False
