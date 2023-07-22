@@ -15,6 +15,8 @@ from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.TuyaController import TuyaController
 
 config = dotenv_values(".env")
+from colorama import Fore, Style
+
 LOG_DIR = config['LOG_DIR']
 POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
@@ -72,18 +74,29 @@ class SolarPond():
     def load_checks(self):
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         pump = self.new_devices.get_devices_by_name("pump")[0]
-        if not int(pump.get_status("mode")) == 6:
+        if int(pump.get_status("mode")) == 6:
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo,
+                                                           self.new_devices.get_devices_by_device_type("SWITCH"))
+            self.tuya_controller.adjust_devices_speed(pump, inv_status, self.filo_fifo)
+        elif int(pump.get_status("mode")) == 1:
+            logging.info(
+                f"{Fore.RED} Pump working in VERY STRICT MODE mode= {pump.get_status('mode')}  "
+                f" ALL switches wouldn't be AUTO controlled even INVERTER {Style.RESET_ALL}")
+            return True
+
+        elif int(pump.get_status("mode")) == 4:
+            self.tuya_controller.switch_all_on_hard(self.new_devices.get_devices_by_device_type("SWITCH"))
+            logging.info(
+                f"{Fore.YELLOW} Pump working in SUMMER MODE mode= {pump.get_status('mode')}  "
+                f" ALL switches IS FORCED ON  controlled even INVERTER {Style.RESET_ALL}")
+            return True
+        else:
             logging.info(
                 f"Pump working mode= {pump.get_status('mode')}  "
                 f"switches wouldn't be AUTO controlled the only INVERTER AUTO controlled")
             self.tuya_controller.switch_on_off_all_devices(self.filo_fifo,
                                                            self.new_devices.get_devices_by_name("inverter"))
             return False
-        else:
-            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo,
-                                                           self.new_devices.get_devices_by_device_type("SWITCH"))
-            # self.weather_check_update()
-            self.tuya_controller.adjust_devices_speed(pump, inv_status, self.filo_fifo)
 
     def weather_check_update(self):
         self.tuya_controller.adjust_min_pump_speed(self.new_devices.get_devices_by_name("pump"))

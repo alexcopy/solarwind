@@ -59,3 +59,9 @@ sysv-ipc==1.1.0
 toml==0.10.2
 v4l2-python3==0.3.2
 requests==2.28.2
+
+colorama~=0.4.6
+PyYAML~=6.0
+pytest~=7.3.1
+jsonschema~=4.17.3
+schedule~=1.2.0

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from malina.LIB import FiloFifo
 from colorama import Fore, Style
 import logging
 

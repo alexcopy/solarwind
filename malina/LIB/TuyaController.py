@@ -58,6 +58,10 @@ class TuyaController():
 
     def switch_all_on_hard(self, devices):
         for device in devices:
+            if device.is_device_on:
+                logging.info(
+                    f"The {device.get_name()} is already ON: no actions is required status {device.is_device_on}")
+                continue
             self.switch_on_device(device)
             time.sleep(5)
 
@@ -94,17 +98,17 @@ class TuyaController():
             logging.error(f"Cannot SWITCH ALL ON/OFF ALL DEVICES as PUMP mode is: {pump_mode}")
             return False
         self.switch_all_on_soft(devices, inver_volts)
-        self.switch_all_off_soft(devices,inver_volts)
+        self.switch_all_off_soft(devices, inver_volts)
 
-    def adjust_devices_speed(self, device, inv_status,  filo_fifo):
-            if int(device.get_status("mode")) == 6:
-                logging.debug(f"Adjust device  speed: {device.get_name()}")
-                self._adjust_pump_power(device=device, inv_status=inv_status, filo_fifo=filo_fifo)
-            elif not int(device.get_status("mode")) == 6:
-                logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
-            else:
-                logging.debug(
-                    f"device {device.name} is not ready yet the status is: {device.is_device_ready_to_switch_on()}")
+    def adjust_devices_speed(self, device, inv_status, filo_fifo):
+        if int(device.get_status("mode")) == 6:
+            logging.debug(f"Adjust device  speed: {device.get_name()}")
+            self._adjust_pump_power(device=device, inv_status=inv_status, filo_fifo=filo_fifo)
+        elif not int(device.get_status("mode")) == 6:
+            logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
+        else:
+            logging.debug(
+                f"device {device.name} is not ready yet the status is: {device.is_device_ready_to_switch_on()}")
 
     def _adjust_pump_power(self, device: Device, inv_status, filo_fifo):
         try:
@@ -147,8 +151,6 @@ class TuyaController():
 
         except Exception as e:
             logging.error(f"Something is wrong with adjustment type is wrong: {str(e)}. The device is {device}")
-
-
 
     def adjust_min_pump_speed(self, pumps):
         for device in pumps:
