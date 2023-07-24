@@ -135,16 +135,16 @@ class Device:
 
     def is_device_ready_to_switch_off(self, inverter_voltage, invert_state):
 
+        if not self.is_device_on:
+            logging.info(
+                f"The {self.get_name()} is already OFF SW status is: {bool(self.get_status('switch_1'))} so no actions requires")
+            return False
+
         if not invert_state:
             return True
 
         if inverter_voltage < float(self.get_extra('min_trashhold')):
             return True
-
-        if not self.is_device_on:
-            logging.info(
-                f"The {self.get_name()} is already OFF SW status is: {bool(self.get_status('switch_1'))} so no actions requires")
-            return False
 
         if not self._check_time():
             return False
