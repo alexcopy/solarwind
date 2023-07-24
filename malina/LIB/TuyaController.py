@@ -71,7 +71,7 @@ class TuyaController():
                 # if device is inverter we should be going through the normal process
                 to_switch_off = device.is_device_ready_to_switch_off(inver_volts, True)
             else:
-                to_switch_off = device.is_device_ready_to_switch_off(inver_volts, inverter.is_device_on())
+                to_switch_off = device.is_device_ready_to_switch_off(inver_volts, inverter.is_device_on)
 
             if to_switch_off:
                 logging.info(
