@@ -123,8 +123,8 @@ class PondPumpAuto():
 
     def pond_pump_adj(self, device: Device, inv_status, invert_voltage):
         voltage = invert_voltage
-        min_bat_volt = float(device.get_min_volt())
-        max_bat_volt = float(device.get_max_volt())
+        min_bat_volt = device.get_min_volt()
+        max_bat_volt = device.get_max_volt()
         logging.debug(f"Getting speed curr_speed ")
         curr_speed = int(device.get_status("P"))
         speed_step = int(device.get_extra('speed_step'))

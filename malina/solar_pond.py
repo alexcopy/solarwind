@@ -72,30 +72,40 @@ class SolarPond():
         self.print_logs.printing_vars(self.filo_fifo, inv_status, pump_status, self.new_devices)
 
     def load_checks(self):
-        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         pump = self.new_devices.get_devices_by_name("pump")[0]
+        switches = self.new_devices.get_devices_by_device_type("SWITCH")
+        only_loads = [device for device in switches if device.get_name() != "inverter"]
+        inverter = next((d for d in switches if d.get_name() == "inverter"), None)
+        if inverter is None:
+            logging.info("!!!!!  Inverter not found in the Devices LIST  !!!!!!!!")
+            return
+        inv_status = inverter.is_device_on
+
         if int(pump.get_status("mode")) == 6:
-            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo,
-                                                           self.new_devices.get_devices_by_device_type("SWITCH"))
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, switches)
             self.tuya_controller.adjust_devices_speed(pump, inv_status, self.filo_fifo)
+
         elif int(pump.get_status("mode")) == 1:
+            self.tuya_controller.switch_all_on_hard(only_loads)
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, [inverter, pump])
             logging.info(
                 f"{Fore.RED} Pump working in VERY STRICT MODE mode= {pump.get_status('mode')}  "
-                f" ALL switches wouldn't be AUTO controlled even INVERTER {Style.RESET_ALL}")
+                f" ALL switches wouldn't be AUTO controlled except the INVERTER {Style.RESET_ALL}")
             return True
 
         elif int(pump.get_status("mode")) == 4:
-            self.tuya_controller.switch_all_on_hard(self.new_devices.get_devices_by_device_type("SWITCH"))
+            self.tuya_controller.switch_all_on_hard(only_loads)
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, [inverter, pump])
             logging.info(
                 f"{Fore.YELLOW} Pump working in SUMMER MODE mode= {pump.get_status('mode')}  "
-                f" ALL switches IS FORCED ON  controlled even INVERTER {Style.RESET_ALL}")
+                f" ALL switches IS FORCED ON  controlled except the INVERTER {Style.RESET_ALL}")
+
             return True
         else:
             logging.info(
                 f"Pump working mode= {pump.get_status('mode')}  "
                 f"switches wouldn't be AUTO controlled the only INVERTER AUTO controlled")
-            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo,
-                                                           self.new_devices.get_devices_by_name("inverter"))
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, [inverter, pump])
             return False
 
     def weather_check_update(self):

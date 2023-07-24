@@ -41,18 +41,41 @@ class TuyaController():
             device.device_switched()
 
     def switch_all_on_soft(self, devices, inver_volts):
+        inverter = next((d for d in devices if d.get_name() == "inverter"), None)
+        inv_is_ready = inverter.is_device_ready_to_switch_on(inver_volts)
+
+        if inverter is None:
+            logging.info("!!!!!  Inverter not found in the Devices LIST  !!!!!!!!")
+            return
+
+        if not inverter.is_device_on and not inv_is_ready:
+            logging.info("Inverter is not switched on AND Not Ready so continue....")
+            logging.info(" ------ Inverter is not ready to be switched ON at the provided voltage.")
+            return
+
         for device in devices:
             if device.is_device_ready_to_switch_on(inver_volts):
                 logging.info(
-                    f"Device is ready to switch ON dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
+                    f"Device is ready to switch ON dev name: {device.get_name()} is_device_on: {device.is_device_on} last switch: {device.switched_delta} secs ago")
                 self.switch_on_device(device)
-                time.sleep(5)
+                time.sleep(2)
 
     def switch_all_off_soft(self, devices, inver_volts):
+        inverter = next((d for d in devices if d.get_name() == "inverter"), None)
+        if inverter is None:
+            logging.info("!!!!!     Inverter not found in the Devices LIST    !!!!!!!!")
+            return
+
         for device in devices:
-            if device.is_device_ready_to_switch_off(inver_volts):
+            if device.get_name() == "inverter":
+                # if device is inverter we should be going through the normal process
+                to_switch_off = device.is_device_ready_to_switch_off(inver_volts, True)
+            else:
+                to_switch_off = device.is_device_ready_to_switch_off(inver_volts, inverter.is_device_on())
+
+            if to_switch_off:
                 logging.info(
-                    f"Device is ready to switch OFF dev name: {device.name} voltage: {device.voltage} last switch: {device.last_switched}")
+                    f"Device is ready to switch OFF dev name: {device.name} voltage: {device.voltage} last switch: {device.switched_delta} secs ago")
                 self.switch_off_device(device)
                 time.sleep(5)
 
@@ -91,14 +114,26 @@ class TuyaController():
                 return device
         return None
 
+    # minimum should be inverter and pump as params for devices
     def switch_on_off_all_devices(self, filo_fifo: FiloFifo, devices):
         pump_mode = next((int(d.get_status("mode")) for d in devices if d.get_device_type == "PUMP"), 6)
         inver_volts = filo_fifo.get_inverter_voltage()
+        inverter = next((d for d in devices if d.get_name() == "inverter"), None)
+
+        if inverter is None:
+            logging.info("!!!!! in switch_on_off_all_devices the Inverter not found in the Devices LIST  !!!!!!!!")
+            return
+
         if not pump_mode == 6:
-            logging.error(f"Cannot SWITCH ALL ON/OFF ALL DEVICES as PUMP mode is: {pump_mode}")
+            logging.error(f"Cannot SWITCH ALL ON/OFF ALL DEVICES as PUMP mode is in predefined mode: {pump_mode}")
             return False
         self.switch_all_on_soft(devices, inver_volts)
         self.switch_all_off_soft(devices, inver_volts)
+
+        if inver_volts < inverter.get_min_volt():
+            logging.error(
+                f"Switching INVERTER  OFF REGARDLESS to it's TIME SLOT with minimum volt: {inverter.get_min_volt()}")
+            self.switch_off_device(inverter)
 
     def adjust_devices_speed(self, device, inv_status, filo_fifo):
         if int(device.get_status("mode")) == 6:

@@ -61,10 +61,10 @@ class Device:
         return self.coefficient
 
     def get_min_volt(self):
-        return self.min_voltage
+        return float(self.min_voltage)
 
     def get_max_volt(self):
-        return self.max_voltage
+        return float(self.max_voltage)
 
     def get_priority(self):
         return self.priority
@@ -90,7 +90,7 @@ class Device:
     def get_status(self, key=None):
         if key is None:
             return self.status
-        return self.status.get(key)
+        return self.status.get(key, None)
 
     def _check_time(self):
         if self.time_last_switched is None:
@@ -133,9 +133,17 @@ class Device:
             return True
         return False
 
-    def is_device_ready_to_switch_off(self, inverter_voltage):
-        if not bool(self.get_status('switch_1')):
-            logging.info(f"The {self.get_name()} is already OFF SW status is: {bool(self.get_status('switch_1'))}")
+    def is_device_ready_to_switch_off(self, inverter_voltage, invert_state):
+
+        if not invert_state:
+            return True
+
+        if inverter_voltage < float(self.get_extra('min_trashhold')):
+            return True
+
+        if not self.is_device_on:
+            logging.info(
+                f"The {self.get_name()} is already OFF SW status is: {bool(self.get_status('switch_1'))} so no actions requires")
             return False
 
         if not self._check_time():
