@@ -119,7 +119,7 @@ class Device:
 
     def is_device_ready_to_switch_on(self, inverter_voltage):
         if bool(self.get_status('switch_1')):
-            logging.info(f"The {self.get_name()} is already ON: no actions status {bool(self.get_status(self.api_sw))}")
+            logging.info(f"ready_to_switch_on: The {self.get_name()} is already ON: no actions status {bool(self.get_status(self.api_sw))}")
             return False
 
         if not self._check_time():

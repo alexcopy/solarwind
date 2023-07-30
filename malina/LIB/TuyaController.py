@@ -1,3 +1,4 @@
+import datetime
 import logging
 import time
 
@@ -63,7 +64,7 @@ class TuyaController():
     def switch_all_off_soft(self, devices, inver_volts):
         inverter = next((d for d in devices if d.get_name() == "inverter"), None)
         if inverter is None:
-            logging.info("!!!!!     Inverter not found in the Devices LIST    !!!!!!!!")
+            logging.info("!!!!!   Inverter not found in the Devices LIST    !!!!!!!!")
             return
 
         for device in devices:
@@ -77,13 +78,13 @@ class TuyaController():
                 logging.info(
                     f"Device is ready to switch OFF dev name: {device.name} voltage: {device.voltage} last switch: {device.switched_delta} secs ago")
                 self.switch_off_device(device)
-                time.sleep(5)
+                time.sleep(2)
 
     def switch_all_on_hard(self, devices):
         for device in devices:
             if device.is_device_on:
                 logging.info(
-                    f"The {device.get_name()} is already ON: no actions is required status {device.is_device_on}")
+                    f"switch_all_on_hard: The {device.get_name()} is already ON: no actions is required status {device.is_device_on}")
                 continue
             self.switch_on_device(device)
             time.sleep(5)
@@ -126,14 +127,14 @@ class TuyaController():
 
         if not pump_mode == 6:
             logging.error(f"Cannot SWITCH ALL ON/OFF ALL DEVICES as PUMP mode is in predefined mode: {pump_mode}")
-            return False
-        self.switch_all_on_soft(devices, inver_volts)
-        self.switch_all_off_soft(devices, inver_volts)
+            # only inverter could be switched off in mode not 6
+            return self.switch_all_off_soft([inverter], inver_volts)
 
-        if inver_volts < inverter.get_min_volt():
-            logging.error(
-                f"Switching INVERTER  OFF REGARDLESS to it's TIME SLOT with minimum volt: {inverter.get_min_volt()}")
-            self.switch_off_device(inverter)
+        # switching ON only before 18:30 no sense to do it after 18:30
+        elif TuyaController.is_before_1830:
+            self.switch_all_on_soft(devices, inver_volts)
+
+        self.switch_all_off_soft(devices, inver_volts)
 
     def adjust_devices_speed(self, device, inv_status, filo_fifo):
         if int(device.get_status("mode")) == 6:
@@ -192,3 +193,12 @@ class TuyaController():
             if not device.get_device_type == 'PUMP':
                 continue
             device.update_extra("min_speed", self.pump_auto.setup_minimum_pump_speed(device))
+
+    @staticmethod
+    def is_before_1830():
+        # Get the current time
+        current_time = datetime.datetime.now().time()
+        # Create a time object representing 18:30 (6:30 PM)
+        time_1830 = datetime.time(18, 30)
+        # Compare the current time with 18:30
+        return current_time <= time_1830
