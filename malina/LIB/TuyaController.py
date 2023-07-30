@@ -132,6 +132,7 @@ class TuyaController():
 
         # switching ON only before 18:30 no sense to do it after 18:30
         elif TuyaController.is_before_1830:
+            logging.info("----- switch_on of all_devices including Inverter isn't possible after 18:30 ")
             self.switch_all_on_soft(devices, inver_volts)
 
         self.switch_all_off_soft(devices, inver_volts)
