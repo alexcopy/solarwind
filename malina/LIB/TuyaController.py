@@ -96,17 +96,21 @@ class TuyaController():
 
     def update_devices_status(self, devices):
         device_ids = [device.get_id() for device in devices]
-        statuses = self.authorisation.device_manager.get_device_list_status(device_ids)['result']
-
-        for status in statuses:
-            dev_id = status["id"]
-            device = self.select_dev_by_id(devices, dev_id)
-            if device is None:
-                logging.error(f"Device is missing from the list with id {dev_id}")
-                continue
-            if "status" in status:
-                status_params = device.extract_status_params(status["status"])
-                device.update_status(status_params)
+        try:
+            statuses = self.authorisation.device_manager.get_device_list_status(device_ids)['result']
+            for status in statuses:
+                dev_id = status["id"]
+                device = self.select_dev_by_id(devices, dev_id)
+                if device is None:
+                    logging.error(f"Device is missing from the list with id {dev_id}")
+                    continue
+                if "status" in status:
+                    status_params = device.extract_status_params(status["status"])
+                    device.update_status(status_params)
+        except ConnectionError as ce:
+            logging.error(f" Fail to get statuses for devices {str(ce)}")
+        except Exception as e:
+            logging.error(f" General Exception with get statuses {str(e)}")
 
     def select_dev_by_id(self, devices, lookup_id):
         for device in devices:
