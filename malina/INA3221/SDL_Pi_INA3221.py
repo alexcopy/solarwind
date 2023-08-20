@@ -8,7 +8,7 @@
 # encoding: utf-8
 
 try:
-    import smbus
+    import smbus2 as smbus
 
 except ImportError:
     import fake_rpi.smbus as smbus

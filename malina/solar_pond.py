@@ -80,27 +80,34 @@ class SolarPond():
             logging.info("!!!!!  Inverter not found in the Devices LIST  !!!!!!!!")
             return
         inv_status = inverter.is_device_on
-
+        # Manual mode
         if int(pump.get_status("mode")) == 6:
             self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, switches)
             self.tuya_controller.adjust_devices_speed(pump, inv_status, self.filo_fifo)
-
+        # Custom mode
         elif int(pump.get_status("mode")) == 1:
             self.tuya_controller.switch_all_on_hard(only_loads)
             self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, [inverter, pump])
             logging.info(
-                f"{Fore.RED} Pump working in VERY STRICT MODE mode= {pump.get_status('mode')}  "
+                f"{Fore.RED} Pump working in VERY STRICT CUSTOM MODE mode= {pump.get_status('mode')}  "
                 f" ALL switches wouldn't be AUTO controlled except the INVERTER {Style.RESET_ALL}")
             return True
-
+        # Summer mode
         elif int(pump.get_status("mode")) == 4:
-            self.tuya_controller.switch_all_on_hard(only_loads)
             self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, [inverter, pump])
             logging.info(
                 f"{Fore.YELLOW} Pump working in SUMMER MODE mode= {pump.get_status('mode')}  "
-                f" ALL switches IS FORCED ON  controlled except the INVERTER {Style.RESET_ALL}")
-
+                f" ALL switches IS NOT FORCED ON BUT not controlled except the INVERTER {Style.RESET_ALL}")
             return True
+
+        # winter or night mode
+        elif int(pump.get_status("mode")) == 5:
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, switches)
+            logging.info(
+                f"{Fore.YELLOW} Pump working in WINTER MODE mode= {pump.get_status('mode')}  "
+                f" ALL switches IS FORCED OFF  and NOT controlled INCLUDE the INVERTER {Style.RESET_ALL}")
+            return True
+
         else:
             logging.info(
                 f"Pump working mode= {pump.get_status('mode')}  "
