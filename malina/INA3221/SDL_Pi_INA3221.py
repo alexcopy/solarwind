@@ -72,7 +72,7 @@ class SDL_Pi_INA3221():
     ###########################
     # INA3221 Code
     ###########################
-    def __init__(self, twi=1, addr=INA3221_ADDRESS):
+    def __init__(self, twi=3, addr=INA3221_ADDRESS):
         self._bus = smbus.SMBus(twi)
         self._addr = addr
 
