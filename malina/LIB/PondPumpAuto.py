@@ -43,7 +43,7 @@ class PondPumpAuto():
             temp = self.weather['temperature']
             for fx_temp in weather_conds:
                 fx_pump_speed = int(weather_conds[fx_temp])
-                if temp < int(fx_temp):
+                if temp > int(fx_temp):
                     min_speed = fx_pump_speed
                 else:
                     min_speed = 20
