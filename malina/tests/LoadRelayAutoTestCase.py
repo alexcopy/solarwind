@@ -17,12 +17,27 @@ class LoadRelayAutoTestCase(unittest.TestCase):
         tua_manager = TuyaAuthorisation()
         device_manager = TuyaController(tua_manager)
         dev = InitiateDevices().device_controller
-        devices = dev.get_devices()
+        self.devices  = dev.get_devices()
+        extra = dev.get_device_by_id(" ").get_extra('weather')
+        min_speed = dev.get_device_by_id(" ").get_extra('min_speed')
 
-        device_manager.update_devices_status(devices)
+        temp = 1
+
+        for i in extra:
+            val_tmp = int(extra[i])
+            print(i)
+
+            if temp > int(i):
+                min_speed = val_tmp
+            else:
+                min_speed = 20
+
+        print("The min Speed is:", min_speed)
+
+        # device_manager.update_devices_status(self.devices)
 
         # self.load_automation = LoadRelayAutomation(self.logger, device_manager)
-        # self.devices = LoadDevices(Mock(), device_manager)
+        # self.devices = LoadDevices(Mock(), device_manager)/
 
     def test_something(self):
         self.assertEqual(True, True)

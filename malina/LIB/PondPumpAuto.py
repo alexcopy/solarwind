@@ -41,13 +41,12 @@ class PondPumpAuto():
                 logger.error(f"The weather has not been updated or not valid, min speed remains: {min_speed}")
                 return min_speed
             temp = self.weather['temperature']
-
-            for i in weather_conds:
-                val_tmp = int(weather_conds[i])
-                if temp < int(i):
-                    min_speed = val_tmp
+            for fx_temp in weather_conds:
+                fx_pump_speed = int(weather_conds[fx_temp])
+                if temp < int(fx_temp):
+                    min_speed = fx_pump_speed
                 else:
-                    min_speed = 40
+                    min_speed = 20
             return min_speed
         except Exception as e:
             logger.error(
@@ -68,7 +67,7 @@ class PondPumpAuto():
         except Exception as e:
             logging.error("Problem in weather data getter")
             logging.error(e)
-            return {'temperature': 14, 'wind_speed': 0, 'visibility': 0, 'uv_index': 0, 'humidity': 0,
+            return {'temperature': 10, 'wind_speed': 0, 'visibility': 0, 'uv_index': 0, 'humidity': 0,
                     'precipitation': 0, 'type': "", 'wind_direction': "", 'description': "", 'feels_like': 0,
                     'pressure': 0, 'timestamp': int(time.time()), 'town': weather_town, 'is_valid': False
                     }
