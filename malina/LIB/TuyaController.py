@@ -2,6 +2,8 @@ import datetime
 import logging
 import time
 
+from colorama import Fore, Style
+
 from malina.LIB.FiloFifo import FiloFifo
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.PondPumpAuto import PondPumpAuto
@@ -53,6 +55,16 @@ class TuyaController():
             logging.info("Inverter is not switched on AND Not Ready so continue....")
             logging.info(" ------ Inverter is not ready to be switched ON at the provided voltage.")
             return
+
+        # this code is done to prevent devices to be started right after INV switched on:
+        if inv_is_ready and not inverter.is_device_on:
+            inv_sw_on = self.switch_on_device(inverter)
+            if inv_sw_on:
+                for device in devices:
+                    logging.info(f"{Fore.CYAN} Device needs to be postponed with it's DELTA: {device.get_name()}{Style.RESET_ALL}")
+                    device.device_switched()
+            else:
+                logging.info(f"{Fore.CYAN} CANNOT SWITCH INVERTER ON, PLS CHECK {Style.RESET_ALL}")
 
         for device in devices:
             if device.is_device_ready_to_switch_on(inver_volts):
@@ -151,7 +163,7 @@ class TuyaController():
             logging.info(f"Pump working mode= {device.get_status('mode')}  so no adjustments could be done ")
         else:
             logging.debug(
-                f"device {device.name} is not ready yet the status is: {device.is_device_ready_to_switch_on()}")
+                f"device {device.name} is not ready yet the status is: {device.get_status()}")
 
     def _adjust_pump_power(self, device: Device, inv_status, filo_fifo):
         try:
