@@ -50,12 +50,12 @@ class SolarPond():
         tiger_wattage = self.avg(self.filo_fifo.filo_buff['10m_tiger_wattage'])
         leisure_wattage = self.avg(self.filo_fifo.filo_buff['10m_leisure_wattage'])
         inverter_wattage = self.avg(self.filo_fifo.filo_buff['10m_inverter_wattage'])
-        solar_wattage = self.filo_fifo.solar_current['10m_solar_wattage']
+        solar_wattage = (self.filo_fifo.solar_current['10m_solar_current'] * self.avg(self.filo_fifo.filo_buff['10m_inverter_bus_voltage'])) / 1000
 
         self.power_devices_manager.update_ten_min_power_value("tiger_wattage", tiger_wattage)
         self.power_devices_manager.update_ten_min_power_value("leisure_wattage", leisure_wattage)
         self.power_devices_manager.update_ten_min_power_value("inverter_wattage", inverter_wattage)
-        self.power_devices_manager.update_ten_min_power_value("solar_wattage", solar_wattage)
+        self.power_devices_manager.update_ten_min_power_value("solar_wattage", round(solar_wattage, 1))
 
     def switch_to_main_power(self):
         inver = self.new_devices.get_devices_by_name("inverter")[0]

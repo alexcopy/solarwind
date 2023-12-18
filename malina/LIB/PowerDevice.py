@@ -64,11 +64,11 @@ class PowerDevice:
     def print_device_logs(self):
         print(f"{Fore.GREEN}Device Name: {self.name}{Style.RESET_ALL}")
         if self.ten_minute_buffer:
-            print(f"{Fore.CYAN}        10-Minute Power Values: {self.ten_minute_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.CYAN} 10-Minute Power Values: {self.ten_minute_buffer}{Style.RESET_ALL}")
         if self.hourly_power_buffer:
-            print(f"{Fore.YELLOW}        Hourly Power Values: {self.hourly_power_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW} Hourly Power Values: {self.hourly_power_buffer}{Style.RESET_ALL}")
         if self.daily_power_buffer:
-            print(f"{Fore.RED}        Daily Power Values: {self.daily_power_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.RED} Daily Power Values: {self.daily_power_buffer}{Style.RESET_ALL}")
         print("\n------------------------------------------------------\n")
 
     def print_mean_values(self):
