@@ -78,5 +78,22 @@ class TestPowerDeviceManager(unittest.TestCase):
         self.manager.remove_device_by_name("Device4")  # Проверка, что удаление не происходит при отсутствии устройства
         self.assertEqual(len(self.manager.devices), 3)
 
+    def test_add_power_value_existing_device(self):
+        self.manager.add_device("Device10")
+        self.manager.update_ten_min_power_value("Device10", 10)
+        self.assertEqual(self.manager.devices[0].ten_minute_buffer, [10])
+
+    def test_add_power_value_nonexistent_device(self):
+        result = self.manager.update_ten_min_power_value("Device30", 20)
+        self.assertFalse(result)  # Ensure False is returned for a non-existing device
+
+    def test_add_power_value_multiple_devices(self):
+        self.manager.add_device("Device10")
+        self.manager.add_device("Device20")
+        self.manager.update_ten_min_power_value("Device10", 15)
+        self.manager.update_ten_min_power_value("Device20", 25)
+        self.assertEqual(self.manager.devices[0].ten_minute_buffer, [10, 15])
+        self.assertEqual(self.manager.devices[1].ten_minute_buffer, [25])
+
 if __name__ == '__main__':
     unittest.main()

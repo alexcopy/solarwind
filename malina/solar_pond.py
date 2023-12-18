@@ -25,7 +25,8 @@ Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 
 class SolarPond():
     def __init__(self):
-        self.power_devices_manager = PowerDeviceManager(['tiger_wattage', 'leisure_wattage', 'inverter_wattage'])
+        self.power_devices_manager = PowerDeviceManager(
+            ['tiger_wattage', 'leisure_wattage', 'inverter_wattage', 'solar_wattage'])
         self.FILTER_FLUSH = []
         self.print_logs = SolarLogging()
         self.filo_fifo = FiloFifo.FiloFifo()
@@ -49,9 +50,12 @@ class SolarPond():
         tiger_wattage = self.avg(self.filo_fifo.filo_buff['10m_tiger_wattage'])
         leisure_wattage = self.avg(self.filo_fifo.filo_buff['10m_leisure_wattage'])
         inverter_wattage = self.avg(self.filo_fifo.filo_buff['10m_inverter_wattage'])
+        solar_wattage = self.filo_fifo.solar_current['10m_solar_wattage']
+
         self.power_devices_manager.update_ten_min_power_value("tiger_wattage", tiger_wattage)
         self.power_devices_manager.update_ten_min_power_value("leisure_wattage", leisure_wattage)
         self.power_devices_manager.update_ten_min_power_value("inverter_wattage", inverter_wattage)
+        self.power_devices_manager.update_ten_min_power_value("solar_wattage", solar_wattage)
 
     def switch_to_main_power(self):
         inver = self.new_devices.get_devices_by_name("inverter")[0]

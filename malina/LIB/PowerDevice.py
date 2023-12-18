@@ -64,20 +64,22 @@ class PowerDevice:
     def print_device_logs(self):
         print(f"{Fore.GREEN}Device Name: {self.name}{Style.RESET_ALL}")
         if self.ten_minute_buffer:
-            print(f"{Fore.BLUE}10-Minute Power Values: {self.ten_minute_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}        10-Minute Power Values: {self.ten_minute_buffer}{Style.RESET_ALL}")
         if self.hourly_power_buffer:
-            print(f"{Fore.YELLOW}Hourly Power Values: {self.hourly_power_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}        Hourly Power Values: {self.hourly_power_buffer}{Style.RESET_ALL}")
         if self.daily_power_buffer:
-            print(f"{Fore.RED}Daily Power Values: {self.daily_power_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.RED}        Daily Power Values: {self.daily_power_buffer}{Style.RESET_ALL}")
+        logging.info("\n------------------------------------------------------\n")
 
     def print_mean_values(self):
         print(f"{Fore.GREEN}Mean Values for Device: {self.name}{Style.RESET_ALL}")
         mean_10_min = self.get_mean_minutes()
         if mean_10_min:
-            print(f"{Fore.BLUE}Mean 10-Minute Power: {mean_10_min}{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}Mean 10-Minute Power: {mean_10_min}{Style.RESET_ALL}")
         mean_hourly = self.get_mean_hourly()
         if mean_hourly:
             print(f"{Fore.YELLOW}Mean Hourly Power: {mean_hourly}{Style.RESET_ALL}")
         mean_daily = self.get_daily_energy()
         if mean_daily:
             print(f"{Fore.RED}Mean Daily Power: {mean_daily}{Style.RESET_ALL}")
+        logging.info("\n------------------------------------------------------\n")
