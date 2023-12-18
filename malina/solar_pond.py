@@ -13,6 +13,7 @@ from malina.LIB.InitiateDevices import InitiateDevices
 from malina.LIB.PrintLogs import SolarLogging
 from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.TuyaController import TuyaController
+from malina.LIB.PowerDeviceManager import PowerDeviceManager
 
 config = dotenv_values(".env")
 from colorama import Fore, Style
@@ -24,6 +25,7 @@ Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 
 class SolarPond():
     def __init__(self):
+        self.power_devices_manager = PowerDeviceManager(['tiger_wattage', 'leisure_wattage', 'inverter_wattage'])
         self.FILTER_FLUSH = []
         self.print_logs = SolarLogging()
         self.filo_fifo = FiloFifo.FiloFifo()
@@ -42,6 +44,14 @@ class SolarPond():
     def switch_to_solar_power(self):
         inver = self.new_devices.get_devices_by_name("inverter")[0]
         self.tuya_controller.switch_on_device(inver)
+
+    def power_devs_update(self):
+        tiger_wattage = self.avg(self.filo_fifo.filo_buff['10m_tiger_wattage'])
+        leisure_wattage = self.avg(self.filo_fifo.filo_buff['10m_leisure_wattage'])
+        inverter_wattage = self.avg(self.filo_fifo.filo_buff['10m_inverter_wattage'])
+        self.power_devices_manager.update_ten_min_power_value("tiger_wattage", tiger_wattage)
+        self.power_devices_manager.update_ten_min_power_value("leisure_wattage", leisure_wattage)
+        self.power_devices_manager.update_ten_min_power_value("inverter_wattage", inverter_wattage)
 
     def switch_to_main_power(self):
         inver = self.new_devices.get_devices_by_name("inverter")[0]
@@ -70,6 +80,7 @@ class SolarPond():
         inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
         pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
         self.print_logs.printing_vars(self.filo_fifo, inv_status, pump_status, self.new_devices)
+        self.power_devices_manager.print_all_devices_logs()
 
     def load_checks(self):
         pump = self.new_devices.get_devices_by_name("pump")[0]

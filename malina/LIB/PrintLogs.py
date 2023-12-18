@@ -26,7 +26,7 @@ class SolarLogging:
                 _with_col = "UN"
             logging.info(_with_col)
 
-        sol_current = filo_fifo.solar_current
+            sol_current = filo_fifo.solar_current
         logging.info("")
         logging.info(f"{'1S Solar Current'.ljust(20)}: {sol_current['1s_solar_current'] / 1000:3.2f} A")
         logging.info(f"{'10m Solar Current'.ljust(20)}: {sol_current['10m_solar_current'] / 1000:3.2f} A")

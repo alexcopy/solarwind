@@ -164,7 +164,7 @@ class FiloFifoTestCase(unittest.TestCase):
 
     @freeze_time("2012-01-01 00:00:00")
     def test_printing_logs(self):
-        print_logs = SolarLogging.SolarLogging('')
+        print_logs = SolarLogging.SolarLogging()
         times_to_run = 10
         for l in range(0, times_to_run):
             self.ff_buff.buffers_run(1)
