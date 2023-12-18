@@ -1,7 +1,7 @@
 import logging
 
 from colorama import Style, Fore
-
+import datetime
 from malina.LIB.PowerDevice import PowerDevice
 
 
@@ -11,7 +11,6 @@ class PowerDeviceManager:
         if len(device_names):
             for name in device_names:
                 self.add_device(name)
-
 
     def add_device(self, device_name):
         self.devices.append(PowerDevice(name=device_name))
@@ -50,3 +49,13 @@ class PowerDeviceManager:
         print(f"{Fore.CYAN}Logs for all Power Devices{Style.RESET_ALL}")
         for device in self.devices:
             device.print_device_logs()
+        print("\n------------------------------------------------------\n\n")
+
+    def reset_buffers(self):
+        current_time = datetime.datetime.now()
+        for device in self.devices:
+            device.hourly_power_buffer = []
+            device.daily_power_buffer = []
+            # Добавляем сообщение в лог для каждого устройства
+            logging.info(
+                f"{Fore.GREEN}Daily buffers reset for {device.name} at {current_time.strftime('%H:%M')}{Style.RESET_ALL}")

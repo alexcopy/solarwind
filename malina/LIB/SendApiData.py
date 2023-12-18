@@ -131,21 +131,67 @@ class SendApiData():
         elif device.get_device_type == "PUMP":
             self.send_pump_stats(device, inv_status)
 
-    def send_weather(self, local_weather):
+    def send_hourly_daily_averages_to_server(self, power_device, send_type):
         try:
-            payload = json.dumps(local_weather)
+            average_data = None
+            if send_type == 'hourly':
+                average_data = {
+                    'type': 'hourly',
+                    'average': power_device.get_mean_hourly()
+                }
+            elif send_type == 'daily':
+                average_data = {
+                    'type': 'daily',
+                    'average': power_device.get_daily_energy()
+                }
+            else:
+                logging.warning("Invalid send_type provided")
+                return {'errors': True, 'message': 'Invalid send_type provided'}
+
+            payload = json.dumps({
+                'device': power_device.name,
+                'average_data': average_data,
+            })
             headers = {
                 'Content-Type': 'application/json'
             }
-            url = urljoin(self.api_url, 'pondweather/')
-            response = requests.request("POST", url, headers=headers, data=payload).json()
-            if response['errors']:
-                logging.error(response['payload'])
-                logging.error(response['errors_msg'])
-            return response
+            url = urljoin(self.api_url, 'averages/')
+            response = requests.post(url, headers=headers, data=payload)
+
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('errors'):
+                    logging.error(data.get('payload'))
+                    logging.error(data.get('errors_msg'))
+                return data
+            else:
+                logging.error(f"Failed to send averages. Status code: {response.status_code}")
+                return {'errors': True, 'message': 'Failed to send data'}
+
         except Exception as ex:
-            logging.error("Getting error in send_weather to remote API data ")
-            print(ex)
-            logging.error(ex)
+            logging.exception("Getting error in send_hourly_daily_averages_to_server")
+            return {'errors': True, 'message': str(ex)}
+
+    def send_weather(self, local_weather):
+        try:
+            payload = json.dumps(local_weather)
+            headers = {'Content-Type': 'application/json'}
+            url = urljoin(self.api_url, 'pondweather/')
+            response = requests.post(url, headers=headers, data=payload).json()
+            if response.get('errors'):
+                logging.error(response.get('payload'))
+                logging.error(response.get('errors_msg'))
+            return response
+
+        except requests.RequestException as req_ex:
+            logging.error(f"RequestException in send_weather to remote API data: {req_ex}")
             time.sleep(10)
-            return {'errors': True}
+            return {'errors': True, 'message': str(req_ex)}
+
+        except json.JSONDecodeError as json_ex:
+            logging.error(f"JSONDecodeError in send_weather: {json_ex}")
+            return {'errors': True, 'message': str(json_ex)}
+
+        except Exception as ex:
+            logging.exception("Getting error in send_weather to remote API data")
+            return {'errors': True, 'message': str(ex)}

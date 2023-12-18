@@ -9,7 +9,6 @@ class PowerDevice:
         self.ten_minute_buffer = []
         self.hourly_power_buffer = []
         self.daily_power_buffer = []
-
         self.last_added_time = datetime.datetime.now()
 
     def add_power_value(self, power_value):
@@ -69,7 +68,7 @@ class PowerDevice:
             print(f"{Fore.YELLOW} Hourly Power Values: {self.hourly_power_buffer}{Style.RESET_ALL}")
         if self.daily_power_buffer:
             print(f"{Fore.RED} Daily Power Values: {self.daily_power_buffer}{Style.RESET_ALL}")
-        print("\n------------------------------------------------------\n")
+
 
     def print_mean_values(self):
         print(f"{Fore.GREEN}Mean Values for Device: {self.name}{Style.RESET_ALL}")
@@ -82,4 +81,4 @@ class PowerDevice:
         mean_daily = self.get_daily_energy()
         if mean_daily:
             print(f"{Fore.RED}Mean Daily Power: {mean_daily}{Style.RESET_ALL}")
-        print("\n------------------------------------------------------\n")
+

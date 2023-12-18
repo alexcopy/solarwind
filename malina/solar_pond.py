@@ -46,6 +46,14 @@ class SolarPond():
         inver = self.new_devices.get_devices_by_name("inverter")[0]
         self.tuya_controller.switch_on_device(inver)
 
+
+    def reset_power_buffers_daily(self):
+        self.power_devices_manager.reset_buffers()
+
+    def send_avg_hr_power_to_server(self):
+        for pwr_device in self.power_devices_manager.devices:
+            self.send_data.send_hourly_daily_averages_to_server(pwr_device, "hourly")
+
     def power_devs_update(self):
         tiger_wattage = self.avg(self.filo_fifo.filo_buff['10m_tiger_wattage'])
         leisure_wattage = self.avg(self.filo_fifo.filo_buff['10m_leisure_wattage'])
