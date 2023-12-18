@@ -7,11 +7,11 @@ from malina.LIB.PowerDevice import PowerDevice
 
 class PowerDeviceManager:
     def __init__(self, device_names):
+        self.devices = []
         if len(device_names):
             for name in device_names:
                 self.add_device(name)
-        else:
-            self.devices = []  # Список устройств, управляемых менеджером
+
 
     def add_device(self, device_name):
         self.devices.append(PowerDevice(name=device_name))
