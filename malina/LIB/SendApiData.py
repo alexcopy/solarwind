@@ -133,18 +133,17 @@ class SendApiData():
 
     def send_hourly_daily_averages_to_server(self, power_device, send_type):
         try:
-            average_data = None
             if send_type == 'hourly':
                 payload = json.dumps({
                     'name': power_device.name,
                     'type': 'hourly',
-                    'average': power_device.get_mean_hourly()
+                    'average': power_device.get_hourly_or_minute_avg_power()
                 })
             elif send_type == 'daily':
                 payload = json.dumps({
                     'name': power_device.name,
                     'type': 'daily',
-                    'average': power_device.get_daily_energy()
+                    'average': power_device.get_daily_or_hourly_avg_power()
                 })
             else:
                 logging.warning("Invalid send_type provided")

@@ -29,9 +29,6 @@ class PowerDeviceManager:
             print(device_string)
             logging.info(device_string)
 
-    def send_data_to_servers(self):
-        for device in self.devices:
-            device.send_data_to_server()
 
     def update_ten_min_power_value(self, device_name, power_value):
         for device in self.devices:
@@ -56,7 +53,6 @@ class PowerDeviceManager:
         for device in self.devices:
             device.ten_minute_buffer = []
             device.hourly_power_buffer = []
-            device.daily_power_buffer = []
             # Добавляем сообщение в лог для каждого устройства
             logging.info(
                 f"{Fore.GREEN}Daily buffers reset for {device.name} at {current_time.strftime('%H:%M')}{Style.RESET_ALL}")
