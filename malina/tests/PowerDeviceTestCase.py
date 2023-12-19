@@ -118,7 +118,7 @@ class PowerDeviceTestCase(unittest.TestCase):
             self.device.print_device_logs()
             expected_output = (
                 f"{Fore.GREEN}Device Name: TestDevice{Style.RESET_ALL}\n"
-                f"{Fore.BLUE}10-Minute Power Values: [10, 20, 30]{Style.RESET_ALL}\n"
+                f"{Fore.CYAN}10-Minute Power Values: [10, 20, 30]{Style.RESET_ALL}\n"
                 f"{Fore.YELLOW}Hourly Power Values: [15, 25, 35]{Style.RESET_ALL}\n"
                 f"{Fore.RED}Daily Power Values: [5, 15, 25]{Style.RESET_ALL}\n"
             )
@@ -132,11 +132,59 @@ class PowerDeviceTestCase(unittest.TestCase):
             self.device.print_mean_values()
             expected_output = (
                 f"{Fore.GREEN}Mean Values for Device: TestDevice{Style.RESET_ALL}\n"
-                f"{Fore.BLUE}Mean 10-Minute Power: 20.0{Style.RESET_ALL}\n"
+                f"{Fore.CYAN}Mean 10-Minute Power: 20.0{Style.RESET_ALL}\n"
                 f"{Fore.YELLOW}Mean Hourly Power: 25.0{Style.RESET_ALL}\n"
                 f"{Fore.RED}Mean Daily Power: 15.0{Style.RESET_ALL}\n"
             )
-            # self.assertEqual(fake_output.getvalue(), expected_output)
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_get_daily_or_hourly_avg_power_with_hourly_buffer(self):
+        # Adding values to hourly buffer
+        self.device.hourly_power_buffer = [10, 15, 20, 25]
+        result = self.device.get_daily_or_hourly_avg_power()
+        self.assertEqual(result, 17.5)
+
+    def test_get_daily_or_hourly_avg_power_with_daily_buffer(self):
+        # Adding values to daily buffer
+        self.device.daily_power_buffer = [100, 150, 200, 250]
+        result = self.device.get_daily_or_hourly_avg_power()
+        self.assertEqual(result, 250)
+
+    #
+    def test_get_daily_or_hourly_avg_power_with_minute_buffer(self):
+        # Adding values to ten-minute buffer
+        self.device.ten_minute_buffer = [5, 10, 15]
+        result = self.device.get_daily_or_hourly_avg_power()
+        self.assertEqual(result, 10)
+
+    #
+    def test_get_daily_or_hourly_avg_power_with_empty_buffers(self):
+        result = self.device.get_daily_or_hourly_avg_power()
+        self.assertEqual(result, 0)
+
+    def test_get_hourly_or_minute_avg_power_with_hourly_buffer(self):
+        # Adding values to hourly buffer
+        self.device.hourly_power_buffer = [10, 15, 20, 25]
+        result = self.device.get_hourly_or_minute_avg_power()
+        self.assertEqual(result, 25)
+
+    def test_get_hourly_or_minute_avg_power_with_daily_buffer(self):
+        # Adding values to daily buffer
+        self.device.daily_power_buffer = [100, 150, 200, 250]
+        result = self.device.get_hourly_or_minute_avg_power()
+        self.assertEqual(result, 0)
+
+    #
+    def test_get_hourly_or_minute_avg_power_with_minute_buffer(self):
+        # Adding values to ten-minute buffer
+        self.device.ten_minute_buffer = [5, 10, 15]
+        result = self.device.get_hourly_or_minute_avg_power()
+        self.assertEqual(result, 10)
+
+    #
+    def test_get_hourly_or_minute_avg_power_with_empty_buffers(self):
+        result = self.device.get_hourly_or_minute_avg_power()
+        self.assertEqual(result, 0)
 
 
 if __name__ == '__main__':

@@ -63,11 +63,11 @@ class PowerDevice:
     def print_device_logs(self):
         print(f"{Fore.GREEN}Device Name: {self.name}{Style.RESET_ALL}")
         if self.ten_minute_buffer:
-            print(f"{Fore.CYAN} 10-Minute Power Values: {self.ten_minute_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}10-Minute Power Values: {self.ten_minute_buffer}{Style.RESET_ALL}")
         if self.hourly_power_buffer:
-            print(f"{Fore.YELLOW} Hourly Power Values: {self.hourly_power_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}Hourly Power Values: {self.hourly_power_buffer}{Style.RESET_ALL}")
         if self.daily_power_buffer:
-            print(f"{Fore.RED} Daily Power Values: {self.daily_power_buffer}{Style.RESET_ALL}")
+            print(f"{Fore.RED}Daily Power Values: {self.daily_power_buffer}{Style.RESET_ALL}")
 
     def print_mean_values(self):
         print(f"{Fore.GREEN}Mean Values for Device: {self.name}{Style.RESET_ALL}")
@@ -82,16 +82,15 @@ class PowerDevice:
             print(f"{Fore.RED}Mean Daily Power: {mean_daily}{Style.RESET_ALL}")
 
     def get_hourly_or_minute_avg_power(self):
-        if len(self.get_mean_minutes()) == 0 and len(self.hourly_power_buffer) != 0:
-            return self.get_mean_hourly()[-1]  # Берем последний элемент из часового буфера
+        if len(self.ten_minute_buffer) == 0 and len(self.hourly_power_buffer) != 0:
+            return self.hourly_power_buffer[-1]  # Берем последний элемент из часового буфера
         else:
             return self.get_mean_minutes()
 
-
-    def get_daily_or_hourly_avg_power(self, device):
-        if len(device.get_mean_hourly()) == 0 and len(device.daily_power_buffer) != 0:
-            return device.get_daily_energy()[-1]  # Берем последний элемент из дневного буфера
-        elif len(device.hourly_power_buffer) == 0 and len(device.daily_power_buffer) == 0:
-            return device.get_mean_minutes()
+    def get_daily_or_hourly_avg_power(self):
+        if len(self.hourly_power_buffer) == 0 and len(self.daily_power_buffer) != 0:
+            return self.daily_power_buffer[-1]  # Берем последний элемент из дневного буфера
+        elif len(self.hourly_power_buffer) == 0 and len(self.daily_power_buffer) == 0:
+            return self.get_mean_minutes()
         else:
-            return device.get_mean_hourly()
+            return self.get_mean_hourly()
