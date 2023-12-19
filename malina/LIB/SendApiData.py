@@ -136,11 +136,13 @@ class SendApiData():
             average_data = None
             if send_type == 'hourly':
                 average_data = {
+                    'name': power_device.name,
                     'type': 'hourly',
                     'average': power_device.get_mean_hourly()
                 }
             elif send_type == 'daily':
                 average_data = {
+                    'name': power_device.name,
                     'type': 'daily',
                     'average': power_device.get_daily_energy()
                 }
@@ -155,7 +157,7 @@ class SendApiData():
             headers = {
                 'Content-Type': 'application/json'
             }
-            url = urljoin(self.api_url, 'averages/')
+            url = urljoin(self.api_url, 'power_averages/')
             response = requests.post(url, headers=headers, data=payload)
 
             if response.status_code == 200:

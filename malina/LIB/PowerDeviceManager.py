@@ -54,6 +54,7 @@ class PowerDeviceManager:
     def reset_buffers(self):
         current_time = datetime.datetime.now()
         for device in self.devices:
+            device.ten_minute_buffer = []
             device.hourly_power_buffer = []
             device.daily_power_buffer = []
             # Добавляем сообщение в лог для каждого устройства
