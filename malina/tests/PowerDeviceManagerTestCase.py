@@ -59,10 +59,10 @@ class TestPowerDeviceManager(unittest.TestCase):
         self.assertEqual(self.test_device.get_mean_total(), 0)
 
     def test_get_mean_hourly(self):
-        self.assertEqual(self.test_device.get_mean_hourly(), 25.0)
+        self.assertEqual(self.test_device.get_sum_hourly(), 25.0)
 
         self.test_device.hourly_power_buffer = []  # Проверка с пустым часовым буфером
-        self.assertEqual(self.test_device.get_mean_hourly(), 0)
+        self.assertEqual(self.test_device.get_sum_hourly(), 0)
 
     def test_get_mean_minutes(self):
         self.assertEqual(self.test_device.get_mean_minutes(), 15.0)

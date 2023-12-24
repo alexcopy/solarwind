@@ -55,11 +55,11 @@ class PowerDeviceTestCase(unittest.TestCase):
 
     def test_get_mean_hourly(self):
         # Проверка, что при пустом буфере вернется 0
-        self.assertEqual(self.device.get_mean_hourly(), 0)
+        self.assertEqual(self.device.get_sum_hourly(), 0)
 
         # Проверка корректного вычисления среднего часового потребления
         self.device.hourly_power_buffer = [5, 10, 15]
-        self.assertEqual(self.device.get_mean_hourly(), 10)
+        self.assertEqual(self.device.get_sum_hourly(), 10)
 
     def test_get_mean_minutes(self):
         # Проверка, что при пустом буфере вернется 0
@@ -133,7 +133,7 @@ class PowerDeviceTestCase(unittest.TestCase):
             expected_output = (
                 f"{Fore.GREEN}Mean Values for Device: TestDevice{Style.RESET_ALL}\n"
                 f"{Fore.CYAN}Mean 10-Minute Power: 20.0{Style.RESET_ALL}\n"
-                f"{Fore.YELLOW}Mean Hourly Power: 25.0{Style.RESET_ALL}\n"
+                f"{Fore.YELLOW}Sum Hourly Power: 25.0{Style.RESET_ALL}\n"
                 f"{Fore.RED}Mean Daily Power: 15.0{Style.RESET_ALL}\n"
             )
             self.assertEqual(fake_output.getvalue(), expected_output)
