@@ -43,10 +43,10 @@ class PowerDeviceManager:
             self.devices.remove(device)
 
     def print_all_devices_logs(self):
-        print(f"{Fore.CYAN}Logs for all Power Devices{Style.RESET_ALL}")
+        logging.info(f"{Fore.CYAN}Logs for all Power Devices{Style.RESET_ALL}")
         for device in self.devices:
             device.print_device_logs()
-        print("\n------------------------------------------------------\n\n")
+        logging.info("\n------------------------------------------------------\n\n")
 
     def reset_buffers(self):
         current_time = datetime.datetime.now()
