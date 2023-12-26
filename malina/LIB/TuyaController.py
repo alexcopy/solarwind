@@ -61,7 +61,8 @@ class TuyaController():
             inv_sw_on = self.switch_on_device(inverter)
             if inv_sw_on:
                 for device in devices:
-                    logging.info(f"{Fore.CYAN} Device needs to be postponed with it's DELTA: {device.get_name()}{Style.RESET_ALL}")
+                    logging.info(
+                        f"{Fore.CYAN} Device needs to be postponed with it's DELTA: {device.get_name()}{Style.RESET_ALL}")
                     device.device_switched()
             else:
                 logging.info(f"{Fore.CYAN} CANNOT SWITCH INVERTER ON, PLS CHECK {Style.RESET_ALL}")
@@ -108,9 +109,11 @@ class TuyaController():
 
     def update_devices_status(self, devices):
         device_ids = [device.get_id() for device in devices]
+        log_devices = ""
         try:
-            statuses = self.authorisation.device_manager.get_device_list_status(device_ids)['result']
-            for status in statuses:
+            statuses = self.authorisation.device_manager.get_device_list_status(device_ids)
+            log_devices = statuses
+            for status in statuses['result']:
                 dev_id = status["id"]
                 device = self.select_dev_by_id(devices, dev_id)
                 if device is None:
@@ -121,8 +124,10 @@ class TuyaController():
                     device.update_status(status_params)
         except ConnectionError as ce:
             logging.error(f" Fail to get statuses for devices {str(ce)}")
+            logging.error(f" The Errored result is:  {str(log_devices)}")
         except Exception as e:
             logging.error(f" General Exception with get statuses {str(e)}")
+            logging.error(f" The Errored result is:  {str(log_devices)}")
 
     def select_dev_by_id(self, devices, lookup_id):
         for device in devices:
