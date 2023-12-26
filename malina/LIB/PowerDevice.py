@@ -87,6 +87,14 @@ class PowerDevice:
         else:
             return self.get_mean_minutes()
 
+    def get_last_min_power(self):
+        if len(self.ten_minute_buffer) == 0 and len(self.hourly_power_buffer) != 0:
+            return self.hourly_power_buffer[-1]  # Берем последний элемент из дневного буфера
+        elif len(self.ten_minute_buffer) == 0 and len(self.hourly_power_buffer) == 0:
+            return 0
+        else:
+            return self.ten_minute_buffer[-1]
+
     def get_daily_or_hourly_avg_power(self):
         if len(self.hourly_power_buffer) == 0 and len(self.daily_power_buffer) != 0:
             return self.daily_power_buffer[-1]  # Берем последний элемент из дневного буфера

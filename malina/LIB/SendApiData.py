@@ -139,6 +139,12 @@ class SendApiData():
                     'type': 'hourly',
                     'average': power_device.get_hourly_or_minute_avg_power()
                 })
+            elif send_type == 'ten_minutes ':
+                payload = json.dumps({
+                    'name': power_device.name,
+                    'type': 'ten_minutes',
+                    'average': power_device.get_last_min_power()
+                })
             elif send_type == 'daily':
                 payload = json.dumps({
                     'name': power_device.name,

@@ -50,9 +50,9 @@ class SolarPond():
     def reset_power_buffers_daily(self):
         self.power_devices_manager.reset_buffers()
 
-    def send_avg_hr_power_to_server(self):
+    def send_avg_hr_power_to_server(self, timely="hourly"):
         for pwr_device in self.power_devices_manager.devices:
-            self.send_data.send_hourly_daily_averages_to_server(pwr_device, "hourly")
+            self.send_data.send_hourly_daily_averages_to_server(pwr_device, timely)
 
     def power_devs_update(self):
         tiger_wattage = self.avg(self.filo_fifo.filo_buff['10m_tiger_wattage'])
@@ -64,6 +64,7 @@ class SolarPond():
         self.power_devices_manager.update_ten_min_power_value("leisure_wattage", leisure_wattage)
         self.power_devices_manager.update_ten_min_power_value("inverter_wattage", inverter_wattage)
         self.power_devices_manager.update_ten_min_power_value("solar_wattage", round(solar_wattage, 1))
+        self.send_avg_hr_power_to_server("ten_minutes")
 
     def switch_to_main_power(self):
         inver = self.new_devices.get_devices_by_name("inverter")[0]
