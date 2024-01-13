@@ -8,7 +8,7 @@ class Device:
                  max_volt, priority, bus_voltage=0, extra=None):
         if extra is None:
             extra = {'switch_time': 10}
-        switch_time = int(extra['switch_time'])
+        # switch_time = int(extra['switch_time'])
         self.id = id
         self.device_type = device_type
         self.status = status

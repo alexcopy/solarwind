@@ -31,27 +31,31 @@ class PondPumpAuto():
     def setup_minimum_pump_speed(self, device: Device):
         weather_conds = device.get_extra('weather')
         weather_town = device.get_extra('weather_town')
+        min_speed = 20
         try:
             logger.debug(
-                f"Setting up the minimum speed for device {device.name}  with  weather table is: {weather_conds}")
+                f"Setting up the minimum speed for device {device.name} with weather table: {weather_conds}")
             min_speed = device.get_extra('min_speed')
-            self.update_weather(weather_town)
+            # self.update_weather(weather_town)
 
             if not self.weather['is_valid']:
-                logger.error(f"The weather has not been updated or not valid, min speed remains: {min_speed}")
+                logger.error(f"The weather has not been updated or is not valid, min speed remains: {min_speed}")
                 return min_speed
+
             temp = self.weather['temperature']
-            for fx_temp in weather_conds:
+            min_speed = 20  # Default min_speed
+            previous_speed = 0
+
+            for fx_temp in sorted(weather_conds.keys()):
                 fx_pump_speed = int(weather_conds[fx_temp])
-                if temp > int(fx_temp):
-                    min_speed = fx_pump_speed
-                else:
-                    min_speed = 20
+
+                if temp < int(fx_temp):
+                    return previous_speed
+                previous_speed = fx_pump_speed
             return min_speed
         except Exception as e:
-            logger.error(
-                f"Problem with device: {device.name} to get proper min temp got an Exception: {e} weather table is: {weather_conds}")
-            return device.get_extra('min_speed')
+            logger.error(f"Error setting up minimum pump speed: {e}")
+            return min_speed
 
     def weather_data(self, weather_town):
         try:
