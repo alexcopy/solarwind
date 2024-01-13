@@ -36,7 +36,7 @@ class PondPumpAuto():
             logger.debug(
                 f"Setting up the minimum speed for device {device.name} with weather table: {weather_conds}")
             min_speed = device.get_extra('min_speed')
-            # self.update_weather(weather_town)
+            self.update_weather(weather_town)
 
             if not self.weather['is_valid']:
                 logger.error(f"The weather has not been updated or is not valid, min speed remains: {min_speed}")
