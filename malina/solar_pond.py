@@ -126,10 +126,11 @@ class SolarPond():
 
         # winter or night mode
         elif int(pump.get_status("mode")) == 5:
-            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, switches)
+            except_fountain = [device for device in switches if device.get_name() != "fountain"]
+            self.tuya_controller.switch_on_off_all_devices(self.filo_fifo, except_fountain)
             logging.info(
                 f"{Fore.YELLOW} Pump working in WINTER MODE mode= {pump.get_status('mode')}  "
-                f" ALL switches IS FORCED OFF  and NOT controlled INCLUDE the INVERTER {Style.RESET_ALL}")
+                f" Только Фонтан не управляется {Style.RESET_ALL}")
             return True
 
         else:
