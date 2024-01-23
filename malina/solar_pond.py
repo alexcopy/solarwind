@@ -15,11 +15,9 @@ from malina.LIB.TuyaAuthorisation import TuyaAuthorisation
 from malina.LIB.TuyaController import TuyaController
 from malina.LIB.PowerDeviceManager import PowerDeviceManager
 
-config = dotenv_values(".env")
 from colorama import Fore, Style
 
-LOG_DIR = config['LOG_DIR']
-POND_SPEED_STEP = int(config["POND_SPEED_STEP"])
+LOG_DIR = "logs"
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 
 
