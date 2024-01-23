@@ -1,15 +1,16 @@
 import logging
 from dotenv import dotenv_values
+from tuya_connector import TuyaOpenAPI
 from tuya_iot import (
-    TuyaOpenAPI,
     AuthType,
     TuyaOpenMQ,
     TuyaDeviceManager,
-    TUYA_LOGGER
+    TUYA_LOGGER,
+    TuyaCloudOpenAPIEndpoint
 )
 
 config = dotenv_values(".env")
-ENDPOINT = config['ENDPOINT']
+ENDPOINT = TuyaCloudOpenAPIEndpoint.EUROPE
 ACCESS_ID = config['ACCESS_ID']
 ACCESS_KEY = config['ACCESS_KEY']
 USERNAME = config['USERNAME']
@@ -28,11 +29,11 @@ class SingletonMeta(type):
 class TuyaAuthorisation(metaclass=SingletonMeta):
     def __init__(self):
         TUYA_LOGGER.setLevel(logging.INFO)
-        self.openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY, AuthType.CUSTOM)
-        self.openapi.connect(USERNAME, PASSWORD)
+        self.openapi = TuyaOpenAPI(ENDPOINT, ACCESS_ID, ACCESS_KEY)
+        self.openapi.connect()
+        self.openapi.auth_type = AuthType.SMART_HOME
         self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
         self.deviceStatuses = {}
-
     @property
     def device_manager(self):
         return self.deviceManager
