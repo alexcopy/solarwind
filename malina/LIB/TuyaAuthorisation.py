@@ -13,8 +13,6 @@ config = dotenv_values(".env")
 ENDPOINT = TuyaCloudOpenAPIEndpoint.EUROPE
 ACCESS_ID = config['ACCESS_ID']
 ACCESS_KEY = config['ACCESS_KEY']
-USERNAME = config['USERNAME']
-PASSWORD = config['PASSWORD']
 
 
 class SingletonMeta(type):
@@ -34,6 +32,7 @@ class TuyaAuthorisation(metaclass=SingletonMeta):
         self.openapi.auth_type = AuthType.SMART_HOME
         self.deviceManager = TuyaDeviceManager(self.openapi, TuyaOpenMQ(self.openapi))
         self.deviceStatuses = {}
+
     @property
     def device_manager(self):
         return self.deviceManager
