@@ -7,19 +7,17 @@
 
 # encoding: utf-8
 
-try:
-    import smbus2 as smbus
 
-except ImportError:
-    import fake_rpi.smbus as smbus
-    # sys.modules['smbus'] = fake_rpi.smbus
+import smbus2 as smbus
+
+
 
 # constants
 
 # /*=========================================================================
 #    I2C ADDRESS/BITS
 #    -----------------------------------------------------------------------*/
-INA3221_ADDRESS = (0x40)  # 1000000 (A0+A1=GND)
+INA3221_ADDRESS = (0x30)  # 1000000 (A0+A1=GND)
 INA3221_READ = (0x01)
 # /*=========================================================================*/
 
@@ -72,7 +70,7 @@ class SDL_Pi_INA3221():
     ###########################
     # INA3221 Code
     ###########################
-    def __init__(self, twi=3, addr=INA3221_ADDRESS):
+    def __init__(self, twi=1, addr=INA3221_ADDRESS):
         self._bus = smbus.SMBus(twi)
         self._addr = addr
 
