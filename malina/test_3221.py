@@ -7,12 +7,12 @@
 #
 
 # imports
-
+from malina.INA3221 import SDL_Pi_INA3221
 import sys
 import time
 import datetime
 import random
-import SDL_Pi_INA3221
+
 
 # Main Program
 
@@ -27,7 +27,7 @@ print("")
 filename = time.strftime("%Y-%m-%d%H:%M:%SRTCTest") + ".txt"
 starttime = datetime.datetime.utcnow()
 
-ina3221 = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
+ina3221 = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x30)
 
 # the three channels of the INA3221 named for SunAirPlus Solar Power Controller channels (www.switchdoc.com)
 LIPO_BATTERY_CHANNEL = 1
