@@ -114,7 +114,10 @@ class SDL_Pi_INA3221():
         lowbyte = data >> 8
         highbyte = (data & 0x00FF) << 8
         switchdata = lowbyte + highbyte
-        self._bus.write_word_data(self._addr, register, switchdata)
+        try:
+            self._bus.write_word_data(self._addr, register, switchdata)
+        except IOError as e:
+            print(f"I/O Error during write: {e}")
         # print "Write  16 bit Word addr =0x%x register = 0x%x data = 0x%x " % (self._addr, register, data)
 
     def _getBusVoltage_raw(self, channel):
