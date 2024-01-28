@@ -24,7 +24,7 @@ class FiloFifo:
         self.FILO = {}
         self.FIFO = {}
         self.REL_STATUS = {'inverter_relay': [], 'main_relay_status': [], 'status_check': []}
-        self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x40)
+        self.shunt_load = SDL_Pi_INA3221.SDL_Pi_INA3221(addr=0x30)
         self.load_names = {'tiger': TIGER_BAT_CHANNEL, 'leisure': LEISURE_BAT_CHANNEL, 'inverter': INVERT_CHANNEL}
         self._setup_buffers()
 
