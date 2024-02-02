@@ -1,12 +1,10 @@
+# -*- coding: utf-8 -*-
 import traceback
 from datetime import datetime
-
 import schedule as schedule
 from malina.solar_pond import SolarPond
-
 import logging
 import logging.handlers
-import os
 import time
 from pathlib import Path
 
