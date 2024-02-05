@@ -1,6 +1,8 @@
 #!/bin/bash
 
 SESSION_NAMES=("info" "debug" "error" "warning")
+VENV_PATH="/path/to/your/project/venv"
+ACTIVATE_SCRIPT="${VENV_PATH}/bin/activate"
 
 start_screen_session() {
     screen -S "$1" -d -m bash -c "tail --follow=name logs/$1.log"
@@ -12,6 +14,7 @@ start_python_script() {
         echo "Solar Pond App is running"
     else
         echo "The Service is stopped"
+        source "${ACTIVATE_SCRIPT}"  # Activate the virtual environment
         nohup python main.py >logs/run.log &
     fi
 }
