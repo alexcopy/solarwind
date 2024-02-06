@@ -211,7 +211,7 @@ class SolarPond():
             logging.error(f"ERROR: {e}")
 
     def send_temp_sensors(self):
-        temp_sensors = self.new_devices.get_devices_by_name("termo")
+        temp_sensors = self.new_devices.get_devices_by_device_type("termo")
         for sensor in temp_sensors:
             self.send_data.send_temp_sensor(sensor)
 
