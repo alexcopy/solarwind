@@ -209,6 +209,12 @@ class SolarPond():
             self.send_data.send_to_remote(url_path, payloads)
         except Exception as e:
             logging.error(f"ERROR: {e}")
+
+    def send_temp_sensors(self):
+        temp_sensors = self.new_devices.get_devices_by_name("termo")
+        for sensor in temp_sensors:
+            self.send_data.send_temp_sensor(sensor)
+
 # todo:
 #  add weather to table and advance in table pond self temp from future gauge
 #  add proper error handling for api calls

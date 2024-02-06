@@ -6,6 +6,7 @@ import time
 from urllib.parse import urljoin
 import concurrent.futures
 import requests
+from colorama import Fore, Style
 from dotenv import dotenv_values
 from malina.LIB.Device import Device
 
@@ -198,3 +199,31 @@ class SendApiData():
         except Exception as ex:
             logging.exception("Getting error in send_weather to remote API data")
             return {'errors': True, 'message': str(ex)}
+
+    def send_temp_sensor(self, device: Device):
+        temp_sensor = device.get_status()
+        try:
+            logging.debug(f"{Fore.LIGHTRED_EX} SENDING TEMP DATA to REMOTE {device.get_name()}  {Style.RESET_ALL}")
+            temp_sensor.update({
+                "description": device.get_desc,
+                'name': device.get_name(),
+                "pond_id": 1
+            })
+            logging.debug(f"Debugging:{json.dumps(temp_sensor)}")
+            payload = json.dumps(temp_sensor)
+
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            url = urljoin(self.api_url, 'watertemp/')
+            logging.debug(f"Debugging URL :{url}")
+            response = requests.request("POST", url, headers=headers, data=payload).json()
+            if response['errors']:
+                logging.error(response['payload'])
+                logging.error(response['errors_msg'])
+            return response
+        except Exception as ex:
+            logging.error(f"Getting error in send_pump_stats to remote API data {json.dumps(temp_sensor)}")
+            logging.error(ex)
+            time.sleep(10)
+            return {'errors': True}
