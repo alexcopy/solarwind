@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  solarwind:
+    image: redcopy/solarwind:latest
+    privileged: true
+    devices:
+      - "/dev/i2c-1"
+    volumes:
+      - /usr/local/solarsecrets:/app/data
+      - /usr/local/solarsecrets:/app/secrets

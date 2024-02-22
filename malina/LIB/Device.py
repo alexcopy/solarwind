@@ -21,10 +21,17 @@ class Device:
         self.extra = extra
         self.api_sw = api_sw
         self.voltage = bus_voltage
+        self.is_healthy = False
         self.time_last_switched = int(datetime.now().timestamp())
 
     def get_id(self):
         return self.id
+
+    def set_health(self, h_status: bool):
+        self.is_healthy = h_status
+
+    def is_healthy(self) -> bool:
+        return self.is_healthy
 
     @property
     def get_device_type(self):
@@ -119,7 +126,8 @@ class Device:
 
     def is_device_ready_to_switch_on(self, inverter_voltage):
         if bool(self.get_status('switch_1')):
-            logging.info(f"ready_to_switch_on: The {self.get_name()} is already ON: no actions status {bool(self.get_status(self.api_sw))}")
+            logging.info(
+                f"ready_to_switch_on: The {self.get_name()} is already ON: no actions status {bool(self.get_status(self.api_sw))}")
             return False
 
         if not self._check_time():
