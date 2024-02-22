@@ -7,5 +7,5 @@ services:
     devices:
       - "/dev/i2c-1"
     volumes:
-      - /mnt/secrets:/app/data
-      - /mnt/secrets:/app/secrets
+      - /usr/local/solarsecrets:/app/data
+      - /usr/local/solarsecrets:/app/secrets
