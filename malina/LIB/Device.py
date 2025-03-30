@@ -126,12 +126,21 @@ class Device:
         if "Power" in sw_status:
             sw_status.update({"switch_1": int(sw_status.get("Power"))})
         if "switch_1" not in sw_status and "switch" in sw_status:
-            sw_status.update({"switch_1": int(sw_status.get("switch")), "switch": int(sw_status.get("switch"))})
+            sw_status.update({"switch_1":  self.to_bool(sw_status.get("switch")), "switch": sw_status.get("switch")})
         extra_params = {
             'status': int(sw_status['switch_1']), 't': int(datetime.now().timestamp()), 'device_id': self.get_id(),
             'success': True}
         sw_status.update(extra_params)
         return sw_status
+
+    def to_bool(self, val):
+        if isinstance(val, bool):
+            return val
+        if isinstance(val, int):
+            return val == 1
+        if isinstance(val, str):
+            return val.strip().lower() in ["1", "true", "yes", "on"]
+        return False
 
     def is_device_ready_to_switch_on(self, inverter_voltage):
         if bool(self.get_status('switch_1')):
