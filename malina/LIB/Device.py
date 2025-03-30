@@ -90,9 +90,18 @@ class Device:
     def device_switched(self):
         self.time_last_switched = int(datetime.now().timestamp())
 
+    def to_bool(self, val):
+        if isinstance(val, bool):
+            return val
+        if isinstance(val, int):
+            return val == 1
+        if isinstance(val, str):
+            return val.strip().lower() in ["1", "true", "yes", "on"]
+        return False
+
     @property
     def is_device_on(self):
-        return bool(self.get_status(self.api_sw))
+        return to_bool(self.get_status(self.api_sw))
 
     def get_status(self, key=None):
         if key is None:
