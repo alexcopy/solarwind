@@ -129,7 +129,7 @@ class TuyaController():
             logging.error(f" General Exception with get statuses {str(e)}")
             logging.error(f" The Errored result is:  {str(log_devices)}")
 
-    def to_bool(val):
+    def to_bool(self, val):
         if isinstance(val, bool):
             return val
         if isinstance(val, int):
