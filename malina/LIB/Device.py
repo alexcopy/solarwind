@@ -101,7 +101,7 @@ class Device:
 
     @property
     def is_device_on(self):
-        return to_bool(self.get_status(self.api_sw))
+        return self.to_bool(self.get_status(self.api_sw))
 
     def get_status(self, key=None):
         if key is None:
