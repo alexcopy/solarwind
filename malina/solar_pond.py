@@ -41,7 +41,7 @@ class SolarPond():
         return float(round(sum(l, 0.0) / len(l), 2))
 
     def switch_to_solar_power(self):
-        inver = self.new_devices.get_devices_by_name("inverter")[0]
+        inver = int(to_bool(self.new_devices.get_devices_by_name("inverter")[0]))
         self.tuya_controller.switch_on_device(inver)
 
 
@@ -70,7 +70,7 @@ class SolarPond():
 
     def processing_reads(self):
         try:
-            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+            inv_status = int(to_bool(self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')))
             self.filo_fifo.buffers_run(inv_status)
             self.filo_fifo.update_rel_status({
                 'status_check': 1,
@@ -88,7 +88,7 @@ class SolarPond():
             logging.error("-----------------END--------------------")
 
     def show_logs(self):
-        inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+        inv_status = int(to_bool(self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')))
         pump_status = self.new_devices.get_devices_by_name("pump")[0].get_status('P')
         self.print_logs.printing_vars(self.filo_fifo, inv_status, pump_status, self.new_devices)
         self.power_devices_manager.print_all_devices_logs()
@@ -173,15 +173,24 @@ class SolarPond():
         self.tuya_controller.update_devices_status(devices)
 
     def send_stats_to_api(self):
-        inv_status = int(self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1'))
+        inv_status = int(to_bool(self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')))
         devices = self.new_devices.get_devices()
         for device in devices:
             self.send_data.send_load_stats(device, inv_status)
 
+    def to_bool(self, val):
+        if isinstance(val, bool):
+            return val
+        if isinstance(val, int):
+            return val == 1
+        if isinstance(val, str):
+            return val.strip().lower() in ["1", "true", "yes"]
+        return False
+
     def send_avg_data(self):
         payloads = []
         try:
-            inv_status = self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')
+            inv_status = int(to_bool(self.new_devices.get_devices_by_name("inverter")[0].get_status('switch_1')))
             buff = self.filo_fifo.filo_buff
             for v in buff:
                 buff_v_ = buff[v]

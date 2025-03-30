@@ -129,6 +129,16 @@ class TuyaController():
             logging.error(f" General Exception with get statuses {str(e)}")
             logging.error(f" The Errored result is:  {str(log_devices)}")
 
+    def to_bool(val):
+        if isinstance(val, bool):
+            return val
+        if isinstance(val, int):
+            return val == 1
+        if isinstance(val, str):
+            return val.strip().lower() in ["1", "true", "yes"]
+        return False
+
+
     def select_dev_by_id(self, devices, lookup_id):
         for device in devices:
             dev_id = device.get_id()
